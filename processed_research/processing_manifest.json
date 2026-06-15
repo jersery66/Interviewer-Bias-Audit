@@ -1,0 +1,80 @@
+{
+  "created_at": "2026-06-12T21:30:12",
+  "dataset_focus": "DAIC-WOZ original speaker-separated transcripts",
+  "output_dir": "F:\\数据库\\DAIC-WOZ\\processed_research",
+  "source_transcripts_dir": "F:\\数据库\\E-daic\\DAIC-WOZ_original_transcripts",
+  "source_labels_dir": "F:\\数据库\\E-daic\\labels",
+  "participants": {
+    "expected_count": 189,
+    "index_rows": 189,
+    "split_counts": {
+      "dev": 46,
+      "train": 143
+    },
+    "label_counts": {
+      "0": 147,
+      "1": 42
+    }
+  },
+  "turns": {
+    "rows": 47400,
+    "speaker_counts": {
+      "interviewer": 14999,
+      "participant": 32401
+    }
+  },
+  "conditions": {
+    "ready_rows": 756,
+    "condition_counts": {
+      "full_dialogue": 189,
+      "interviewer_cleaned": 189,
+      "interviewer_only": 189,
+      "participant_only": 189
+    },
+    "condition_nonempty_counts": {
+      "full_dialogue": 189,
+      "interviewer_cleaned": 186,
+      "interviewer_only": 186,
+      "participant_only": 189
+    },
+    "symptom_evidence_only": "pending_llm_extraction",
+    "question_answer_pair_rows": 10664
+  },
+  "quality_flags": {
+    "rows": 3,
+    "flag_counts": {
+      "no_interviewer_turns": 3
+    },
+    "flagged_participants": [
+      451,
+      458,
+      480
+    ]
+  },
+  "text_length_summaries": {
+    "participant_words": {
+      "min": 167,
+      "median": 1293,
+      "mean": 1471.19,
+      "max": 4611
+    },
+    "interviewer_words": {
+      "min": 0,
+      "median": 550,
+      "mean": 544.88,
+      "max": 853
+    },
+    "interviewer_cleaned_words": {
+      "min": 0,
+      "median": 503,
+      "mean": 499.57,
+      "max": 783
+    }
+  },
+  "interpretation": [
+    "This is the DAIC-WOZ research dataset requested by the original plan.",
+    "eDAIC is used only as the local source of labels and storage context; eDAIC ASR transcripts are not used to build conditions.",
+    "C1-C4 are ready. C5 symptom_evidence_only requires LLM evidence extraction from participant_for_evidence_extraction.jsonl.",
+    "DAIC-WOZ IDs 451, 458, and 480 have no interviewer turns in their original transcript and should be excluded from interviewer-only analyses."
+  ]
+}

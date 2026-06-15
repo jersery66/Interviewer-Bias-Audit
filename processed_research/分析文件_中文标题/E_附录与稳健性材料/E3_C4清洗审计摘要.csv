@@ -1,0 +1,2 @@
+﻿participants,participants_with_removed,removed_turns,retained_turns,removed_words,retained_words,mean_removed_turns,median_removed_turns,mean_turn_removal_ratio,mean_word_removal_ratio
+189,186,1384,13615,20107,82875,7.322751322751323,7.0,0.09378130838054329,0.1942077846805265

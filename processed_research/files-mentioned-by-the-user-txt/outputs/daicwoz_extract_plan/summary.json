@@ -1,0 +1,32 @@
+{
+  "expected": 189,
+  "already_extracted": 0,
+  "needs_extract": 189,
+  "problem_count": 0,
+  "compressed_total_gb": 85.72,
+  "uncompressed_total_gb": 123.28,
+  "uncompressed_needed_gb": 123.28,
+  "first_needs": [
+    300,
+    301,
+    302,
+    303,
+    304,
+    305,
+    306,
+    307,
+    308,
+    309,
+    310,
+    311,
+    312,
+    313,
+    314,
+    315,
+    316,
+    317,
+    318,
+    319
+  ],
+  "problems": []
+}

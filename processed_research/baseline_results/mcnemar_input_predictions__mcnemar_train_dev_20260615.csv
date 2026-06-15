@@ -1,0 +1,541 @@
+participant_id,split,label,phq_score,input_condition,model,pred_label,pred_score,correct,model_short
+300,dev,0,2,full_dialogue,tfidf_logistic_regression,0,0.4975370938804442,1,TF-IDF + LR balanced
+301,dev,0,3,full_dialogue,tfidf_logistic_regression,0,0.4537961480776451,1,TF-IDF + LR balanced
+306,dev,0,0,full_dialogue,tfidf_logistic_regression,0,0.488074710215755,1,TF-IDF + LR balanced
+317,dev,0,8,full_dialogue,tfidf_logistic_regression,1,0.5417153396538241,0,TF-IDF + LR balanced
+320,dev,0,11,full_dialogue,tfidf_logistic_regression,1,0.6189411710447986,0,TF-IDF + LR balanced
+321,dev,1,20,full_dialogue,tfidf_logistic_regression,1,0.6186603762917441,1,TF-IDF + LR balanced
+331,dev,0,8,full_dialogue,tfidf_logistic_regression,1,0.5333030715594916,0,TF-IDF + LR balanced
+334,dev,0,5,full_dialogue,tfidf_logistic_regression,0,0.478139291920272,1,TF-IDF + LR balanced
+336,dev,0,7,full_dialogue,tfidf_logistic_regression,0,0.4916601389848212,1,TF-IDF + LR balanced
+343,dev,0,9,full_dialogue,tfidf_logistic_regression,1,0.5873171286904177,0,TF-IDF + LR balanced
+344,dev,0,11,full_dialogue,tfidf_logistic_regression,0,0.4952329743310769,1,TF-IDF + LR balanced
+347,dev,1,16,full_dialogue,tfidf_logistic_regression,1,0.5544131244476608,1,TF-IDF + LR balanced
+350,dev,1,11,full_dialogue,tfidf_logistic_regression,1,0.5088461751861917,1,TF-IDF + LR balanced
+365,dev,1,12,full_dialogue,tfidf_logistic_regression,0,0.410396987087849,0,TF-IDF + LR balanced
+371,dev,0,9,full_dialogue,tfidf_logistic_regression,0,0.385976344511145,1,TF-IDF + LR balanced
+373,dev,0,9,full_dialogue,tfidf_logistic_regression,0,0.394312743052659,1,TF-IDF + LR balanced
+374,dev,0,2,full_dialogue,tfidf_logistic_regression,0,0.4023993419530153,1,TF-IDF + LR balanced
+381,dev,1,16,full_dialogue,tfidf_logistic_regression,0,0.4098580978829214,0,TF-IDF + LR balanced
+382,dev,0,0,full_dialogue,tfidf_logistic_regression,0,0.3205565956547118,1,TF-IDF + LR balanced
+388,dev,1,17,full_dialogue,tfidf_logistic_regression,0,0.3883381582157452,0,TF-IDF + LR balanced
+393,dev,0,2,full_dialogue,tfidf_logistic_regression,0,0.3407098407853383,1,TF-IDF + LR balanced
+401,dev,0,9,full_dialogue,tfidf_logistic_regression,0,0.3777826167572439,1,TF-IDF + LR balanced
+402,dev,1,11,full_dialogue,tfidf_logistic_regression,0,0.4230049738271095,0,TF-IDF + LR balanced
+408,dev,0,0,full_dialogue,tfidf_logistic_regression,0,0.3246217564523619,1,TF-IDF + LR balanced
+412,dev,1,12,full_dialogue,tfidf_logistic_regression,0,0.3471144489350234,0,TF-IDF + LR balanced
+415,dev,0,3,full_dialogue,tfidf_logistic_regression,0,0.3389163438834872,1,TF-IDF + LR balanced
+423,dev,0,0,full_dialogue,tfidf_logistic_regression,0,0.4301842023630315,1,TF-IDF + LR balanced
+425,dev,0,6,full_dialogue,tfidf_logistic_regression,0,0.418741634573074,1,TF-IDF + LR balanced
+431,dev,0,2,full_dialogue,tfidf_logistic_regression,0,0.3753392053477981,1,TF-IDF + LR balanced
+433,dev,0,10,full_dialogue,tfidf_logistic_regression,0,0.3676716785621726,1,TF-IDF + LR balanced
+435,dev,0,8,full_dialogue,tfidf_logistic_regression,0,0.454195593589952,1,TF-IDF + LR balanced
+437,dev,0,0,full_dialogue,tfidf_logistic_regression,0,0.3294823270056441,1,TF-IDF + LR balanced
+441,dev,1,18,full_dialogue,tfidf_logistic_regression,0,0.4526837802331784,0,TF-IDF + LR balanced
+442,dev,0,6,full_dialogue,tfidf_logistic_regression,0,0.391864370869472,1,TF-IDF + LR balanced
+448,dev,1,18,full_dialogue,tfidf_logistic_regression,0,0.4119320970179687,0,TF-IDF + LR balanced
+451,dev,0,4,full_dialogue,tfidf_logistic_regression,0,0.4054406025835683,1,TF-IDF + LR balanced
+454,dev,0,1,full_dialogue,tfidf_logistic_regression,0,0.3648151755998622,1,TF-IDF + LR balanced
+455,dev,0,1,full_dialogue,tfidf_logistic_regression,0,0.3351585333153459,1,TF-IDF + LR balanced
+465,dev,0,2,full_dialogue,tfidf_logistic_regression,0,0.3699034819082908,1,TF-IDF + LR balanced
+468,dev,0,4,full_dialogue,tfidf_logistic_regression,0,0.3474025894571699,1,TF-IDF + LR balanced
+473,dev,0,0,full_dialogue,tfidf_logistic_regression,0,0.3297647082885797,1,TF-IDF + LR balanced
+475,dev,0,6,full_dialogue,tfidf_logistic_regression,0,0.3188829919124278,1,TF-IDF + LR balanced
+479,dev,0,7,full_dialogue,tfidf_logistic_regression,0,0.3593829614817558,1,TF-IDF + LR balanced
+480,dev,0,1,full_dialogue,tfidf_logistic_regression,0,0.3916973289462999,1,TF-IDF + LR balanced
+484,dev,0,9,full_dialogue,tfidf_logistic_regression,0,0.4179270100377362,1,TF-IDF + LR balanced
+486,dev,0,4,full_dialogue,tfidf_logistic_regression,0,0.3515052500331808,1,TF-IDF + LR balanced
+300,dev,0,2,interviewer_cleaned,tfidf_logistic_regression,0,0.4508589225116421,1,TF-IDF + LR balanced
+301,dev,0,3,interviewer_cleaned,tfidf_logistic_regression,0,0.4871061261549385,1,TF-IDF + LR balanced
+306,dev,0,0,interviewer_cleaned,tfidf_logistic_regression,1,0.5548346138180745,0,TF-IDF + LR balanced
+317,dev,0,8,interviewer_cleaned,tfidf_logistic_regression,1,0.5651918621231666,0,TF-IDF + LR balanced
+320,dev,0,11,interviewer_cleaned,tfidf_logistic_regression,1,0.6979215011247295,0,TF-IDF + LR balanced
+321,dev,1,20,interviewer_cleaned,tfidf_logistic_regression,1,0.6877308129452595,1,TF-IDF + LR balanced
+331,dev,0,8,interviewer_cleaned,tfidf_logistic_regression,1,0.6110952638006281,0,TF-IDF + LR balanced
+334,dev,0,5,interviewer_cleaned,tfidf_logistic_regression,1,0.5620705700442081,0,TF-IDF + LR balanced
+336,dev,0,7,interviewer_cleaned,tfidf_logistic_regression,1,0.561852096581707,0,TF-IDF + LR balanced
+343,dev,0,9,interviewer_cleaned,tfidf_logistic_regression,1,0.6729132490497556,0,TF-IDF + LR balanced
+344,dev,0,11,interviewer_cleaned,tfidf_logistic_regression,1,0.5056516161001362,0,TF-IDF + LR balanced
+347,dev,1,16,interviewer_cleaned,tfidf_logistic_regression,1,0.6357732104915257,1,TF-IDF + LR balanced
+350,dev,1,11,interviewer_cleaned,tfidf_logistic_regression,1,0.5736160223240755,1,TF-IDF + LR balanced
+365,dev,1,12,interviewer_cleaned,tfidf_logistic_regression,1,0.5291687318404686,1,TF-IDF + LR balanced
+371,dev,0,9,interviewer_cleaned,tfidf_logistic_regression,0,0.4119835968652721,1,TF-IDF + LR balanced
+373,dev,0,9,interviewer_cleaned,tfidf_logistic_regression,0,0.3013195216894176,1,TF-IDF + LR balanced
+374,dev,0,2,interviewer_cleaned,tfidf_logistic_regression,0,0.3887213026426236,1,TF-IDF + LR balanced
+381,dev,1,16,interviewer_cleaned,tfidf_logistic_regression,0,0.3573233729432426,0,TF-IDF + LR balanced
+382,dev,0,0,interviewer_cleaned,tfidf_logistic_regression,0,0.2834110609927046,1,TF-IDF + LR balanced
+388,dev,1,17,interviewer_cleaned,tfidf_logistic_regression,0,0.397108764978842,0,TF-IDF + LR balanced
+393,dev,0,2,interviewer_cleaned,tfidf_logistic_regression,0,0.2844241884924034,1,TF-IDF + LR balanced
+401,dev,0,9,interviewer_cleaned,tfidf_logistic_regression,0,0.3543495467057481,1,TF-IDF + LR balanced
+402,dev,1,11,interviewer_cleaned,tfidf_logistic_regression,0,0.3446991795688866,0,TF-IDF + LR balanced
+408,dev,0,0,interviewer_cleaned,tfidf_logistic_regression,0,0.2038990983483319,1,TF-IDF + LR balanced
+412,dev,1,12,interviewer_cleaned,tfidf_logistic_regression,0,0.2995132378111231,0,TF-IDF + LR balanced
+415,dev,0,3,interviewer_cleaned,tfidf_logistic_regression,0,0.2309649826822318,1,TF-IDF + LR balanced
+423,dev,0,0,interviewer_cleaned,tfidf_logistic_regression,0,0.3434232519018367,1,TF-IDF + LR balanced
+425,dev,0,6,interviewer_cleaned,tfidf_logistic_regression,0,0.3539920353822557,1,TF-IDF + LR balanced
+431,dev,0,2,interviewer_cleaned,tfidf_logistic_regression,0,0.3944987581671509,1,TF-IDF + LR balanced
+433,dev,0,10,interviewer_cleaned,tfidf_logistic_regression,0,0.2642144980113297,1,TF-IDF + LR balanced
+435,dev,0,8,interviewer_cleaned,tfidf_logistic_regression,1,0.5040113560262023,0,TF-IDF + LR balanced
+437,dev,0,0,interviewer_cleaned,tfidf_logistic_regression,0,0.2451553186482562,1,TF-IDF + LR balanced
+441,dev,1,18,interviewer_cleaned,tfidf_logistic_regression,0,0.4462468379904009,0,TF-IDF + LR balanced
+442,dev,0,6,interviewer_cleaned,tfidf_logistic_regression,0,0.2863225776906165,1,TF-IDF + LR balanced
+448,dev,1,18,interviewer_cleaned,tfidf_logistic_regression,0,0.3228908429334215,0,TF-IDF + LR balanced
+454,dev,0,1,interviewer_cleaned,tfidf_logistic_regression,0,0.4251465859379893,1,TF-IDF + LR balanced
+455,dev,0,1,interviewer_cleaned,tfidf_logistic_regression,0,0.2119577232159217,1,TF-IDF + LR balanced
+465,dev,0,2,interviewer_cleaned,tfidf_logistic_regression,0,0.2592584700998609,1,TF-IDF + LR balanced
+468,dev,0,4,interviewer_cleaned,tfidf_logistic_regression,0,0.2089103020246391,1,TF-IDF + LR balanced
+473,dev,0,0,interviewer_cleaned,tfidf_logistic_regression,0,0.2617880442995705,1,TF-IDF + LR balanced
+475,dev,0,6,interviewer_cleaned,tfidf_logistic_regression,0,0.1967388002122779,1,TF-IDF + LR balanced
+479,dev,0,7,interviewer_cleaned,tfidf_logistic_regression,0,0.3117120539755101,1,TF-IDF + LR balanced
+484,dev,0,9,interviewer_cleaned,tfidf_logistic_regression,0,0.2765567212046979,1,TF-IDF + LR balanced
+486,dev,0,4,interviewer_cleaned,tfidf_logistic_regression,0,0.265186466164828,1,TF-IDF + LR balanced
+300,dev,0,2,interviewer_only,tfidf_logistic_regression,0,0.4139283272172308,1,TF-IDF + LR balanced
+301,dev,0,3,interviewer_only,tfidf_logistic_regression,0,0.4522619499097546,1,TF-IDF + LR balanced
+306,dev,0,0,interviewer_only,tfidf_logistic_regression,1,0.5531157063089986,0,TF-IDF + LR balanced
+317,dev,0,8,interviewer_only,tfidf_logistic_regression,1,0.6433939892808014,0,TF-IDF + LR balanced
+320,dev,0,11,interviewer_only,tfidf_logistic_regression,1,0.7299451722985851,0,TF-IDF + LR balanced
+321,dev,1,20,interviewer_only,tfidf_logistic_regression,1,0.744048476989075,1,TF-IDF + LR balanced
+331,dev,0,8,interviewer_only,tfidf_logistic_regression,1,0.6488133584741727,0,TF-IDF + LR balanced
+334,dev,0,5,interviewer_only,tfidf_logistic_regression,0,0.4864503429680146,1,TF-IDF + LR balanced
+336,dev,0,7,interviewer_only,tfidf_logistic_regression,0,0.4969385500433265,1,TF-IDF + LR balanced
+343,dev,0,9,interviewer_only,tfidf_logistic_regression,1,0.6730828020604637,0,TF-IDF + LR balanced
+344,dev,0,11,interviewer_only,tfidf_logistic_regression,1,0.5789393566912923,0,TF-IDF + LR balanced
+347,dev,1,16,interviewer_only,tfidf_logistic_regression,1,0.5650029996411529,1,TF-IDF + LR balanced
+350,dev,1,11,interviewer_only,tfidf_logistic_regression,1,0.5967828219920631,1,TF-IDF + LR balanced
+365,dev,1,12,interviewer_only,tfidf_logistic_regression,0,0.468401981456344,0,TF-IDF + LR balanced
+371,dev,0,9,interviewer_only,tfidf_logistic_regression,0,0.3469411640029981,1,TF-IDF + LR balanced
+373,dev,0,9,interviewer_only,tfidf_logistic_regression,0,0.3604577509667399,1,TF-IDF + LR balanced
+374,dev,0,2,interviewer_only,tfidf_logistic_regression,1,0.5266988122316887,0,TF-IDF + LR balanced
+381,dev,1,16,interviewer_only,tfidf_logistic_regression,0,0.4300789442589965,0,TF-IDF + LR balanced
+382,dev,0,0,interviewer_only,tfidf_logistic_regression,0,0.2550739352704321,1,TF-IDF + LR balanced
+388,dev,1,17,interviewer_only,tfidf_logistic_regression,0,0.3466784184076824,0,TF-IDF + LR balanced
+393,dev,0,2,interviewer_only,tfidf_logistic_regression,0,0.2498789037164787,1,TF-IDF + LR balanced
+401,dev,0,9,interviewer_only,tfidf_logistic_regression,0,0.2967783449296866,1,TF-IDF + LR balanced
+402,dev,1,11,interviewer_only,tfidf_logistic_regression,0,0.4216818100821153,0,TF-IDF + LR balanced
+408,dev,0,0,interviewer_only,tfidf_logistic_regression,0,0.1994158722564776,1,TF-IDF + LR balanced
+412,dev,1,12,interviewer_only,tfidf_logistic_regression,0,0.2553305274213642,0,TF-IDF + LR balanced
+415,dev,0,3,interviewer_only,tfidf_logistic_regression,0,0.2029852733790663,1,TF-IDF + LR balanced
+423,dev,0,0,interviewer_only,tfidf_logistic_regression,0,0.398554779670094,1,TF-IDF + LR balanced
+425,dev,0,6,interviewer_only,tfidf_logistic_regression,0,0.4907476145006298,1,TF-IDF + LR balanced
+431,dev,0,2,interviewer_only,tfidf_logistic_regression,0,0.325909652410018,1,TF-IDF + LR balanced
+433,dev,0,10,interviewer_only,tfidf_logistic_regression,0,0.2349364053107424,1,TF-IDF + LR balanced
+435,dev,0,8,interviewer_only,tfidf_logistic_regression,1,0.580610759427942,0,TF-IDF + LR balanced
+437,dev,0,0,interviewer_only,tfidf_logistic_regression,0,0.2129538251426014,1,TF-IDF + LR balanced
+441,dev,1,18,interviewer_only,tfidf_logistic_regression,1,0.5184432470623364,1,TF-IDF + LR balanced
+442,dev,0,6,interviewer_only,tfidf_logistic_regression,0,0.3618118010860811,1,TF-IDF + LR balanced
+448,dev,1,18,interviewer_only,tfidf_logistic_regression,0,0.4180531465564258,0,TF-IDF + LR balanced
+454,dev,0,1,interviewer_only,tfidf_logistic_regression,0,0.3597920253961535,1,TF-IDF + LR balanced
+455,dev,0,1,interviewer_only,tfidf_logistic_regression,0,0.1889871240506134,1,TF-IDF + LR balanced
+465,dev,0,2,interviewer_only,tfidf_logistic_regression,0,0.2313433115918593,1,TF-IDF + LR balanced
+468,dev,0,4,interviewer_only,tfidf_logistic_regression,0,0.1820193060288892,1,TF-IDF + LR balanced
+473,dev,0,0,interviewer_only,tfidf_logistic_regression,0,0.2339156786490978,1,TF-IDF + LR balanced
+475,dev,0,6,interviewer_only,tfidf_logistic_regression,0,0.1876280478315714,1,TF-IDF + LR balanced
+479,dev,0,7,interviewer_only,tfidf_logistic_regression,0,0.2670203489930742,1,TF-IDF + LR balanced
+484,dev,0,9,interviewer_only,tfidf_logistic_regression,0,0.4137084641495045,1,TF-IDF + LR balanced
+486,dev,0,4,interviewer_only,tfidf_logistic_regression,0,0.2197417820442688,1,TF-IDF + LR balanced
+300,dev,0,2,participant_only,tfidf_logistic_regression,0,0.436117189593401,1,TF-IDF + LR balanced
+301,dev,0,3,participant_only,tfidf_logistic_regression,0,0.4330320654387373,1,TF-IDF + LR balanced
+306,dev,0,0,participant_only,tfidf_logistic_regression,0,0.4268582958409762,1,TF-IDF + LR balanced
+317,dev,0,8,participant_only,tfidf_logistic_regression,0,0.4387360483864538,1,TF-IDF + LR balanced
+320,dev,0,11,participant_only,tfidf_logistic_regression,0,0.4696491373491281,1,TF-IDF + LR balanced
+321,dev,1,20,participant_only,tfidf_logistic_regression,0,0.4884423694861687,0,TF-IDF + LR balanced
+331,dev,0,8,participant_only,tfidf_logistic_regression,0,0.4608592933697713,1,TF-IDF + LR balanced
+334,dev,0,5,participant_only,tfidf_logistic_regression,0,0.4420533898986823,1,TF-IDF + LR balanced
+336,dev,0,7,participant_only,tfidf_logistic_regression,0,0.4437586356932512,1,TF-IDF + LR balanced
+343,dev,0,9,participant_only,tfidf_logistic_regression,0,0.4579707643288269,1,TF-IDF + LR balanced
+344,dev,0,11,participant_only,tfidf_logistic_regression,0,0.4475883588917069,1,TF-IDF + LR balanced
+347,dev,1,16,participant_only,tfidf_logistic_regression,0,0.4697709150627456,0,TF-IDF + LR balanced
+350,dev,1,11,participant_only,tfidf_logistic_regression,0,0.436843432486064,0,TF-IDF + LR balanced
+365,dev,1,12,participant_only,tfidf_logistic_regression,0,0.41921864977345,0,TF-IDF + LR balanced
+371,dev,0,9,participant_only,tfidf_logistic_regression,0,0.4206008394495625,1,TF-IDF + LR balanced
+373,dev,0,9,participant_only,tfidf_logistic_regression,0,0.4220272066488063,1,TF-IDF + LR balanced
+374,dev,0,2,participant_only,tfidf_logistic_regression,0,0.3936469699649457,1,TF-IDF + LR balanced
+381,dev,1,16,participant_only,tfidf_logistic_regression,0,0.4203511413087816,0,TF-IDF + LR balanced
+382,dev,0,0,participant_only,tfidf_logistic_regression,0,0.3776054357639958,1,TF-IDF + LR balanced
+388,dev,1,17,participant_only,tfidf_logistic_regression,0,0.4393819621257038,0,TF-IDF + LR balanced
+393,dev,0,2,participant_only,tfidf_logistic_regression,0,0.4016981400399582,1,TF-IDF + LR balanced
+401,dev,0,9,participant_only,tfidf_logistic_regression,0,0.4298397894011244,1,TF-IDF + LR balanced
+402,dev,1,11,participant_only,tfidf_logistic_regression,0,0.4495655218605014,0,TF-IDF + LR balanced
+408,dev,0,0,participant_only,tfidf_logistic_regression,0,0.4009341784946151,1,TF-IDF + LR balanced
+412,dev,1,12,participant_only,tfidf_logistic_regression,0,0.4110462362167211,0,TF-IDF + LR balanced
+415,dev,0,3,participant_only,tfidf_logistic_regression,0,0.4165044074797927,1,TF-IDF + LR balanced
+423,dev,0,0,participant_only,tfidf_logistic_regression,0,0.455463693450421,1,TF-IDF + LR balanced
+425,dev,0,6,participant_only,tfidf_logistic_regression,0,0.4210169853755181,1,TF-IDF + LR balanced
+431,dev,0,2,participant_only,tfidf_logistic_regression,0,0.4150325613800671,1,TF-IDF + LR balanced
+433,dev,0,10,participant_only,tfidf_logistic_regression,0,0.4547753467396955,1,TF-IDF + LR balanced
+435,dev,0,8,participant_only,tfidf_logistic_regression,0,0.4391006501649026,1,TF-IDF + LR balanced
+437,dev,0,0,participant_only,tfidf_logistic_regression,0,0.3939863539404308,1,TF-IDF + LR balanced
+441,dev,1,18,participant_only,tfidf_logistic_regression,0,0.4452409761617253,0,TF-IDF + LR balanced
+442,dev,0,6,participant_only,tfidf_logistic_regression,0,0.414426529139034,1,TF-IDF + LR balanced
+448,dev,1,18,participant_only,tfidf_logistic_regression,0,0.4229955418563454,0,TF-IDF + LR balanced
+451,dev,0,4,participant_only,tfidf_logistic_regression,0,0.4014591310237259,1,TF-IDF + LR balanced
+454,dev,0,1,participant_only,tfidf_logistic_regression,0,0.4138891485629888,1,TF-IDF + LR balanced
+455,dev,0,1,participant_only,tfidf_logistic_regression,0,0.4034230394556961,1,TF-IDF + LR balanced
+465,dev,0,2,participant_only,tfidf_logistic_regression,0,0.4128850402059967,1,TF-IDF + LR balanced
+468,dev,0,4,participant_only,tfidf_logistic_regression,0,0.4141861031275158,1,TF-IDF + LR balanced
+473,dev,0,0,participant_only,tfidf_logistic_regression,0,0.4382563489169486,1,TF-IDF + LR balanced
+475,dev,0,6,participant_only,tfidf_logistic_regression,0,0.4109738468592924,1,TF-IDF + LR balanced
+479,dev,0,7,participant_only,tfidf_logistic_regression,0,0.4323419873844406,1,TF-IDF + LR balanced
+480,dev,0,1,participant_only,tfidf_logistic_regression,0,0.3939397264892751,1,TF-IDF + LR balanced
+484,dev,0,9,participant_only,tfidf_logistic_regression,0,0.4381892495376835,1,TF-IDF + LR balanced
+486,dev,0,4,participant_only,tfidf_logistic_regression,0,0.4305530868614831,1,TF-IDF + LR balanced
+300,dev,0,2,full_dialogue,tfidf_linear_svm,0,-0.2377641774647816,1,TF-IDF + Linear SVM balanced
+301,dev,0,3,full_dialogue,tfidf_linear_svm,0,-0.3706449092363883,1,TF-IDF + Linear SVM balanced
+306,dev,0,0,full_dialogue,tfidf_linear_svm,0,-0.2318520261875748,1,TF-IDF + Linear SVM balanced
+317,dev,0,8,full_dialogue,tfidf_linear_svm,0,-0.0131011539997829,1,TF-IDF + Linear SVM balanced
+320,dev,0,11,full_dialogue,tfidf_linear_svm,1,0.3848616676467739,0,TF-IDF + Linear SVM balanced
+321,dev,1,20,full_dialogue,tfidf_linear_svm,1,0.401127157446194,1,TF-IDF + Linear SVM balanced
+331,dev,0,8,full_dialogue,tfidf_linear_svm,0,-0.0084542094648807,1,TF-IDF + Linear SVM balanced
+334,dev,0,5,full_dialogue,tfidf_linear_svm,0,-0.2848902906322216,1,TF-IDF + Linear SVM balanced
+336,dev,0,7,full_dialogue,tfidf_linear_svm,0,-0.2205896475660474,1,TF-IDF + Linear SVM balanced
+343,dev,0,9,full_dialogue,tfidf_linear_svm,1,0.2218706665761474,0,TF-IDF + Linear SVM balanced
+344,dev,0,11,full_dialogue,tfidf_linear_svm,0,-0.1803432818580168,1,TF-IDF + Linear SVM balanced
+347,dev,1,16,full_dialogue,tfidf_linear_svm,1,0.042035284170559,1,TF-IDF + Linear SVM balanced
+350,dev,1,11,full_dialogue,tfidf_linear_svm,0,-0.1182338882854879,0,TF-IDF + Linear SVM balanced
+365,dev,1,12,full_dialogue,tfidf_linear_svm,0,-0.4082419125023063,0,TF-IDF + Linear SVM balanced
+371,dev,0,9,full_dialogue,tfidf_linear_svm,0,-0.4994073615465548,1,TF-IDF + Linear SVM balanced
+373,dev,0,9,full_dialogue,tfidf_linear_svm,0,-0.509275979667861,1,TF-IDF + Linear SVM balanced
+374,dev,0,2,full_dialogue,tfidf_linear_svm,0,-0.4506644436127253,1,TF-IDF + Linear SVM balanced
+381,dev,1,16,full_dialogue,tfidf_linear_svm,0,-0.4091710759792608,0,TF-IDF + Linear SVM balanced
+382,dev,0,0,full_dialogue,tfidf_linear_svm,0,-0.8682049951786999,1,TF-IDF + Linear SVM balanced
+388,dev,1,17,full_dialogue,tfidf_linear_svm,0,-0.4870761484155888,0,TF-IDF + Linear SVM balanced
+393,dev,0,2,full_dialogue,tfidf_linear_svm,0,-0.7462666550585875,1,TF-IDF + Linear SVM balanced
+401,dev,0,9,full_dialogue,tfidf_linear_svm,0,-0.5069092598203537,1,TF-IDF + Linear SVM balanced
+402,dev,1,11,full_dialogue,tfidf_linear_svm,0,-0.3286013197447933,0,TF-IDF + Linear SVM balanced
+408,dev,0,0,full_dialogue,tfidf_linear_svm,0,-0.8556791522286396,1,TF-IDF + Linear SVM balanced
+412,dev,1,12,full_dialogue,tfidf_linear_svm,0,-0.7211206341567097,0,TF-IDF + Linear SVM balanced
+415,dev,0,3,full_dialogue,tfidf_linear_svm,0,-0.7573257977234562,1,TF-IDF + Linear SVM balanced
+423,dev,0,0,full_dialogue,tfidf_linear_svm,0,-0.2501526632569953,1,TF-IDF + Linear SVM balanced
+425,dev,0,6,full_dialogue,tfidf_linear_svm,0,-0.3904633759085997,1,TF-IDF + Linear SVM balanced
+431,dev,0,2,full_dialogue,tfidf_linear_svm,0,-0.5810027784580512,1,TF-IDF + Linear SVM balanced
+433,dev,0,10,full_dialogue,tfidf_linear_svm,0,-0.5977325375159476,1,TF-IDF + Linear SVM balanced
+435,dev,0,8,full_dialogue,tfidf_linear_svm,0,-0.2081469455841135,1,TF-IDF + Linear SVM balanced
+437,dev,0,0,full_dialogue,tfidf_linear_svm,0,-0.8335727747076633,1,TF-IDF + Linear SVM balanced
+441,dev,1,18,full_dialogue,tfidf_linear_svm,0,-0.2001583946043643,0,TF-IDF + Linear SVM balanced
+442,dev,0,6,full_dialogue,tfidf_linear_svm,0,-0.5054750916311392,1,TF-IDF + Linear SVM balanced
+448,dev,1,18,full_dialogue,tfidf_linear_svm,0,-0.4341310648543316,0,TF-IDF + Linear SVM balanced
+451,dev,0,4,full_dialogue,tfidf_linear_svm,0,-0.5129688458638242,1,TF-IDF + Linear SVM balanced
+454,dev,0,1,full_dialogue,tfidf_linear_svm,0,-0.6273779152110209,1,TF-IDF + Linear SVM balanced
+455,dev,0,1,full_dialogue,tfidf_linear_svm,0,-0.8158823554835262,1,TF-IDF + Linear SVM balanced
+465,dev,0,2,full_dialogue,tfidf_linear_svm,0,-0.5851382989722971,1,TF-IDF + Linear SVM balanced
+468,dev,0,4,full_dialogue,tfidf_linear_svm,0,-0.7407899755364393,1,TF-IDF + Linear SVM balanced
+473,dev,0,0,full_dialogue,tfidf_linear_svm,0,-0.7747018749590133,1,TF-IDF + Linear SVM balanced
+475,dev,0,6,full_dialogue,tfidf_linear_svm,0,-0.9029933823422552,1,TF-IDF + Linear SVM balanced
+479,dev,0,7,full_dialogue,tfidf_linear_svm,0,-0.6359801547553461,1,TF-IDF + Linear SVM balanced
+480,dev,0,1,full_dialogue,tfidf_linear_svm,0,-0.5902326882715618,1,TF-IDF + Linear SVM balanced
+484,dev,0,9,full_dialogue,tfidf_linear_svm,0,-0.3657813889350934,1,TF-IDF + Linear SVM balanced
+486,dev,0,4,full_dialogue,tfidf_linear_svm,0,-0.6841225656557167,1,TF-IDF + Linear SVM balanced
+300,dev,0,2,interviewer_cleaned,tfidf_linear_svm,0,-0.6525989944855377,1,TF-IDF + Linear SVM balanced
+301,dev,0,3,interviewer_cleaned,tfidf_linear_svm,0,-0.5291415247191029,1,TF-IDF + Linear SVM balanced
+306,dev,0,0,interviewer_cleaned,tfidf_linear_svm,0,-0.1853966927367972,1,TF-IDF + Linear SVM balanced
+317,dev,0,8,interviewer_cleaned,tfidf_linear_svm,0,-0.1893195352755156,1,TF-IDF + Linear SVM balanced
+320,dev,0,11,interviewer_cleaned,tfidf_linear_svm,1,0.5782980440055621,0,TF-IDF + Linear SVM balanced
+321,dev,1,20,interviewer_cleaned,tfidf_linear_svm,1,0.3548854232359063,1,TF-IDF + Linear SVM balanced
+331,dev,0,8,interviewer_cleaned,tfidf_linear_svm,1,0.0345100256973658,0,TF-IDF + Linear SVM balanced
+334,dev,0,5,interviewer_cleaned,tfidf_linear_svm,0,-0.1541661858479966,1,TF-IDF + Linear SVM balanced
+336,dev,0,7,interviewer_cleaned,tfidf_linear_svm,0,-0.0915219188175207,1,TF-IDF + Linear SVM balanced
+343,dev,0,9,interviewer_cleaned,tfidf_linear_svm,1,0.3178631304402018,0,TF-IDF + Linear SVM balanced
+344,dev,0,11,interviewer_cleaned,tfidf_linear_svm,0,-0.4606587207736684,1,TF-IDF + Linear SVM balanced
+347,dev,1,16,interviewer_cleaned,tfidf_linear_svm,1,0.1235016181254901,1,TF-IDF + Linear SVM balanced
+350,dev,1,11,interviewer_cleaned,tfidf_linear_svm,0,-0.1249664954409755,0,TF-IDF + Linear SVM balanced
+365,dev,1,12,interviewer_cleaned,tfidf_linear_svm,1,0.1355011205581996,1,TF-IDF + Linear SVM balanced
+371,dev,0,9,interviewer_cleaned,tfidf_linear_svm,0,-0.1315136750994682,1,TF-IDF + Linear SVM balanced
+373,dev,0,9,interviewer_cleaned,tfidf_linear_svm,0,-0.7078045871696095,1,TF-IDF + Linear SVM balanced
+374,dev,0,2,interviewer_cleaned,tfidf_linear_svm,0,-0.3509679682930755,1,TF-IDF + Linear SVM balanced
+381,dev,1,16,interviewer_cleaned,tfidf_linear_svm,0,-0.3762389214879683,0,TF-IDF + Linear SVM balanced
+382,dev,0,0,interviewer_cleaned,tfidf_linear_svm,0,-0.7976163048968019,1,TF-IDF + Linear SVM balanced
+388,dev,1,17,interviewer_cleaned,tfidf_linear_svm,0,-0.3821771906514555,0,TF-IDF + Linear SVM balanced
+393,dev,0,2,interviewer_cleaned,tfidf_linear_svm,0,-0.77340404812195,1,TF-IDF + Linear SVM balanced
+401,dev,0,9,interviewer_cleaned,tfidf_linear_svm,0,-0.3756667744526954,1,TF-IDF + Linear SVM balanced
+402,dev,1,11,interviewer_cleaned,tfidf_linear_svm,0,-0.5176941304481122,0,TF-IDF + Linear SVM balanced
+408,dev,0,0,interviewer_cleaned,tfidf_linear_svm,0,-1.37637873490642,1,TF-IDF + Linear SVM balanced
+412,dev,1,12,interviewer_cleaned,tfidf_linear_svm,0,-0.7290313683117507,0,TF-IDF + Linear SVM balanced
+415,dev,0,3,interviewer_cleaned,tfidf_linear_svm,0,-1.1078720222755725,1,TF-IDF + Linear SVM balanced
+423,dev,0,0,interviewer_cleaned,tfidf_linear_svm,0,-0.4437940346110779,1,TF-IDF + Linear SVM balanced
+425,dev,0,6,interviewer_cleaned,tfidf_linear_svm,0,-0.6312284409790013,1,TF-IDF + Linear SVM balanced
+431,dev,0,2,interviewer_cleaned,tfidf_linear_svm,0,-0.286028528152208,1,TF-IDF + Linear SVM balanced
+433,dev,0,10,interviewer_cleaned,tfidf_linear_svm,0,-0.950379642395133,1,TF-IDF + Linear SVM balanced
+435,dev,0,8,interviewer_cleaned,tfidf_linear_svm,1,0.1753683833785859,0,TF-IDF + Linear SVM balanced
+437,dev,0,0,interviewer_cleaned,tfidf_linear_svm,0,-0.9066554722564872,1,TF-IDF + Linear SVM balanced
+441,dev,1,18,interviewer_cleaned,tfidf_linear_svm,0,-0.1215997499049204,0,TF-IDF + Linear SVM balanced
+442,dev,0,6,interviewer_cleaned,tfidf_linear_svm,0,-0.800906138536994,1,TF-IDF + Linear SVM balanced
+448,dev,1,18,interviewer_cleaned,tfidf_linear_svm,0,-0.6576321137198871,0,TF-IDF + Linear SVM balanced
+454,dev,0,1,interviewer_cleaned,tfidf_linear_svm,0,-0.0928156558610622,1,TF-IDF + Linear SVM balanced
+455,dev,0,1,interviewer_cleaned,tfidf_linear_svm,0,-1.2961281679640249,1,TF-IDF + Linear SVM balanced
+465,dev,0,2,interviewer_cleaned,tfidf_linear_svm,0,-0.9771173361555944,1,TF-IDF + Linear SVM balanced
+468,dev,0,4,interviewer_cleaned,tfidf_linear_svm,0,-1.2352600727311325,1,TF-IDF + Linear SVM balanced
+473,dev,0,0,interviewer_cleaned,tfidf_linear_svm,0,-0.942624549237962,1,TF-IDF + Linear SVM balanced
+475,dev,0,6,interviewer_cleaned,tfidf_linear_svm,0,-1.3756562339266578,1,TF-IDF + Linear SVM balanced
+479,dev,0,7,interviewer_cleaned,tfidf_linear_svm,0,-0.6922864517498164,1,TF-IDF + Linear SVM balanced
+484,dev,0,9,interviewer_cleaned,tfidf_linear_svm,0,-0.8608758543923537,1,TF-IDF + Linear SVM balanced
+486,dev,0,4,interviewer_cleaned,tfidf_linear_svm,0,-0.8340150578833871,1,TF-IDF + Linear SVM balanced
+300,dev,0,2,interviewer_only,tfidf_linear_svm,0,-0.6592289936575688,1,TF-IDF + Linear SVM balanced
+301,dev,0,3,interviewer_only,tfidf_linear_svm,0,-0.5700310109032588,1,TF-IDF + Linear SVM balanced
+306,dev,0,0,interviewer_only,tfidf_linear_svm,0,-0.2030073797002286,1,TF-IDF + Linear SVM balanced
+317,dev,0,8,interviewer_only,tfidf_linear_svm,1,0.1549207589669722,0,TF-IDF + Linear SVM balanced
+320,dev,0,11,interviewer_only,tfidf_linear_svm,1,0.5872571959005672,0,TF-IDF + Linear SVM balanced
+321,dev,1,20,interviewer_only,tfidf_linear_svm,1,0.5542691062554004,1,TF-IDF + Linear SVM balanced
+331,dev,0,8,interviewer_only,tfidf_linear_svm,1,0.126520946271692,0,TF-IDF + Linear SVM balanced
+334,dev,0,5,interviewer_only,tfidf_linear_svm,0,-0.3946288083744043,1,TF-IDF + Linear SVM balanced
+336,dev,0,7,interviewer_only,tfidf_linear_svm,0,-0.2668033048308649,1,TF-IDF + Linear SVM balanced
+343,dev,0,9,interviewer_only,tfidf_linear_svm,1,0.3696857637902452,0,TF-IDF + Linear SVM balanced
+344,dev,0,11,interviewer_only,tfidf_linear_svm,0,-0.1399985406693961,1,TF-IDF + Linear SVM balanced
+347,dev,1,16,interviewer_only,tfidf_linear_svm,0,-0.0396948503622627,0,TF-IDF + Linear SVM balanced
+350,dev,1,11,interviewer_only,tfidf_linear_svm,0,-0.0570884163446984,0,TF-IDF + Linear SVM balanced
+365,dev,1,12,interviewer_only,tfidf_linear_svm,1,0.0289165899492446,1,TF-IDF + Linear SVM balanced
+371,dev,0,9,interviewer_only,tfidf_linear_svm,0,-0.4356640168101539,1,TF-IDF + Linear SVM balanced
+373,dev,0,9,interviewer_only,tfidf_linear_svm,0,-0.4508361459403716,1,TF-IDF + Linear SVM balanced
+374,dev,0,2,interviewer_only,tfidf_linear_svm,1,0.0562402243844078,0,TF-IDF + Linear SVM balanced
+381,dev,1,16,interviewer_only,tfidf_linear_svm,0,-0.1100547968354217,0,TF-IDF + Linear SVM balanced
+382,dev,0,0,interviewer_only,tfidf_linear_svm,0,-0.8334489331573343,1,TF-IDF + Linear SVM balanced
+388,dev,1,17,interviewer_only,tfidf_linear_svm,0,-0.4936895850026179,0,TF-IDF + Linear SVM balanced
+393,dev,0,2,interviewer_only,tfidf_linear_svm,0,-0.8465067575426448,1,TF-IDF + Linear SVM balanced
+401,dev,0,9,interviewer_only,tfidf_linear_svm,0,-0.5545168555149006,1,TF-IDF + Linear SVM balanced
+402,dev,1,11,interviewer_only,tfidf_linear_svm,0,-0.1781245283411449,0,TF-IDF + Linear SVM balanced
+408,dev,0,0,interviewer_only,tfidf_linear_svm,0,-1.2423505993044897,1,TF-IDF + Linear SVM balanced
+412,dev,1,12,interviewer_only,tfidf_linear_svm,0,-0.8418185508497955,0,TF-IDF + Linear SVM balanced
+415,dev,0,3,interviewer_only,tfidf_linear_svm,0,-1.1134636173474717,1,TF-IDF + Linear SVM balanced
+423,dev,0,0,interviewer_only,tfidf_linear_svm,0,-0.2060841235865909,1,TF-IDF + Linear SVM balanced
+425,dev,0,6,interviewer_only,tfidf_linear_svm,0,-0.1369743450168026,1,TF-IDF + Linear SVM balanced
+431,dev,0,2,interviewer_only,tfidf_linear_svm,0,-0.5146917252577106,1,TF-IDF + Linear SVM balanced
+433,dev,0,10,interviewer_only,tfidf_linear_svm,0,-0.9865654373193188,1,TF-IDF + Linear SVM balanced
+435,dev,0,8,interviewer_only,tfidf_linear_svm,1,0.3495346761978281,0,TF-IDF + Linear SVM balanced
+437,dev,0,0,interviewer_only,tfidf_linear_svm,0,-1.0226139587355587,1,TF-IDF + Linear SVM balanced
+441,dev,1,18,interviewer_only,tfidf_linear_svm,1,0.0513757925697418,1,TF-IDF + Linear SVM balanced
+442,dev,0,6,interviewer_only,tfidf_linear_svm,0,-0.4767827004239028,1,TF-IDF + Linear SVM balanced
+448,dev,1,18,interviewer_only,tfidf_linear_svm,0,-0.2647195822136605,0,TF-IDF + Linear SVM balanced
+454,dev,0,1,interviewer_only,tfidf_linear_svm,0,-0.3053013348430416,1,TF-IDF + Linear SVM balanced
+455,dev,0,1,interviewer_only,tfidf_linear_svm,0,-1.3121113485865692,1,TF-IDF + Linear SVM balanced
+465,dev,0,2,interviewer_only,tfidf_linear_svm,0,-1.002655291402858,1,TF-IDF + Linear SVM balanced
+468,dev,0,4,interviewer_only,tfidf_linear_svm,0,-1.307007886721398,1,TF-IDF + Linear SVM balanced
+473,dev,0,0,interviewer_only,tfidf_linear_svm,0,-1.0044573345454402,1,TF-IDF + Linear SVM balanced
+475,dev,0,6,interviewer_only,tfidf_linear_svm,0,-1.2693091961735037,1,TF-IDF + Linear SVM balanced
+479,dev,0,7,interviewer_only,tfidf_linear_svm,0,-0.8218561397128428,1,TF-IDF + Linear SVM balanced
+484,dev,0,9,interviewer_only,tfidf_linear_svm,0,-0.3678318976514136,1,TF-IDF + Linear SVM balanced
+486,dev,0,4,interviewer_only,tfidf_linear_svm,0,-1.014630121656594,1,TF-IDF + Linear SVM balanced
+300,dev,0,2,participant_only,tfidf_linear_svm,0,-0.3893513230415857,1,TF-IDF + Linear SVM balanced
+301,dev,0,3,participant_only,tfidf_linear_svm,0,-0.3802743297744052,1,TF-IDF + Linear SVM balanced
+306,dev,0,0,participant_only,tfidf_linear_svm,0,-0.4097918551616993,1,TF-IDF + Linear SVM balanced
+317,dev,0,8,participant_only,tfidf_linear_svm,0,-0.3690970646408499,1,TF-IDF + Linear SVM balanced
+320,dev,0,11,participant_only,tfidf_linear_svm,0,-0.2035085045275106,1,TF-IDF + Linear SVM balanced
+321,dev,1,20,participant_only,tfidf_linear_svm,0,-0.0974353301871154,0,TF-IDF + Linear SVM balanced
+331,dev,0,8,participant_only,tfidf_linear_svm,0,-0.2346856552981313,1,TF-IDF + Linear SVM balanced
+334,dev,0,5,participant_only,tfidf_linear_svm,0,-0.3491040296769351,1,TF-IDF + Linear SVM balanced
+336,dev,0,7,participant_only,tfidf_linear_svm,0,-0.3337237151632504,1,TF-IDF + Linear SVM balanced
+343,dev,0,9,participant_only,tfidf_linear_svm,0,-0.2545053828518245,1,TF-IDF + Linear SVM balanced
+344,dev,0,11,participant_only,tfidf_linear_svm,0,-0.313485955631786,1,TF-IDF + Linear SVM balanced
+347,dev,1,16,participant_only,tfidf_linear_svm,0,-0.1988920265371017,0,TF-IDF + Linear SVM balanced
+350,dev,1,11,participant_only,tfidf_linear_svm,0,-0.3601506193144276,0,TF-IDF + Linear SVM balanced
+365,dev,1,12,participant_only,tfidf_linear_svm,0,-0.4602812470196498,0,TF-IDF + Linear SVM balanced
+371,dev,0,9,participant_only,tfidf_linear_svm,0,-0.4599176857247771,1,TF-IDF + Linear SVM balanced
+373,dev,0,9,participant_only,tfidf_linear_svm,0,-0.4223324589484876,1,TF-IDF + Linear SVM balanced
+374,dev,0,2,participant_only,tfidf_linear_svm,0,-0.5894132260843102,1,TF-IDF + Linear SVM balanced
+381,dev,1,16,participant_only,tfidf_linear_svm,0,-0.4454612792366313,0,TF-IDF + Linear SVM balanced
+382,dev,0,0,participant_only,tfidf_linear_svm,0,-0.7011129864609125,1,TF-IDF + Linear SVM balanced
+388,dev,1,17,participant_only,tfidf_linear_svm,0,-0.3821463463986062,0,TF-IDF + Linear SVM balanced
+393,dev,0,2,participant_only,tfidf_linear_svm,0,-0.570523910624214,1,TF-IDF + Linear SVM balanced
+401,dev,0,9,participant_only,tfidf_linear_svm,0,-0.393635171485558,1,TF-IDF + Linear SVM balanced
+402,dev,1,11,participant_only,tfidf_linear_svm,0,-0.2933990765937435,0,TF-IDF + Linear SVM balanced
+408,dev,0,0,participant_only,tfidf_linear_svm,0,-0.5757687443859233,1,TF-IDF + Linear SVM balanced
+412,dev,1,12,participant_only,tfidf_linear_svm,0,-0.5162386261783264,0,TF-IDF + Linear SVM balanced
+415,dev,0,3,participant_only,tfidf_linear_svm,0,-0.4810869079247915,1,TF-IDF + Linear SVM balanced
+423,dev,0,0,participant_only,tfidf_linear_svm,0,-0.2555672582923295,1,TF-IDF + Linear SVM balanced
+425,dev,0,6,participant_only,tfidf_linear_svm,0,-0.4544026298637335,1,TF-IDF + Linear SVM balanced
+431,dev,0,2,participant_only,tfidf_linear_svm,0,-0.5147685062376198,1,TF-IDF + Linear SVM balanced
+433,dev,0,10,participant_only,tfidf_linear_svm,0,-0.2768514263497971,1,TF-IDF + Linear SVM balanced
+435,dev,0,8,participant_only,tfidf_linear_svm,0,-0.3723723237494862,1,TF-IDF + Linear SVM balanced
+437,dev,0,0,participant_only,tfidf_linear_svm,0,-0.614354352345931,1,TF-IDF + Linear SVM balanced
+441,dev,1,18,participant_only,tfidf_linear_svm,0,-0.3379095521689913,0,TF-IDF + Linear SVM balanced
+442,dev,0,6,participant_only,tfidf_linear_svm,0,-0.4925885246010484,1,TF-IDF + Linear SVM balanced
+448,dev,1,18,participant_only,tfidf_linear_svm,0,-0.4435577022831486,0,TF-IDF + Linear SVM balanced
+451,dev,0,4,participant_only,tfidf_linear_svm,0,-0.5638277958953226,1,TF-IDF + Linear SVM balanced
+454,dev,0,1,participant_only,tfidf_linear_svm,0,-0.5031424923167231,1,TF-IDF + Linear SVM balanced
+455,dev,0,1,participant_only,tfidf_linear_svm,0,-0.5561237228819597,1,TF-IDF + Linear SVM balanced
+465,dev,0,2,participant_only,tfidf_linear_svm,0,-0.4908936473753906,1,TF-IDF + Linear SVM balanced
+468,dev,0,4,participant_only,tfidf_linear_svm,0,-0.487014989061841,1,TF-IDF + Linear SVM balanced
+473,dev,0,0,participant_only,tfidf_linear_svm,0,-0.3710783237515742,1,TF-IDF + Linear SVM balanced
+475,dev,0,6,participant_only,tfidf_linear_svm,0,-0.540856305997452,1,TF-IDF + Linear SVM balanced
+479,dev,0,7,participant_only,tfidf_linear_svm,0,-0.4027327851869551,1,TF-IDF + Linear SVM balanced
+480,dev,0,1,participant_only,tfidf_linear_svm,0,-0.6083945566356762,1,TF-IDF + Linear SVM balanced
+484,dev,0,9,participant_only,tfidf_linear_svm,0,-0.3517641429467264,1,TF-IDF + Linear SVM balanced
+486,dev,0,4,participant_only,tfidf_linear_svm,0,-0.412278457305875,1,TF-IDF + Linear SVM balanced
+300,dev,0,2,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5166014374030224,0,all-mpnet-base-v2 + LR balanced (CUDA)
+301,dev,0,3,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4932887171541275,1,all-mpnet-base-v2 + LR balanced (CUDA)
+306,dev,0,0,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5032431404363523,0,all-mpnet-base-v2 + LR balanced (CUDA)
+317,dev,0,8,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5584119274826149,0,all-mpnet-base-v2 + LR balanced (CUDA)
+320,dev,0,11,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.515994829735559,0,all-mpnet-base-v2 + LR balanced (CUDA)
+321,dev,1,20,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5837617317087159,1,all-mpnet-base-v2 + LR balanced (CUDA)
+331,dev,0,8,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5750433710419546,0,all-mpnet-base-v2 + LR balanced (CUDA)
+334,dev,0,5,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5658129997825302,0,all-mpnet-base-v2 + LR balanced (CUDA)
+336,dev,0,7,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5432550092350864,0,all-mpnet-base-v2 + LR balanced (CUDA)
+343,dev,0,9,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.6201577190633141,0,all-mpnet-base-v2 + LR balanced (CUDA)
+344,dev,0,11,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5696450898453094,0,all-mpnet-base-v2 + LR balanced (CUDA)
+347,dev,1,16,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5994132859868446,1,all-mpnet-base-v2 + LR balanced (CUDA)
+350,dev,1,11,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5479057302323179,1,all-mpnet-base-v2 + LR balanced (CUDA)
+365,dev,1,12,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4334260623194222,0,all-mpnet-base-v2 + LR balanced (CUDA)
+371,dev,0,9,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.428604366787115,1,all-mpnet-base-v2 + LR balanced (CUDA)
+373,dev,0,9,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4414319681633909,1,all-mpnet-base-v2 + LR balanced (CUDA)
+374,dev,0,2,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4354443341899712,1,all-mpnet-base-v2 + LR balanced (CUDA)
+381,dev,1,16,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4481348175350922,0,all-mpnet-base-v2 + LR balanced (CUDA)
+382,dev,0,0,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4324720711335347,1,all-mpnet-base-v2 + LR balanced (CUDA)
+388,dev,1,17,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4270823105617145,0,all-mpnet-base-v2 + LR balanced (CUDA)
+393,dev,0,2,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4526251888261101,1,all-mpnet-base-v2 + LR balanced (CUDA)
+401,dev,0,9,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4474042240558618,1,all-mpnet-base-v2 + LR balanced (CUDA)
+402,dev,1,11,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4345028834306538,0,all-mpnet-base-v2 + LR balanced (CUDA)
+408,dev,0,0,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4291041485940016,1,all-mpnet-base-v2 + LR balanced (CUDA)
+412,dev,1,12,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4205349926902337,0,all-mpnet-base-v2 + LR balanced (CUDA)
+415,dev,0,3,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4390202976991246,1,all-mpnet-base-v2 + LR balanced (CUDA)
+423,dev,0,0,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4312885500500811,1,all-mpnet-base-v2 + LR balanced (CUDA)
+425,dev,0,6,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4444810170736714,1,all-mpnet-base-v2 + LR balanced (CUDA)
+431,dev,0,2,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4219425086488475,1,all-mpnet-base-v2 + LR balanced (CUDA)
+433,dev,0,10,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.458283179647269,1,all-mpnet-base-v2 + LR balanced (CUDA)
+435,dev,0,8,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4263168174238114,1,all-mpnet-base-v2 + LR balanced (CUDA)
+437,dev,0,0,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4321667803110463,1,all-mpnet-base-v2 + LR balanced (CUDA)
+441,dev,1,18,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4295163053094686,0,all-mpnet-base-v2 + LR balanced (CUDA)
+442,dev,0,6,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4289532620440454,1,all-mpnet-base-v2 + LR balanced (CUDA)
+448,dev,1,18,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4550770564555229,0,all-mpnet-base-v2 + LR balanced (CUDA)
+451,dev,0,4,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4266055148755279,1,all-mpnet-base-v2 + LR balanced (CUDA)
+454,dev,0,1,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4479117880939811,1,all-mpnet-base-v2 + LR balanced (CUDA)
+455,dev,0,1,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4591967563480665,1,all-mpnet-base-v2 + LR balanced (CUDA)
+465,dev,0,2,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4082425232962969,1,all-mpnet-base-v2 + LR balanced (CUDA)
+468,dev,0,4,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4295974786802204,1,all-mpnet-base-v2 + LR balanced (CUDA)
+473,dev,0,0,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4444706702999663,1,all-mpnet-base-v2 + LR balanced (CUDA)
+475,dev,0,6,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4196729829234172,1,all-mpnet-base-v2 + LR balanced (CUDA)
+479,dev,0,7,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4396850472318773,1,all-mpnet-base-v2 + LR balanced (CUDA)
+480,dev,0,1,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4312225428257603,1,all-mpnet-base-v2 + LR balanced (CUDA)
+484,dev,0,9,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4396343362122802,1,all-mpnet-base-v2 + LR balanced (CUDA)
+486,dev,0,4,full_dialogue,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4445258239159839,1,all-mpnet-base-v2 + LR balanced (CUDA)
+300,dev,0,2,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5835650047628405,0,all-mpnet-base-v2 + LR balanced (CUDA)
+301,dev,0,3,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5999716112164236,0,all-mpnet-base-v2 + LR balanced (CUDA)
+306,dev,0,0,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.7136041555116789,0,all-mpnet-base-v2 + LR balanced (CUDA)
+317,dev,0,8,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5978451310283955,0,all-mpnet-base-v2 + LR balanced (CUDA)
+320,dev,0,11,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.6950148110327,0,all-mpnet-base-v2 + LR balanced (CUDA)
+321,dev,1,20,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.6571439136794321,1,all-mpnet-base-v2 + LR balanced (CUDA)
+331,dev,0,8,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.6700697487911136,0,all-mpnet-base-v2 + LR balanced (CUDA)
+334,dev,0,5,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.6215404856569635,0,all-mpnet-base-v2 + LR balanced (CUDA)
+336,dev,0,7,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.6092980133503451,0,all-mpnet-base-v2 + LR balanced (CUDA)
+343,dev,0,9,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.7338151860746052,0,all-mpnet-base-v2 + LR balanced (CUDA)
+344,dev,0,11,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.6668882157640591,0,all-mpnet-base-v2 + LR balanced (CUDA)
+347,dev,1,16,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.6205890932743159,1,all-mpnet-base-v2 + LR balanced (CUDA)
+350,dev,1,11,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.6783527536067403,1,all-mpnet-base-v2 + LR balanced (CUDA)
+365,dev,1,12,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3679897705504408,0,all-mpnet-base-v2 + LR balanced (CUDA)
+371,dev,0,9,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3474182851350928,1,all-mpnet-base-v2 + LR balanced (CUDA)
+373,dev,0,9,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3434744301754601,1,all-mpnet-base-v2 + LR balanced (CUDA)
+374,dev,0,2,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3480122046403484,1,all-mpnet-base-v2 + LR balanced (CUDA)
+381,dev,1,16,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3564765501235087,0,all-mpnet-base-v2 + LR balanced (CUDA)
+382,dev,0,0,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3590414295336598,1,all-mpnet-base-v2 + LR balanced (CUDA)
+388,dev,1,17,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3634316452617156,0,all-mpnet-base-v2 + LR balanced (CUDA)
+393,dev,0,2,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3885139855928405,1,all-mpnet-base-v2 + LR balanced (CUDA)
+401,dev,0,9,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3365457729555876,1,all-mpnet-base-v2 + LR balanced (CUDA)
+402,dev,1,11,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3681001854818734,0,all-mpnet-base-v2 + LR balanced (CUDA)
+408,dev,0,0,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3598168919379607,1,all-mpnet-base-v2 + LR balanced (CUDA)
+412,dev,1,12,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3684236404996903,0,all-mpnet-base-v2 + LR balanced (CUDA)
+415,dev,0,3,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3612621254902449,1,all-mpnet-base-v2 + LR balanced (CUDA)
+423,dev,0,0,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3336762837980797,1,all-mpnet-base-v2 + LR balanced (CUDA)
+425,dev,0,6,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3625951719294835,1,all-mpnet-base-v2 + LR balanced (CUDA)
+431,dev,0,2,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.356479422016929,1,all-mpnet-base-v2 + LR balanced (CUDA)
+433,dev,0,10,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3575709679202329,1,all-mpnet-base-v2 + LR balanced (CUDA)
+435,dev,0,8,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3483893397590647,1,all-mpnet-base-v2 + LR balanced (CUDA)
+437,dev,0,0,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3274488871797483,1,all-mpnet-base-v2 + LR balanced (CUDA)
+441,dev,1,18,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4922722461939166,0,all-mpnet-base-v2 + LR balanced (CUDA)
+442,dev,0,6,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3514872732520761,1,all-mpnet-base-v2 + LR balanced (CUDA)
+448,dev,1,18,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4020930515358251,0,all-mpnet-base-v2 + LR balanced (CUDA)
+454,dev,0,1,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4933418873229196,1,all-mpnet-base-v2 + LR balanced (CUDA)
+455,dev,0,1,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3693454482686582,1,all-mpnet-base-v2 + LR balanced (CUDA)
+465,dev,0,2,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3112379986880976,1,all-mpnet-base-v2 + LR balanced (CUDA)
+468,dev,0,4,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3171688048917812,1,all-mpnet-base-v2 + LR balanced (CUDA)
+473,dev,0,0,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3812273411389709,1,all-mpnet-base-v2 + LR balanced (CUDA)
+475,dev,0,6,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3352602903989497,1,all-mpnet-base-v2 + LR balanced (CUDA)
+479,dev,0,7,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3401509704060513,1,all-mpnet-base-v2 + LR balanced (CUDA)
+484,dev,0,9,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3497518441232052,1,all-mpnet-base-v2 + LR balanced (CUDA)
+486,dev,0,4,interviewer_cleaned,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3684029790357921,1,all-mpnet-base-v2 + LR balanced (CUDA)
+300,dev,0,2,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4743489648028534,1,all-mpnet-base-v2 + LR balanced (CUDA)
+301,dev,0,3,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5842658176326045,0,all-mpnet-base-v2 + LR balanced (CUDA)
+306,dev,0,0,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5726915981896051,0,all-mpnet-base-v2 + LR balanced (CUDA)
+317,dev,0,8,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5937327581855993,0,all-mpnet-base-v2 + LR balanced (CUDA)
+320,dev,0,11,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.6424964475258168,0,all-mpnet-base-v2 + LR balanced (CUDA)
+321,dev,1,20,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.6613332401600909,1,all-mpnet-base-v2 + LR balanced (CUDA)
+331,dev,0,8,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.6536939055613847,0,all-mpnet-base-v2 + LR balanced (CUDA)
+334,dev,0,5,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5740723344538522,0,all-mpnet-base-v2 + LR balanced (CUDA)
+336,dev,0,7,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.59357581832654,0,all-mpnet-base-v2 + LR balanced (CUDA)
+343,dev,0,9,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.7314280412482164,0,all-mpnet-base-v2 + LR balanced (CUDA)
+344,dev,0,11,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.6282992129334264,0,all-mpnet-base-v2 + LR balanced (CUDA)
+347,dev,1,16,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5805370173503593,1,all-mpnet-base-v2 + LR balanced (CUDA)
+350,dev,1,11,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.6373571367197228,1,all-mpnet-base-v2 + LR balanced (CUDA)
+365,dev,1,12,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3931092359126173,0,all-mpnet-base-v2 + LR balanced (CUDA)
+371,dev,0,9,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3773508327769027,1,all-mpnet-base-v2 + LR balanced (CUDA)
+373,dev,0,9,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3809390259179799,1,all-mpnet-base-v2 + LR balanced (CUDA)
+374,dev,0,2,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4001826286257532,1,all-mpnet-base-v2 + LR balanced (CUDA)
+381,dev,1,16,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4049775677482572,0,all-mpnet-base-v2 + LR balanced (CUDA)
+382,dev,0,0,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3853998683937486,1,all-mpnet-base-v2 + LR balanced (CUDA)
+388,dev,1,17,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.391432218041855,0,all-mpnet-base-v2 + LR balanced (CUDA)
+393,dev,0,2,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4252259515860401,1,all-mpnet-base-v2 + LR balanced (CUDA)
+401,dev,0,9,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3781964821696424,1,all-mpnet-base-v2 + LR balanced (CUDA)
+402,dev,1,11,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3877654933020368,0,all-mpnet-base-v2 + LR balanced (CUDA)
+408,dev,0,0,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3614918622182017,1,all-mpnet-base-v2 + LR balanced (CUDA)
+412,dev,1,12,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3802881571112114,0,all-mpnet-base-v2 + LR balanced (CUDA)
+415,dev,0,3,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3917788355561433,1,all-mpnet-base-v2 + LR balanced (CUDA)
+423,dev,0,0,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3648950616059458,1,all-mpnet-base-v2 + LR balanced (CUDA)
+425,dev,0,6,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.396371456088832,1,all-mpnet-base-v2 + LR balanced (CUDA)
+431,dev,0,2,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3901969404923517,1,all-mpnet-base-v2 + LR balanced (CUDA)
+433,dev,0,10,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3982757290380732,1,all-mpnet-base-v2 + LR balanced (CUDA)
+435,dev,0,8,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4101795698013077,1,all-mpnet-base-v2 + LR balanced (CUDA)
+437,dev,0,0,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.362578028640203,1,all-mpnet-base-v2 + LR balanced (CUDA)
+441,dev,1,18,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4312029675084852,0,all-mpnet-base-v2 + LR balanced (CUDA)
+442,dev,0,6,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3769988959784289,1,all-mpnet-base-v2 + LR balanced (CUDA)
+448,dev,1,18,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4142291509456572,0,all-mpnet-base-v2 + LR balanced (CUDA)
+454,dev,0,1,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3846106722864958,1,all-mpnet-base-v2 + LR balanced (CUDA)
+455,dev,0,1,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3837463155872381,1,all-mpnet-base-v2 + LR balanced (CUDA)
+465,dev,0,2,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3565452417214348,1,all-mpnet-base-v2 + LR balanced (CUDA)
+468,dev,0,4,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3591693000189036,1,all-mpnet-base-v2 + LR balanced (CUDA)
+473,dev,0,0,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4178861043440499,1,all-mpnet-base-v2 + LR balanced (CUDA)
+475,dev,0,6,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3676251655396821,1,all-mpnet-base-v2 + LR balanced (CUDA)
+479,dev,0,7,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3633515911187917,1,all-mpnet-base-v2 + LR balanced (CUDA)
+484,dev,0,9,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3571018782255861,1,all-mpnet-base-v2 + LR balanced (CUDA)
+486,dev,0,4,interviewer_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3687992349525709,1,all-mpnet-base-v2 + LR balanced (CUDA)
+300,dev,0,2,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4604044259055811,1,all-mpnet-base-v2 + LR balanced (CUDA)
+301,dev,0,3,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.532680816946967,0,all-mpnet-base-v2 + LR balanced (CUDA)
+306,dev,0,0,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5318516619954972,0,all-mpnet-base-v2 + LR balanced (CUDA)
+317,dev,0,8,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5051107098224713,0,all-mpnet-base-v2 + LR balanced (CUDA)
+320,dev,0,11,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5205096159402125,0,all-mpnet-base-v2 + LR balanced (CUDA)
+321,dev,1,20,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5435978422161476,1,all-mpnet-base-v2 + LR balanced (CUDA)
+331,dev,0,8,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.608116911069378,0,all-mpnet-base-v2 + LR balanced (CUDA)
+334,dev,0,5,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.6841194157374593,0,all-mpnet-base-v2 + LR balanced (CUDA)
+336,dev,0,7,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.454109959383972,1,all-mpnet-base-v2 + LR balanced (CUDA)
+343,dev,0,9,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5243168624034311,0,all-mpnet-base-v2 + LR balanced (CUDA)
+344,dev,0,11,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4842544611542652,1,all-mpnet-base-v2 + LR balanced (CUDA)
+347,dev,1,16,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5038841857754888,1,all-mpnet-base-v2 + LR balanced (CUDA)
+350,dev,1,11,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3533142216662629,0,all-mpnet-base-v2 + LR balanced (CUDA)
+365,dev,1,12,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5311167071262346,1,all-mpnet-base-v2 + LR balanced (CUDA)
+371,dev,0,9,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4622784254968632,1,all-mpnet-base-v2 + LR balanced (CUDA)
+373,dev,0,9,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.367238337311949,1,all-mpnet-base-v2 + LR balanced (CUDA)
+374,dev,0,2,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4694392262481612,1,all-mpnet-base-v2 + LR balanced (CUDA)
+381,dev,1,16,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5917398221066325,1,all-mpnet-base-v2 + LR balanced (CUDA)
+382,dev,0,0,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3792661152136144,1,all-mpnet-base-v2 + LR balanced (CUDA)
+388,dev,1,17,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5456329824122111,1,all-mpnet-base-v2 + LR balanced (CUDA)
+393,dev,0,2,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4884898866415325,1,all-mpnet-base-v2 + LR balanced (CUDA)
+401,dev,0,9,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3588070804016791,1,all-mpnet-base-v2 + LR balanced (CUDA)
+402,dev,1,11,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4403933695280166,0,all-mpnet-base-v2 + LR balanced (CUDA)
+408,dev,0,0,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.2435320374424218,1,all-mpnet-base-v2 + LR balanced (CUDA)
+412,dev,1,12,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3514281975939446,0,all-mpnet-base-v2 + LR balanced (CUDA)
+415,dev,0,3,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4150173819842953,1,all-mpnet-base-v2 + LR balanced (CUDA)
+423,dev,0,0,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4925770189628683,1,all-mpnet-base-v2 + LR balanced (CUDA)
+425,dev,0,6,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3848513326629221,1,all-mpnet-base-v2 + LR balanced (CUDA)
+431,dev,0,2,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3781881678195354,1,all-mpnet-base-v2 + LR balanced (CUDA)
+433,dev,0,10,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4384477614500092,1,all-mpnet-base-v2 + LR balanced (CUDA)
+435,dev,0,8,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5254360897006994,0,all-mpnet-base-v2 + LR balanced (CUDA)
+437,dev,0,0,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3990163911814556,1,all-mpnet-base-v2 + LR balanced (CUDA)
+441,dev,1,18,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5606450278521918,1,all-mpnet-base-v2 + LR balanced (CUDA)
+442,dev,0,6,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3844707389930241,1,all-mpnet-base-v2 + LR balanced (CUDA)
+448,dev,1,18,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.583613112050309,1,all-mpnet-base-v2 + LR balanced (CUDA)
+451,dev,0,4,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3744500526149816,1,all-mpnet-base-v2 + LR balanced (CUDA)
+454,dev,0,1,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.5106952948161282,0,all-mpnet-base-v2 + LR balanced (CUDA)
+455,dev,0,1,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.2705726295797218,1,all-mpnet-base-v2 + LR balanced (CUDA)
+465,dev,0,2,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.266594948645463,1,all-mpnet-base-v2 + LR balanced (CUDA)
+468,dev,0,4,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.1904898758192194,1,all-mpnet-base-v2 + LR balanced (CUDA)
+473,dev,0,0,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.397321663470992,1,all-mpnet-base-v2 + LR balanced (CUDA)
+475,dev,0,6,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4550832623660139,1,all-mpnet-base-v2 + LR balanced (CUDA)
+479,dev,0,7,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,1,0.570637222254479,0,all-mpnet-base-v2 + LR balanced (CUDA)
+480,dev,0,1,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3068394797192579,1,all-mpnet-base-v2 + LR balanced (CUDA)
+484,dev,0,9,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.3304674605669653,1,all-mpnet-base-v2 + LR balanced (CUDA)
+486,dev,0,4,participant_only,mpnet_logistic_regression:sentence-transformers/all-mpnet-base-v2,0,0.4115265760421394,1,all-mpnet-base-v2 + LR balanced (CUDA)

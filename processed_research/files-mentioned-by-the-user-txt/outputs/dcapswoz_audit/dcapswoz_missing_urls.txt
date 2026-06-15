@@ -1,0 +1,10 @@
+https://dcapswoz.ict.usc.edu/wwwedaic/E-DAIC%20Manual.pdf
+https://dcapswoz.ict.usc.edu/wwwedaic/labels2019.tar.gz
+https://dcapswoz.ict.usc.edu/wwwedaic/robots.txt
+https://dcapswoz.ict.usc.edu/wwwdaicwoz/DAICWOZDepression_Documentation_AVEC2017.pdf
+https://dcapswoz.ict.usc.edu/wwwdaicwoz/dev_split_Depression_AVEC2017.csv
+https://dcapswoz.ict.usc.edu/wwwdaicwoz/documents.zip
+https://dcapswoz.ict.usc.edu/wwwdaicwoz/full_test_split.csv
+https://dcapswoz.ict.usc.edu/wwwdaicwoz/test_split_Depression_AVEC2017.csv
+https://dcapswoz.ict.usc.edu/wwwdaicwoz/train_split_Depression_AVEC2017.csv
+https://dcapswoz.ict.usc.edu/wwwdaicwoz/util.zip

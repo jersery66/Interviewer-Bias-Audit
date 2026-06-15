@@ -1,0 +1,36 @@
+{
+  "created_at": "2026-06-15T11:37:31",
+  "conditions_csv": "processed_research\\conditions_long__RECOMMENDED_article-aligned_analysis-ready_C1-C4_no-C5.csv",
+  "output_dir": "processed_research\\baseline_results",
+  "run_id": "mpnet_lr_balanced_cuda_5fold_20260615",
+  "models": [
+    "mpnet_lr"
+  ],
+  "conditions": [
+    "full_dialogue",
+    "interviewer_cleaned",
+    "interviewer_only",
+    "participant_only"
+  ],
+  "train_split": "train",
+  "test_split": "dev",
+  "cv_folds": 5,
+  "evaluation": "cv",
+  "random_state": 42,
+  "class_weight": "balanced",
+  "drop_empty_text": true,
+  "tfidf": {
+    "max_features": 50000,
+    "min_df": 2,
+    "ngram_range": [
+      1,
+      2
+    ]
+  },
+  "mpnet": {
+    "model": "sentence-transformers/all-mpnet-base-v2",
+    "batch_size": 8,
+    "device": "cuda",
+    "embedding_cache_dir": "processed_research\\baseline_results\\embedding_cache"
+  }
+}

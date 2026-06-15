@@ -1,0 +1,8 @@
+{
+  "count": 199,
+  "complete_count": 3,
+  "remaining_count": 196,
+  "known_total_gb": 85.31,
+  "downloaded_or_part_gb": 0.09,
+  "status_csv": "outputs\\dcapswoz_download\\download_status.csv"
+}

@@ -1,0 +1,32 @@
+{
+  "expected_ids": 189,
+  "missing_source_count": 0,
+  "missing_sources": [],
+  "transcript_ok_count": 189,
+  "transcript_problem_count": 0,
+  "counts": {
+    "duplicate_same_name_size": 189,
+    "daic_only_optional_feature": 1513,
+    "name_conflict_different_size": 189
+  },
+  "bytes": {
+    "duplicate_same_name_size": 5783967408,
+    "daic_only_optional_feature": 126588105863,
+    "name_conflict_different_size": 3216844
+  },
+  "human_bytes": {
+    "duplicate_same_name_size": "5.39 GB",
+    "daic_only_optional_feature": "117.89 GB",
+    "name_conflict_different_size": "3.07 MB"
+  },
+  "interpretation": {
+    "safe_minimal_extract": "Extract only original DAIC-WOZ speaker transcripts to a separate folder under E-daic.",
+    "why_not_same_participant_folder": "Windows treats *_Transcript.csv and *_TRANSCRIPT.csv as the same filename, but eDAIC and DAIC-WOZ contents differ.",
+    "why_not_all_nonduplicates_to_f": "Most DAIC-only optional files are large CLNF/COVAREP/FORMANT feature files and F: has too little free space."
+  },
+  "output_files": {
+    "classification_csv": "outputs\\daicwoz_edaic_dedupe\\file_classification.csv",
+    "sources_csv": "outputs\\daicwoz_edaic_dedupe\\source_candidates.csv",
+    "transcript_problems_csv": "outputs\\daicwoz_edaic_dedupe\\transcript_problems.csv"
+  }
+}

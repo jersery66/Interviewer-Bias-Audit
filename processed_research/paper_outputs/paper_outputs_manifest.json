@@ -1,0 +1,24 @@
+{
+  "created_at": "2026-06-15T16:33:29",
+  "inputs": {
+    "participant_index": "processed_research\\participant_index.csv",
+    "conditions": "processed_research\\conditions_long__RECOMMENDED_article-aligned_analysis-ready_C1-C4_no-C5.csv",
+    "cv_summary": "processed_research\\baseline_results\\baseline_cv_summary__combined_latest.csv",
+    "train_dev_metrics": "processed_research\\baseline_results\\baseline_metrics__train_dev_combined_latest.csv",
+    "bias_metrics": "processed_research\\baseline_results\\bias_metrics__f1_macro_mcc_latest.csv",
+    "threshold_cv_summary": "processed_research\\baseline_results\\threshold_cv_summary__threshold_mcc_tfidf_lr_svm_5fold_20260615.csv",
+    "mcnemar_tests": "processed_research\\baseline_results\\mcnemar_tests__mcnemar_train_dev_20260615.csv"
+  },
+  "outputs": {
+    "workbook": "processed_research\\paper_outputs\\paper_tables_C1_C4.xlsx",
+    "markdown": "processed_research\\paper_outputs\\paper_tables_C1_C4.md",
+    "macro_f1_mcc_figure_png": "processed_research\\paper_outputs\\figure_macro_f1_mcc_5fold_cv.png",
+    "macro_f1_mcc_figure_svg": "processed_research\\paper_outputs\\figure_macro_f1_mcc_5fold_cv.svg",
+    "macro_f1_mcc_figure_pdf": "processed_research\\paper_outputs\\figure_macro_f1_mcc_5fold_cv.pdf",
+    "macro_f1_mcc_figure_source": "processed_research\\paper_outputs\\figure_macro_f1_mcc_source_data.csv",
+    "threshold_sensitivity_figure_png": "processed_research\\paper_outputs\\figure_threshold_sensitivity_5fold_cv.png",
+    "threshold_sensitivity_figure_svg": "processed_research\\paper_outputs\\figure_threshold_sensitivity_5fold_cv.svg",
+    "threshold_sensitivity_figure_pdf": "processed_research\\paper_outputs\\figure_threshold_sensitivity_5fold_cv.pdf",
+    "threshold_sensitivity_figure_source": "processed_research\\paper_outputs\\figure_threshold_sensitivity_source_data.csv"
+  }
+}

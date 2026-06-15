@@ -1,0 +1,27 @@
+{
+  "expected_count": 189,
+  "complete_count": 189,
+  "missing_count": 0,
+  "questionable_count": 0,
+  "complete_minmax": [
+    300,
+    492
+  ],
+  "missing_first_30": [],
+  "partials": [
+    {
+      "pid": 390,
+      "path": "F:\\390_P.zip.part",
+      "bytes": 321679817
+    },
+    {
+      "pid": 300,
+      "path": "F:\\数据库\\DAIC-WOZ\\300_P.zip.part",
+      "bytes": 100663296
+    }
+  ],
+  "scanned_bases": [
+    "F:\\",
+    "F:\\数据库\\DAIC-WOZ"
+  ]
+}

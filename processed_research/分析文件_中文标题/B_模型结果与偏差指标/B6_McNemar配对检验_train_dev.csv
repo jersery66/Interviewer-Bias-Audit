@@ -1,0 +1,10 @@
+evaluation,model_short,comparison,condition_a,condition_b,paired_n,both_correct,a_correct_b_wrong,a_wrong_b_correct,both_wrong,discordant_n,mcnemar_exact_p
+train_dev,TF-IDF + LR balanced,Full vs Participant,full_dialogue,participant_only,46,32,3,4,7,7,1.0
+train_dev,TF-IDF + LR balanced,Participant vs Interviewer,participant_only,interviewer_only,44,26,8,4,6,12,0.3876953125
+train_dev,TF-IDF + LR balanced,Interviewer vs Cleaned,interviewer_only,interviewer_cleaned,44,27,3,2,12,5,1.0
+train_dev,TF-IDF + Linear SVM balanced,Full vs Participant,full_dialogue,participant_only,46,34,2,2,8,4,1.0
+train_dev,TF-IDF + Linear SVM balanced,Participant vs Interviewer,participant_only,interviewer_only,44,28,6,3,7,9,0.5078125
+train_dev,TF-IDF + Linear SVM balanced,Interviewer vs Cleaned,interviewer_only,interviewer_cleaned,44,30,1,3,10,4,0.625
+train_dev,all-mpnet-base-v2 + LR balanced (CUDA),Full vs Participant,full_dialogue,participant_only,46,25,5,8,8,13,0.5810546875
+train_dev,all-mpnet-base-v2 + LR balanced (CUDA),Participant vs Interviewer,participant_only,interviewer_only,44,24,7,4,9,11,0.548828125
+train_dev,all-mpnet-base-v2 + LR balanced (CUDA),Interviewer vs Cleaned,interviewer_only,interviewer_cleaned,44,27,1,0,16,1,1.0

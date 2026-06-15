@@ -1,0 +1,481 @@
+﻿dataset,section,filename,url,size_text,expected_bytes,status,local_path,local_bytes,note
+eDAIC,root,E-DAIC Manual.pdf,https://dcapswoz.ict.usc.edu/wwwedaic/E-DAIC%20Manual.pdf,,,missing,,,not found as archive or extracted participant directory
+eDAIC,root,labels2019.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/labels2019.tar.gz,,,missing,,,not found as archive or extracted participant directory
+eDAIC,root,metadata_mapped.csv,https://dcapswoz.ict.usc.edu/wwwedaic/metadata_mapped.csv,,,present_file,F:\数据库\E-daic\labels\metadata_mapped.csv,7459,"found, size not checked"
+eDAIC,root,robots.txt,https://dcapswoz.ict.usc.edu/wwwedaic/robots.txt,,,missing,,,not found as archive or extracted participant directory
+eDAIC,data,300_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/300_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\300_P.tar.gz,279811302,"found, size not checked"
+eDAIC,data,301_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/301_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\301_P.tar.gz,375180756,"found, size not checked"
+eDAIC,data,302_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/302_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\302_P.tar.gz,306492754,"found, size not checked"
+eDAIC,data,303_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/303_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\303_P.tar.gz,410473659,"found, size not checked"
+eDAIC,data,304_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/304_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\304_P.tar.gz,354185717,"found, size not checked"
+eDAIC,data,305_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/305_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\305_P.tar.gz,745599219,"found, size not checked"
+eDAIC,data,306_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/306_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\306_P.tar.gz,351295413,"found, size not checked"
+eDAIC,data,307_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/307_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\307_P.tar.gz,557307456,"found, size not checked"
+eDAIC,data,308_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/308_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\308_P.tar.gz,388852775,"found, size not checked"
+eDAIC,data,309_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/309_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\309_P.tar.gz,313544411,"found, size not checked"
+eDAIC,data,310_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/310_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\310_P.tar.gz,296179113,"found, size not checked"
+eDAIC,data,311_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/311_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\311_P.tar.gz,357424137,"found, size not checked"
+eDAIC,data,312_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/312_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\312_P.tar.gz,353381693,"found, size not checked"
+eDAIC,data,313_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/313_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\313_P.tar.gz,316985384,"found, size not checked"
+eDAIC,data,314_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/314_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\314_P.tar.gz,694574862,"found, size not checked"
+eDAIC,data,315_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/315_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\315_P.tar.gz,376357879,"found, size not checked"
+eDAIC,data,316_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/316_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\316_P.tar.gz,387632374,"found, size not checked"
+eDAIC,data,317_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/317_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\317_P.tar.gz,361791240,"found, size not checked"
+eDAIC,data,318_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/318_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\318_P.tar.gz,256192728,"found, size not checked"
+eDAIC,data,319_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/319_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\319_P.tar.gz,243758337,"found, size not checked"
+eDAIC,data,320_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/320_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\320_P.tar.gz,353296001,"found, size not checked"
+eDAIC,data,321_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/321_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\321_P.tar.gz,364738320,"found, size not checked"
+eDAIC,data,322_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/322_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\322_P.tar.gz,400962223,"found, size not checked"
+eDAIC,data,323_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/323_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\323_P.tar.gz,357728162,"found, size not checked"
+eDAIC,data,324_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/324_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\324_P.tar.gz,307915298,"found, size not checked"
+eDAIC,data,325_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/325_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\325_P.tar.gz,395406353,"found, size not checked"
+eDAIC,data,326_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/326_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\326_P.tar.gz,254794622,"found, size not checked"
+eDAIC,data,327_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/327_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\327_P.tar.gz,306996549,"found, size not checked"
+eDAIC,data,328_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/328_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\328_P.tar.gz,397558808,"found, size not checked"
+eDAIC,data,329_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/329_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\329_P.tar.gz,307023851,"found, size not checked"
+eDAIC,data,330_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/330_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\330_P.tar.gz,319650683,"found, size not checked"
+eDAIC,data,331_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/331_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\331_P.tar.gz,384927274,"found, size not checked"
+eDAIC,data,332_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/332_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\332_P.tar.gz,391285866,"found, size not checked"
+eDAIC,data,333_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/333_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\333_P.tar.gz,431319143,"found, size not checked"
+eDAIC,data,334_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/334_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\334_P.tar.gz,416510750,"found, size not checked"
+eDAIC,data,335_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/335_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\335_P.tar.gz,352169202,"found, size not checked"
+eDAIC,data,336_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/336_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\336_P.tar.gz,416235570,"found, size not checked"
+eDAIC,data,337_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/337_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\337_P.tar.gz,838902030,"found, size not checked"
+eDAIC,data,338_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/338_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\338_P.tar.gz,266483268,"found, size not checked"
+eDAIC,data,339_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/339_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\339_P.tar.gz,340613935,"found, size not checked"
+eDAIC,data,340_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/340_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\340_P.tar.gz,260093164,"found, size not checked"
+eDAIC,data,341_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/341_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\341_P.tar.gz,377601050,"found, size not checked"
+eDAIC,data,343_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/343_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\343_P.tar.gz,368039925,"found, size not checked"
+eDAIC,data,344_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/344_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\344_P.tar.gz,436311548,"found, size not checked"
+eDAIC,data,345_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/345_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\345_P.tar.gz,327298047,"found, size not checked"
+eDAIC,data,346_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/346_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\346_P.tar.gz,541848754,"found, size not checked"
+eDAIC,data,347_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/347_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\347_P.tar.gz,259323698,"found, size not checked"
+eDAIC,data,348_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/348_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\348_P.tar.gz,324361150,"found, size not checked"
+eDAIC,data,349_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/349_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\349_P.tar.gz,536511604,"found, size not checked"
+eDAIC,data,350_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/350_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\350_P.tar.gz,394435703,"found, size not checked"
+eDAIC,data,351_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/351_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\351_P.tar.gz,348998176,"found, size not checked"
+eDAIC,data,352_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/352_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\352_P.tar.gz,341927950,"found, size not checked"
+eDAIC,data,353_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/353_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\353_P.tar.gz,348951822,"found, size not checked"
+eDAIC,data,354_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/354_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\354_P.tar.gz,254171642,"found, size not checked"
+eDAIC,data,355_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/355_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\355_P.tar.gz,258087082,"found, size not checked"
+eDAIC,data,356_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/356_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\356_P.tar.gz,431009593,"found, size not checked"
+eDAIC,data,357_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/357_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\357_P.tar.gz,169903234,"found, size not checked"
+eDAIC,data,358_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/358_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\358_P.tar.gz,274919357,"found, size not checked"
+eDAIC,data,359_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/359_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\359_P.tar.gz,403651785,"found, size not checked"
+eDAIC,data,360_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/360_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\360_P.tar.gz,192965942,"found, size not checked"
+eDAIC,data,361_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/361_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\361_P.tar.gz,283548729,"found, size not checked"
+eDAIC,data,362_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/362_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\362_P.tar.gz,261484160,"found, size not checked"
+eDAIC,data,363_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/363_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\363_P.tar.gz,542265369,"found, size not checked"
+eDAIC,data,364_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/364_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\364_P.tar.gz,810499346,"found, size not checked"
+eDAIC,data,365_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/365_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\365_P.tar.gz,600841110,"found, size not checked"
+eDAIC,data,366_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/366_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\366_P.tar.gz,466142603,"found, size not checked"
+eDAIC,data,367_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/367_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\367_P.tar.gz,590037493,"found, size not checked"
+eDAIC,data,368_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/368_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\368_P.tar.gz,542091854,"found, size not checked"
+eDAIC,data,369_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/369_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\369_P.tar.gz,451319847,"found, size not checked"
+eDAIC,data,370_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/370_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\370_P.tar.gz,521747994,"found, size not checked"
+eDAIC,data,371_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/371_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\371_P.tar.gz,382525166,"found, size not checked"
+eDAIC,data,372_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/372_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\372_P.tar.gz,657129630,"found, size not checked"
+eDAIC,data,373_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/373_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\373_P.tar.gz,563464964,"found, size not checked"
+eDAIC,data,374_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/374_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\374_P.tar.gz,580120828,"found, size not checked"
+eDAIC,data,375_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/375_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\375_P.tar.gz,255258985,"found, size not checked"
+eDAIC,data,376_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/376_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\376_P.tar.gz,463170108,"found, size not checked"
+eDAIC,data,377_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/377_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\377_P.tar.gz,576172883,"found, size not checked"
+eDAIC,data,378_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/378_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\378_P.tar.gz,385017709,"found, size not checked"
+eDAIC,data,379_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/379_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\379_P.tar.gz,416449644,"found, size not checked"
+eDAIC,data,380_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/380_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\380_P.tar.gz,759200198,"found, size not checked"
+eDAIC,data,381_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/381_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\381_P.tar.gz,475657374,"found, size not checked"
+eDAIC,data,382_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/382_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\382_P.tar.gz,367731605,"found, size not checked"
+eDAIC,data,383_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/383_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\383_P.tar.gz,607794294,"found, size not checked"
+eDAIC,data,384_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/384_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\384_P.tar.gz,467743287,"found, size not checked"
+eDAIC,data,385_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/385_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\385_P.tar.gz,232549986,"found, size not checked"
+eDAIC,data,386_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/386_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\386_P.tar.gz,466511859,"found, size not checked"
+eDAIC,data,387_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/387_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\387_P.tar.gz,266647690,"found, size not checked"
+eDAIC,data,388_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/388_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\388_P.tar.gz,325742129,"found, size not checked"
+eDAIC,data,389_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/389_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\389_P.tar.gz,404289911,"found, size not checked"
+eDAIC,data,390_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/390_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\390_P.tar.gz,547970543,"found, size not checked"
+eDAIC,data,391_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/391_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\391_P.tar.gz,299401869,"found, size not checked"
+eDAIC,data,392_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/392_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\392_P.tar.gz,282856740,"found, size not checked"
+eDAIC,data,393_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/393_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\393_P.tar.gz,254071159,"found, size not checked"
+eDAIC,data,395_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/395_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\395_P.tar.gz,397409548,"found, size not checked"
+eDAIC,data,396_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/396_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\396_P.tar.gz,343363143,"found, size not checked"
+eDAIC,data,397_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/397_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\397_P.tar.gz,437035975,"found, size not checked"
+eDAIC,data,399_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/399_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\399_P.tar.gz,308307450,"found, size not checked"
+eDAIC,data,400_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/400_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\400_P.tar.gz,397595393,"found, size not checked"
+eDAIC,data,401_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/401_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\401_P.tar.gz,416092048,"found, size not checked"
+eDAIC,data,402_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/402_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\402_P.tar.gz,379332740,"found, size not checked"
+eDAIC,data,403_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/403_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\403_P.tar.gz,385880717,"found, size not checked"
+eDAIC,data,404_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/404_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\404_P.tar.gz,502921349,"found, size not checked"
+eDAIC,data,405_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/405_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\405_P.tar.gz,717628908,"found, size not checked"
+eDAIC,data,406_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/406_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\406_P.tar.gz,321959587,"found, size not checked"
+eDAIC,data,407_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/407_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\407_P.tar.gz,561074317,"found, size not checked"
+eDAIC,data,408_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/408_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\408_P.tar.gz,294083304,"found, size not checked"
+eDAIC,data,409_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/409_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\409_P.tar.gz,460816266,"found, size not checked"
+eDAIC,data,410_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/410_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\410_P.tar.gz,430092570,"found, size not checked"
+eDAIC,data,411_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/411_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\411_P.tar.gz,568074593,"found, size not checked"
+eDAIC,data,412_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/412_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\412_P.tar.gz,380636965,"found, size not checked"
+eDAIC,data,413_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/413_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\413_P.tar.gz,445204968,"found, size not checked"
+eDAIC,data,414_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/414_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\414_P.tar.gz,434454904,"found, size not checked"
+eDAIC,data,415_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/415_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\415_P.tar.gz,328589473,"found, size not checked"
+eDAIC,data,416_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/416_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\416_P.tar.gz,377741167,"found, size not checked"
+eDAIC,data,417_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/417_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\417_P.tar.gz,372571943,"found, size not checked"
+eDAIC,data,418_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/418_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\418_P.tar.gz,442599397,"found, size not checked"
+eDAIC,data,419_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/419_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\419_P.tar.gz,404721890,"found, size not checked"
+eDAIC,data,420_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/420_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\420_P.tar.gz,458078235,"found, size not checked"
+eDAIC,data,421_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/421_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\421_P.tar.gz,375756272,"found, size not checked"
+eDAIC,data,422_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/422_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\422_P.tar.gz,589586500,"found, size not checked"
+eDAIC,data,423_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/423_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\423_P.tar.gz,451604393,"found, size not checked"
+eDAIC,data,424_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/424_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\424_P.tar.gz,457620977,"found, size not checked"
+eDAIC,data,425_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/425_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\425_P.tar.gz,517138569,"found, size not checked"
+eDAIC,data,426_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/426_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\426_P.tar.gz,381714326,"found, size not checked"
+eDAIC,data,427_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/427_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\427_P.tar.gz,330470606,"found, size not checked"
+eDAIC,data,428_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/428_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\428_P.tar.gz,304633185,"found, size not checked"
+eDAIC,data,429_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/429_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\429_P.tar.gz,422652573,"found, size not checked"
+eDAIC,data,430_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/430_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\430_P.tar.gz,404363749,"found, size not checked"
+eDAIC,data,431_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/431_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\431_P.tar.gz,291219810,"found, size not checked"
+eDAIC,data,432_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/432_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\432_P.tar.gz,354224542,"found, size not checked"
+eDAIC,data,433_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/433_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\433_P.tar.gz,357951836,"found, size not checked"
+eDAIC,data,434_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/434_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\434_P.tar.gz,512867352,"found, size not checked"
+eDAIC,data,435_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/435_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\435_P.tar.gz,523406707,"found, size not checked"
+eDAIC,data,436_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/436_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\436_P.tar.gz,307883736,"found, size not checked"
+eDAIC,data,437_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/437_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\437_P.tar.gz,381583730,"found, size not checked"
+eDAIC,data,438_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/438_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\438_P.tar.gz,650026049,"found, size not checked"
+eDAIC,data,439_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/439_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\439_P.tar.gz,543998472,"found, size not checked"
+eDAIC,data,440_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/440_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\440_P.tar.gz,630650092,"found, size not checked"
+eDAIC,data,441_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/441_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\441_P.tar.gz,392415492,"found, size not checked"
+eDAIC,data,442_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/442_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\442_P.tar.gz,377543217,"found, size not checked"
+eDAIC,data,443_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/443_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\443_P.tar.gz,300970578,"found, size not checked"
+eDAIC,data,444_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/444_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\444_P.tar.gz,590311353,"found, size not checked"
+eDAIC,data,445_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/445_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\445_P.tar.gz,258604984,"found, size not checked"
+eDAIC,data,446_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/446_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\446_P.tar.gz,447805129,"found, size not checked"
+eDAIC,data,447_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/447_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\447_P.tar.gz,328484616,"found, size not checked"
+eDAIC,data,448_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/448_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\448_P.tar.gz,550322596,"found, size not checked"
+eDAIC,data,449_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/449_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\449_P.tar.gz,470975835,"found, size not checked"
+eDAIC,data,450_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/450_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\450_P.tar.gz,548847471,"found, size not checked"
+eDAIC,data,451_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/451_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\451_P.tar.gz,523777267,"found, size not checked"
+eDAIC,data,452_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/452_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\452_P.tar.gz,392125394,"found, size not checked"
+eDAIC,data,453_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/453_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\453_P.tar.gz,429761234,"found, size not checked"
+eDAIC,data,454_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/454_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\454_P.tar.gz,351958775,"found, size not checked"
+eDAIC,data,455_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/455_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\455_P.tar.gz,324921796,"found, size not checked"
+eDAIC,data,456_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/456_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\456_P.tar.gz,398005022,"found, size not checked"
+eDAIC,data,457_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/457_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\457_P.tar.gz,423743947,"found, size not checked"
+eDAIC,data,458_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/458_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\458_P.tar.gz,423097172,"found, size not checked"
+eDAIC,data,459_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/459_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\459_P.tar.gz,434967936,"found, size not checked"
+eDAIC,data,461_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/461_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\461_P.tar.gz,429589096,"found, size not checked"
+eDAIC,data,462_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/462_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\462_P.tar.gz,392018818,"found, size not checked"
+eDAIC,data,463_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/463_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\463_P.tar.gz,365395419,"found, size not checked"
+eDAIC,data,464_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/464_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\464_P.tar.gz,444633649,"found, size not checked"
+eDAIC,data,465_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/465_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\465_P.tar.gz,510745338,"found, size not checked"
+eDAIC,data,466_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/466_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\466_P.tar.gz,672277055,"found, size not checked"
+eDAIC,data,467_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/467_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\467_P.tar.gz,438654273,"found, size not checked"
+eDAIC,data,468_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/468_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\468_P.tar.gz,410381422,"found, size not checked"
+eDAIC,data,469_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/469_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\469_P.tar.gz,465326642,"found, size not checked"
+eDAIC,data,470_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/470_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\470_P.tar.gz,363813875,"found, size not checked"
+eDAIC,data,471_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/471_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\471_P.tar.gz,449815776,"found, size not checked"
+eDAIC,data,472_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/472_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\472_P.tar.gz,406520333,"found, size not checked"
+eDAIC,data,473_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/473_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\473_P.tar.gz,231414351,"found, size not checked"
+eDAIC,data,474_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/474_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\474_P.tar.gz,387607427,"found, size not checked"
+eDAIC,data,475_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/475_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\475_P.tar.gz,263200465,"found, size not checked"
+eDAIC,data,476_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/476_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\476_P.tar.gz,264031261,"found, size not checked"
+eDAIC,data,477_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/477_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\477_P.tar.gz,567541748,"found, size not checked"
+eDAIC,data,478_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/478_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\478_P.tar.gz,412830878,"found, size not checked"
+eDAIC,data,479_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/479_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\479_P.tar.gz,361634622,"found, size not checked"
+eDAIC,data,480_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/480_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\480_P.tar.gz,362650890,"found, size not checked"
+eDAIC,data,481_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/481_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\481_P.tar.gz,497396188,"found, size not checked"
+eDAIC,data,482_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/482_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\482_P.tar.gz,456995730,"found, size not checked"
+eDAIC,data,483_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/483_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\483_P.tar.gz,645310031,"found, size not checked"
+eDAIC,data,484_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/484_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\484_P.tar.gz,439724374,"found, size not checked"
+eDAIC,data,485_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/485_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\485_P.tar.gz,261314868,"found, size not checked"
+eDAIC,data,486_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/486_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\486_P.tar.gz,297807824,"found, size not checked"
+eDAIC,data,487_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/487_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\487_P.tar.gz,452751587,"found, size not checked"
+eDAIC,data,488_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/488_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\488_P.tar.gz,397181382,"found, size not checked"
+eDAIC,data,489_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/489_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\489_P.tar.gz,315283263,"found, size not checked"
+eDAIC,data,490_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/490_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\490_P.tar.gz,273189914,"found, size not checked"
+eDAIC,data,491_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/491_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\491_P.tar.gz,344219694,"found, size not checked"
+eDAIC,data,492_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/492_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\492_P.tar.gz,391170246,"found, size not checked"
+eDAIC,data,600_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/600_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\600_P.tar.gz,282005798,"found, size not checked"
+eDAIC,data,601_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/601_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\601_P.tar.gz,305432966,"found, size not checked"
+eDAIC,data,602_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/602_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\602_P.tar.gz,368045622,"found, size not checked"
+eDAIC,data,603_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/603_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\603_P.tar.gz,670934535,"found, size not checked"
+eDAIC,data,604_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/604_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\604_P.tar.gz,272854051,"found, size not checked"
+eDAIC,data,605_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/605_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\605_P.tar.gz,366289622,"found, size not checked"
+eDAIC,data,606_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/606_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\606_P.tar.gz,217756113,"found, size not checked"
+eDAIC,data,607_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/607_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\607_P.tar.gz,339920125,"found, size not checked"
+eDAIC,data,608_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/608_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\608_P.tar.gz,556345336,"found, size not checked"
+eDAIC,data,609_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/609_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\609_P.tar.gz,534666622,"found, size not checked"
+eDAIC,data,612_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/612_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\612_P.tar.gz,390106240,"found, size not checked"
+eDAIC,data,615_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/615_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\615_P.tar.gz,535324295,"found, size not checked"
+eDAIC,data,617_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/617_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\617_P.tar.gz,573431486,"found, size not checked"
+eDAIC,data,618_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/618_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\618_P.tar.gz,376631443,"found, size not checked"
+eDAIC,data,619_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/619_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\619_P.tar.gz,499318941,"found, size not checked"
+eDAIC,data,620_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/620_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\620_P.tar.gz,525122305,"found, size not checked"
+eDAIC,data,622_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/622_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\622_P.tar.gz,376117739,"found, size not checked"
+eDAIC,data,623_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/623_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\623_P.tar.gz,560116472,"found, size not checked"
+eDAIC,data,624_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/624_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\624_P.tar.gz,303248520,"found, size not checked"
+eDAIC,data,625_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/625_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\625_P.tar.gz,460187331,"found, size not checked"
+eDAIC,data,626_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/626_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\626_P.tar.gz,261647361,"found, size not checked"
+eDAIC,data,627_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/627_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\627_P.tar.gz,673670650,"found, size not checked"
+eDAIC,data,628_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/628_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\628_P.tar.gz,504395820,"found, size not checked"
+eDAIC,data,629_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/629_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\629_P.tar.gz,654382941,"found, size not checked"
+eDAIC,data,631_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/631_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\631_P.tar.gz,237729633,"found, size not checked"
+eDAIC,data,632_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/632_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\632_P.tar.gz,553309415,"found, size not checked"
+eDAIC,data,633_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/633_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\633_P.tar.gz,807320854,"found, size not checked"
+eDAIC,data,634_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/634_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\634_P.tar.gz,382116002,"found, size not checked"
+eDAIC,data,635_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/635_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\635_P.tar.gz,235549165,"found, size not checked"
+eDAIC,data,636_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/636_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\636_P.tar.gz,765544155,"found, size not checked"
+eDAIC,data,637_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/637_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\637_P.tar.gz,569852777,"found, size not checked"
+eDAIC,data,638_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/638_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\638_P.tar.gz,216695645,"found, size not checked"
+eDAIC,data,640_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/640_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\640_P.tar.gz,342242167,"found, size not checked"
+eDAIC,data,641_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/641_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\641_P.tar.gz,266576925,"found, size not checked"
+eDAIC,data,649_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/649_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\649_P.tar.gz,470261106,"found, size not checked"
+eDAIC,data,650_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/650_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\650_P.tar.gz,441434532,"found, size not checked"
+eDAIC,data,651_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/651_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\651_P.tar.gz,228128000,"found, size not checked"
+eDAIC,data,652_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/652_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\652_P.tar.gz,338921022,"found, size not checked"
+eDAIC,data,653_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/653_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\653_P.tar.gz,315215694,"found, size not checked"
+eDAIC,data,654_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/654_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\654_P.tar.gz,232534461,"found, size not checked"
+eDAIC,data,655_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/655_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\655_P.tar.gz,338644499,"found, size not checked"
+eDAIC,data,656_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/656_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\656_P.tar.gz,316501367,"found, size not checked"
+eDAIC,data,657_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/657_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\657_P.tar.gz,192922712,"found, size not checked"
+eDAIC,data,658_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/658_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\658_P.tar.gz,429983257,"found, size not checked"
+eDAIC,data,659_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/659_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\659_P.tar.gz,292959814,"found, size not checked"
+eDAIC,data,660_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/660_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\660_P.tar.gz,38439814,"found, size not checked"
+eDAIC,data,661_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/661_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\661_P.tar.gz,83855814,"found, size not checked"
+eDAIC,data,662_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/662_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\662_P.tar.gz,283079814,"found, size not checked"
+eDAIC,data,663_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/663_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\663_P.tar.gz,392297066,"found, size not checked"
+eDAIC,data,664_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/664_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\664_P.tar.gz,518173444,"found, size not checked"
+eDAIC,data,666_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/666_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\666_P.tar.gz,550113430,"found, size not checked"
+eDAIC,data,667_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/667_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\667_P.tar.gz,377107796,"found, size not checked"
+eDAIC,data,669_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/669_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\669_P.tar.gz,648814350,"found, size not checked"
+eDAIC,data,670_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/670_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\670_P.tar.gz,252118272,"found, size not checked"
+eDAIC,data,673_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/673_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\673_P.tar.gz,255747834,"found, size not checked"
+eDAIC,data,676_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/676_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\676_P.tar.gz,210112528,"found, size not checked"
+eDAIC,data,677_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/677_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\677_P.tar.gz,385848910,"found, size not checked"
+eDAIC,data,679_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/679_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\679_P.tar.gz,379807883,"found, size not checked"
+eDAIC,data,680_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/680_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\680_P.tar.gz,692983900,"found, size not checked"
+eDAIC,data,682_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/682_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\682_P.tar.gz,318046434,"found, size not checked"
+eDAIC,data,683_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/683_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\683_P.tar.gz,580878842,"found, size not checked"
+eDAIC,data,684_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/684_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\684_P.tar.gz,427853617,"found, size not checked"
+eDAIC,data,687_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/687_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\687_P.tar.gz,445800671,"found, size not checked"
+eDAIC,data,688_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/688_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\688_P.tar.gz,496790363,"found, size not checked"
+eDAIC,data,689_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/689_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\689_P.tar.gz,375145267,"found, size not checked"
+eDAIC,data,691_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/691_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\691_P.tar.gz,576410406,"found, size not checked"
+eDAIC,data,692_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/692_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\692_P.tar.gz,245959659,"found, size not checked"
+eDAIC,data,693_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/693_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\693_P.tar.gz,292437283,"found, size not checked"
+eDAIC,data,695_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/695_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\695_P.tar.gz,511945813,"found, size not checked"
+eDAIC,data,696_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/696_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\696_P.tar.gz,313142204,"found, size not checked"
+eDAIC,data,697_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/697_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\697_P.tar.gz,478282334,"found, size not checked"
+eDAIC,data,698_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/698_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\698_P.tar.gz,647581908,"found, size not checked"
+eDAIC,data,699_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/699_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\699_P.tar.gz,305139827,"found, size not checked"
+eDAIC,data,702_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/702_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\702_P.tar.gz,294711265,"found, size not checked"
+eDAIC,data,703_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/703_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\703_P.tar.gz,313549245,"found, size not checked"
+eDAIC,data,705_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/705_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\705_P.tar.gz,316046567,"found, size not checked"
+eDAIC,data,707_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/707_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\707_P.tar.gz,406016591,"found, size not checked"
+eDAIC,data,708_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/708_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\708_P.tar.gz,363698968,"found, size not checked"
+eDAIC,data,709_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/709_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\709_P.tar.gz,321530839,"found, size not checked"
+eDAIC,data,710_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/710_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\710_P.tar.gz,352530263,"found, size not checked"
+eDAIC,data,712_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/712_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\712_P.tar.gz,542880054,"found, size not checked"
+eDAIC,data,713_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/713_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\713_P.tar.gz,359787247,"found, size not checked"
+eDAIC,data,715_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/715_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\715_P.tar.gz,485752362,"found, size not checked"
+eDAIC,data,716_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/716_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\716_P.tar.gz,430437098,"found, size not checked"
+eDAIC,data,717_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/717_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\717_P.tar.gz,394732216,"found, size not checked"
+eDAIC,data,718_P.tar.gz,https://dcapswoz.ict.usc.edu/wwwedaic/data/718_P.tar.gz,,,present_file,F:\数据库\E-daic\E-daic\data\718_P.tar.gz,492197927,"found, size not checked"
+eDAIC,labels,Detailed_PHQ8_Labels.csv,https://dcapswoz.ict.usc.edu/wwwedaic/labels/Detailed_PHQ8_Labels.csv,,,present_file,F:\数据库\E-daic\labels\Detailed_PHQ8_Labels.csv,5238,"found, size not checked"
+eDAIC,labels,detailed_lables.csv,https://dcapswoz.ict.usc.edu/wwwedaic/labels/detailed_lables.csv,,,present_file,F:\数据库\E-daic\labels\detailed_lables.csv,22138,"found, size not checked"
+eDAIC,labels,dev_split.csv,https://dcapswoz.ict.usc.edu/wwwedaic/labels/dev_split.csv,,,present_file,F:\数据库\E-daic\labels\dev_split.csv,1137,"found, size not checked"
+eDAIC,labels,test_split.csv,https://dcapswoz.ict.usc.edu/wwwedaic/labels/test_split.csv,,,present_file,F:\数据库\E-daic\labels\test_split.csv,1182,"found, size not checked"
+eDAIC,labels,train_split.csv,https://dcapswoz.ict.usc.edu/wwwedaic/labels/train_split.csv,,,present_file,F:\数据库\E-daic\labels\train_split.csv,3198,"found, size not checked"
+DAIC-WOZ,root,300_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/300_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,301_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/301_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,302_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/302_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,303_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/303_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,304_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/304_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,305_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/305_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,306_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/306_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,307_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/307_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,308_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/308_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,309_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/309_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,310_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/310_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,311_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/311_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,312_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/312_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,313_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/313_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,314_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/314_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,315_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/315_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,316_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/316_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,317_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/317_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,318_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/318_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,319_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/319_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,320_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/320_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,321_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/321_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,322_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/322_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,323_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/323_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,324_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/324_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,325_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/325_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,326_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/326_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,327_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/327_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,328_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/328_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,329_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/329_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,330_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/330_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,331_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/331_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,332_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/332_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,333_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/333_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,334_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/334_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,335_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/335_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,336_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/336_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,337_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/337_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,338_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/338_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,339_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/339_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,340_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/340_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,341_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/341_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,343_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/343_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,344_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/344_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,345_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/345_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,346_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/346_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,347_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/347_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,348_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/348_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,349_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/349_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,350_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/350_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,351_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/351_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,352_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/352_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,353_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/353_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,354_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/354_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,355_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/355_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,356_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/356_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,357_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/357_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,358_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/358_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,359_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/359_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,360_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/360_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,361_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/361_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,362_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/362_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,363_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/363_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,364_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/364_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,365_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/365_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,366_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/366_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,367_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/367_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,368_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/368_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,369_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/369_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,370_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/370_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,371_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/371_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,372_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/372_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,373_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/373_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,374_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/374_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,375_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/375_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,376_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/376_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,377_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/377_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,378_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/378_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,379_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/379_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,380_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/380_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,381_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/381_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,382_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/382_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,383_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/383_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,384_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/384_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,385_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/385_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,386_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/386_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,387_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/387_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,388_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/388_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,389_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/389_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,390_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/390_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,391_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/391_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,392_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/392_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,393_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/393_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,395_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/395_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,396_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/396_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,397_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/397_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,399_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/399_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,400_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/400_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,401_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/401_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,402_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/402_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,403_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/403_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,404_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/404_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,405_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/405_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,406_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/406_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,407_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/407_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,408_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/408_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,409_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/409_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,410_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/410_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,411_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/411_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,412_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/412_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,413_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/413_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,414_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/414_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,415_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/415_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,416_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/416_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,417_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/417_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,418_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/418_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,419_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/419_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,420_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/420_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,421_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/421_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,422_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/422_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,423_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/423_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,424_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/424_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,425_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/425_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,426_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/426_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,427_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/427_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,428_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/428_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,429_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/429_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,430_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/430_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,431_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/431_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,432_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/432_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,433_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/433_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,434_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/434_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,435_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/435_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,436_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/436_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,437_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/437_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,438_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/438_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,439_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/439_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,440_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/440_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,441_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/441_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,442_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/442_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,443_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/443_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,444_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/444_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,445_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/445_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,446_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/446_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,447_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/447_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,448_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/448_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,449_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/449_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,450_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/450_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,451_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/451_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,452_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/452_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,453_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/453_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,454_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/454_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,455_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/455_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,456_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/456_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,457_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/457_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,458_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/458_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,459_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/459_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,461_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/461_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,462_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/462_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,463_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/463_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,464_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/464_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,465_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/465_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,466_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/466_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,467_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/467_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,468_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/468_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,469_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/469_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,470_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/470_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,471_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/471_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,472_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/472_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,473_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/473_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,474_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/474_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,475_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/475_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,476_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/476_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,477_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/477_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,478_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/478_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,479_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/479_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,480_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/480_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,481_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/481_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,482_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/482_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,483_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/483_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,484_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/484_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,485_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/485_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,486_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/486_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,487_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/487_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,488_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/488_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,489_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/489_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,490_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/490_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,491_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/491_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,492_P.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/492_P.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,DAICWOZDepression_Documentation_AVEC2017.pdf,https://dcapswoz.ict.usc.edu/wwwdaicwoz/DAICWOZDepression_Documentation_AVEC2017.pdf,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,dev_split_Depression_AVEC2017.csv,https://dcapswoz.ict.usc.edu/wwwdaicwoz/dev_split_Depression_AVEC2017.csv,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,documents.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/documents.zip,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,full_test_split.csv,https://dcapswoz.ict.usc.edu/wwwdaicwoz/full_test_split.csv,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,test_split_Depression_AVEC2017.csv,https://dcapswoz.ict.usc.edu/wwwdaicwoz/test_split_Depression_AVEC2017.csv,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,train_split_Depression_AVEC2017.csv,https://dcapswoz.ict.usc.edu/wwwdaicwoz/train_split_Depression_AVEC2017.csv,,,missing,,,not found as archive or extracted participant directory
+DAIC-WOZ,root,util.zip,https://dcapswoz.ict.usc.edu/wwwdaicwoz/util.zip,,,missing,,,not found as archive or extracted participant directory

@@ -1,0 +1,14 @@
+| Model        | Input condition        | Accuracy | F1    | Macro-F1 | AUC   | MCC   |
+| ------------ | ---------------------- | -------- | ----- | -------- | ----- | ----- |
+| TF-IDF + LR  | C1 Full dialogue       | 0.761    | 0.353 | 0.603    | 0.669 | 0.217 |
+| TF-IDF + LR  | C2 Participant-only    | 0.783    | 0.000 | 0.439    | 0.672 | 0.000 |
+| TF-IDF + LR  | C3 Interviewer-only    | 0.682    | 0.364 | 0.576    | 0.688 | 0.155 |
+| TF-IDF + LR  | C4 Interviewer-cleaned | 0.659    | 0.348 | 0.559    | 0.685 | 0.124 |
+| TF-IDF + SVM | C1 Full dialogue       | 0.783    | 0.286 | 0.579    | 0.706 | 0.211 |
+| TF-IDF + SVM | C2 Participant-only    | 0.783    | 0.000 | 0.439    | 0.667 | 0.000 |
+| TF-IDF + SVM | C3 Interviewer-only    | 0.705    | 0.316 | 0.564    | 0.738 | 0.128 |
+| TF-IDF + SVM | C4 Interviewer-cleaned | 0.750    | 0.353 | 0.599    | 0.712 | 0.209 |
+| MPNet + LR   | C1 Full dialogue       | 0.652    | 0.273 | 0.522    | 0.525 | 0.047 |
+| MPNet + LR   | C2 Participant-only    | 0.717    | 0.519 | 0.659    | 0.706 | 0.361 |
+| MPNet + LR   | C3 Interviewer-only    | 0.636    | 0.273 | 0.515    | 0.650 | 0.033 |
+| MPNet + LR   | C4 Interviewer-cleaned | 0.614    | 0.261 | 0.500    | 0.659 | 0.005 |

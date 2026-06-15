@@ -1,0 +1,62 @@
+[
+  {
+    "pid": 387,
+    "status": "downloaded",
+    "bytes": 311798892,
+    "expected": 311798892,
+    "note": "speaker transcript present"
+  },
+  {
+    "pid": 388,
+    "status": "downloaded",
+    "bytes": 410138790,
+    "expected": 410138790,
+    "note": "speaker transcript present"
+  },
+  {
+    "pid": 389,
+    "status": "downloaded",
+    "bytes": 408977698,
+    "expected": 408977698,
+    "note": "speaker transcript present"
+  },
+  {
+    "pid": 390,
+    "status": "incomplete",
+    "bytes": 321679817,
+    "expected": 701172549,
+    "note": "size mismatch after transfer"
+  },
+  {
+    "pid": 391,
+    "status": "skip_complete",
+    "note": "zip ok: F:\\391_P.zip"
+  },
+  {
+    "pid": 392,
+    "status": "skip_complete",
+    "note": "zip ok: F:\\392_P.zip"
+  },
+  {
+    "pid": 393,
+    "status": "skip_complete",
+    "note": "zip ok: F:\\393_P.zip"
+  },
+  {
+    "pid": 395,
+    "status": "skip_complete",
+    "note": "zip ok: F:\\395_P.zip"
+  },
+  {
+    "pid": 396,
+    "status": "skip_complete",
+    "note": "zip ok: F:\\396_P.zip"
+  },
+  {
+    "pid": 397,
+    "status": "downloaded",
+    "bytes": 505788765,
+    "expected": 505788765,
+    "note": "speaker transcript present"
+  }
+]

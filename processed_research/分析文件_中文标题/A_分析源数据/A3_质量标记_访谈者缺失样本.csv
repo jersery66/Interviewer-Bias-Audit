@@ -1,0 +1,4 @@
+﻿participant_id,flag,detail
+451,no_interviewer_turns,Original DAIC-WOZ transcript has participant turns only; exclude from interviewer-only analyses.
+458,no_interviewer_turns,Original DAIC-WOZ transcript has participant turns only; exclude from interviewer-only analyses.
+480,no_interviewer_turns,Original DAIC-WOZ transcript has participant turns only; exclude from interviewer-only analyses.

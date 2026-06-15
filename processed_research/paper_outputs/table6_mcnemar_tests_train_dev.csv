@@ -1,0 +1,10 @@
+Evaluation,Model,Comparison,Paired n,Discordant n,A correct / B wrong,A wrong / B correct,Exact p
+Train/dev,TF-IDF + LR,Full vs Participant,46,7,3,4,1.0000
+Train/dev,TF-IDF + LR,Participant vs Interviewer,44,12,8,4,0.3877
+Train/dev,TF-IDF + LR,Interviewer vs Cleaned,44,5,3,2,1.0000
+Train/dev,TF-IDF + SVM,Full vs Participant,46,4,2,2,1.0000
+Train/dev,TF-IDF + SVM,Participant vs Interviewer,44,9,6,3,0.5078
+Train/dev,TF-IDF + SVM,Interviewer vs Cleaned,44,4,1,3,0.6250
+Train/dev,MPNet + LR,Full vs Participant,46,13,5,8,0.5811
+Train/dev,MPNet + LR,Participant vs Interviewer,44,11,7,4,0.5488
+Train/dev,MPNet + LR,Interviewer vs Cleaned,44,1,1,0,1.0000

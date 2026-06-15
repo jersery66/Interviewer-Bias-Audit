@@ -1,0 +1,6 @@
+﻿input_condition,status,source,note
+full_dialogue,ready,DAIC-WOZ original speaker transcript,C1 in original plan.
+participant_only,ready,DAIC-WOZ original speaker transcript,C2 in original plan.
+interviewer_only,ready,DAIC-WOZ original speaker transcript,C3 in original plan; participants flagged in quality_flags should be excluded for this condition.
+interviewer_cleaned,ready_rule_based,Keyword removal from interviewer_only,C4 in original plan; operational rule matches outputs/新研究_实验代码骨架.py.
+symptom_evidence_only,pending_llm_extraction,participant_for_evidence_extraction.jsonl,C5 in original plan; do not run as baseline until LLM evidence JSON has been generated and audited.

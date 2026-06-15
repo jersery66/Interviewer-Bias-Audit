@@ -1,0 +1,9 @@
+﻿rule_id,description,patterns
+mood_depression,"Direct depressed mood, sadness, hopelessness, or negative mood probes.",\bdepress(?:ed|ion)?\b; \bsad(?:ness)?\b; \bdown\b; \bhopeless(?:ness)?\b; \bunhappy\b; \bfeel(?:ing)?\s+(?:really\s+)?down\b
+anhedonia_interest,"Direct interest, pleasure, enjoyment, or anhedonia-related symptom probes.",\binterest(?:ed)?\b; \bpleasure\b; \benjoy(?:ed|ing)?\b
+sleep_fatigue_energy,"Direct sleep, fatigue, tiredness, or low-energy symptom probes.",\bsleep(?:ing)?\b; \bgood\s+night'?s\s+sleep\b; \bsleep\s+well\b; \binsomnia\b; \btired(?:ness)?\b; \bfatigue\b; \benergy\b
+appetite_weight,"Direct appetite, eating, or weight-change symptom probes.",\bappetite\b; \beat(?:ing)?\b; \bweight\b
+self_worth_guilt,"Direct self-worth, guilt, blame, failure, or worthlessness symptom probes.",\bworthless(?:ness)?\b; \bself[-\s]?worth\b; \bblame\s+yourself\b; \bfailure\b; \bfeel\s+bad\s+about\s+yourself\b
+concentration_psychomotor,Direct concentration or psychomotor-change symptom probes.,\bconcentrat(?:e|ion|ing)\b; \brestless\b; \bslow(?:ed)?\s+down\b; \bmoving\s+or\s+speaking\s+so\s+slowly\b
+suicide_self_harm,"Suicidal ideation, self-harm, or disturbing-thought probes.",\bsuicid(?:e|al)\b; \bkill\s+yourself\b; \bhurt\s+yourself\b; \bself[-\s]?harm\b; \bbetter\s+off\s+dead\b; \bdisturbing\s+thoughts?\b; \bdidn'?t\s+wanna\s+go\s+anymore\b
+mental_health_history,"Diagnosis, therapy, counseling, help-seeking, treatment, or medication history prompts.",\bmental\s+health\b; \btherap(?:y|ist)\b; \bcounsel(?:or|lor|ing)\b; \btreatment\b; \bmedication\b; \bantidepressant\b; \bdiagnos(?:ed|is)\b; \banxiety\b; \bp[\W_]*t[\W_]*s[\W_]*d\b; \bseek\s+help\b; \bseeing\s+a\s+therapist\b; \bstill\s+go\s+to\s+therapy\b; \bstop(?:ped)?\s+(?:going\s+to\s+)?therapy\b; \bpsychologist\b; \bpsychiatrist\b

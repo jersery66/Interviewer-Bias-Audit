@@ -1,0 +1,7 @@
+﻿participant_id,flag,detail
+451,no_interviewer_turns,Original DAIC-WOZ speaker transcript contains participant turns only.
+451,no_question_answer_pairs,No interviewer block followed by participant block was found.
+458,no_interviewer_turns,Original DAIC-WOZ speaker transcript contains participant turns only.
+458,no_question_answer_pairs,No interviewer block followed by participant block was found.
+480,no_interviewer_turns,Original DAIC-WOZ speaker transcript contains participant turns only.
+480,no_question_answer_pairs,No interviewer block followed by participant block was found.
