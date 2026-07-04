@@ -43,3 +43,25 @@
       functioning_impairment  clinical-context                0.767442                0.282828         0.484614    8.004177 1.086042e-07  0.000001             1.604651             0.484848         1.119803   1.731885e-08    1.731885e-07 Higher in positive group (significant)
        mental_health_history  clinical-context                0.860465                0.444444         0.416021    7.195333 2.730594e-06  0.000014             2.162791             0.848485         1.314306   3.743670e-07    1.871835e-06 Higher in positive group (significant)
 protective_or_absent_symptom protective/denial                0.953488                0.929293         0.024195    1.345946 7.231088e-01  0.903886             2.255814             2.292929        -0.037115   7.719754e-01    8.469721e-01              Not significant after FDR
+
+## Interpretation
+
+### English
+
+The significant domains (FDR q < 0.05) in the presence analysis include both PHQ-core symptoms (depressed_mood, appetite_weight, suicide_self_harm) and clinical-context domains (functioning_impairment, mental_health_history). This suggests that the discriminative performance of domain_presence/count is not driven solely by PHQ-core symptoms, but by a combination of extracted symptom domains, functional impairment domains, and mental health history domains.
+
+**Key finding**: The high AUC of domain_presence/count (0.790-0.794) is contributed by multiple extracted domains together, not by PHQ-core symptoms alone. Specifically, functioning_impairment and mental_health_history show large effect sizes (OR > 7), suggesting these clinical-context domains strongly contribute to the discriminative performance.
+
+**Interpretation for manuscript**: "The discriminative performance of domain_presence/count features is contributed by a combination of extracted symptom domains (e.g., depressed_mood, suicide_self_harm), functional impairment domains (functioning_impairment), and mental health history domains (mental_health_history), rather than by PHQ-core symptoms alone."
+
+**Caution**: These features encode extracted symptom-domain states, not clinical diagnosis or causal symptom mechanisms. The domain features are derived from the C5 extraction pipeline, so they are not fully independent signal sources.
+
+### 中文
+
+Presence分析中显著的domain（FDR q < 0.05）既包括PHQ核心症状（depressed_mood、appetite_weight、suicide_self_harm），也包括临床背景domain（functioning_impairment、mental_health_history）。这说明domain_presence/count的判别性能并非仅由PHQ核心症状驱动，而是由多个被抽取的症状域、功能损害域和心理健康史域共同构成。
+
+**关键发现**：domain_presence/count的高AUC（0.790-0.794）由多个被抽取域共同贡献，而非仅由PHQ核心症状贡献。具体来说，functioning_impairment和mental_health_history显示大效应量（OR > 7），提示这些临床背景domain强烈贡献了判别性能。
+
+**论文解释句**："domain_presence/count特征的判别性能由多个被抽取域共同构成，包括症状域（如depressed_mood、suicide_self_harm）、功能损害域（functioning_impairment）和心理健康史域（mental_health_history），而非仅由PHQ核心症状贡献。"
+
+**注意事项**：这些变量编码的是被抽取到的症状域状态，而不是临床诊断或症状病理机制。Domain特征是从C5抽取流程派生的，因此它们不是完全独立的信号来源。

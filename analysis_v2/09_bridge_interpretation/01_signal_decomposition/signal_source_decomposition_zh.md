@@ -17,9 +17,9 @@
 
 1. **患者语言信号**："C2 participant_speech的ROC-AUC为0.705，nested Sensitivity为0.512，但默认阈值下Sensitivity仅为0.047，表明是阈值伪影而非无信号。"
 
-2. **症状证据片段信号**："C5 reviewed evidence的AUC为0.754，但domain_presence（AUC=0.790）和domain_count（AUC=0.794）表现相近，提示症状域覆盖驱动了大部分信号。"
+2. **症状证据片段信号**："C5 reviewed evidence的AUC为0.754，而domain_presence（AUC=0.790）和domain_count（AUC=0.794）表现相近，提示domain_presence/count可能捕获了症状域覆盖状态中的大部分判别信息。"
 
-3. **症状域覆盖信号**："domain_presence和domain_count的AUC达到0.790-0.794，高于C5 reviewed evidence，提示症状域覆盖是一个关键信号来源。"
+3. **症状域覆盖信号**："domain_presence和domain_count的AUC达到0.790-0.794，提示症状域覆盖状态携带判别信息，但这些特征是从C5抽取流程派生的变量，而非完全独立的信号来源。"
 
 4. **访谈协议结构**："C4 template_only（AUC=0.754）和template_presence（AUC=0.759）显示协议结构本身携带预测信号，独立于患者症状语言。"
 

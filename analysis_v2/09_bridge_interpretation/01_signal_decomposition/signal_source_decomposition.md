@@ -17,9 +17,9 @@ This table decomposes the predictive signals in DAIC-WOZ PHQ-8 classification in
 
 1. **Participant language**: "C2 participant_speech shows ROC-AUC 0.705 and nested Sensitivity 0.512, but default threshold yields near-zero Sensitivity (0.047), indicating threshold artifact rather than absence of signal."
 
-2. **Symptom evidence text**: "C5 reviewed evidence achieves AUC 0.754, but domain_presence (AUC 0.790) and domain_count (AUC 0.794) perform similarly, suggesting symptom-domain coverage drives much of the signal."
+2. **Symptom evidence text**: "C5 reviewed evidence achieves AUC 0.754, while domain_presence (AUC 0.790) and domain_count (AUC 0.794) perform similarly, suggesting domain_presence/count may capture much of the discriminative information in symptom-domain coverage status."
 
-3. **Symptom-domain coverage**: "Domain_presence and domain_count achieve AUC 0.790-0.794, higher than C5 reviewed evidence, suggesting symptom-domain coverage is a key signal source."
+3. **Symptom-domain coverage**: "Domain_presence and domain_count achieve AUC 0.790-0.794, suggesting symptom-domain coverage status carries discriminative information, though these features are derived from the C5 extraction pipeline rather than being fully independent signal sources."
 
 4. **Interviewer protocol structure**: "C4 template_only (AUC 0.754) and template_presence (AUC 0.759) show protocol structure alone carries predictive signal, independent of participant symptom language."
 
