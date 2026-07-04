@@ -1,0 +1,31 @@
+# Table SX. Interpretation of C4/C5 Signal Mechanisms
+
+This table summarizes the operational meaning and interpretation boundaries for each C4 and C5 control analysis condition.
+
+| Condition | AUC | Physical Mechanism | Statistical Mechanism | Interpretation | Boundary |
+|-----------|-----|-------------------|----------------------|----------------|----------|
+| Human-reviewed symptom quotes from participant speech | 0.754 | Symptom quotes condense clinically-relevant content into short text spans | TF-IDF over condensed quotes yields above-chance AUC, but nested thresholds needed | Usable but not dominant; domain-coverage features match or exceed its performance | Cannot claim specific quote semantics drive prediction beyond domain-state encoding |
+| Binary vector of 10 symptom-domain presence states | 0.790 | Symptom-domain coverage captures whether each PHQ domain was discussed | Linear combination of domain-presence bits, boosted by clinical-context domains (functioning_impairment, mental_health_history) | Domain coverage captures most C5 discriminative information | Does not encode quote-level semantics; derived from C5 pipeline, not independent |
+| Count vector of evidence mentions per symptom domain | 0.794 | Evidence-count profile reflects how extensively each domain was mentioned | Count adds marginal information over presence (0.794 vs 0.790); functioning_impairment count is key in leave-one-out | Similar to presence; count marginally richer but not meaningfully distinct | Count may partially reflect interview length rather than clinical severity |
+| C5 quotes with symptom keywords removed | 0.715 | Remaining text after symptom keywords removed; tests whether domain keywords drive performance | Performance drops from C5 (0.754) to masked (0.715), suggesting keywords contribute but are not sole driver | Both keywords and surrounding context contribute; neither alone sufficient | Masking is syntactic, not semantic; does not remove implicit symptom references |
+| Non-symptom quotes matched by keyword count | 0.678 | Tests whether any text with similar domain-term frequency carries signal, regardless of clinical content | Lower AUC than C5 (0.754), confirming symptom-quote content matters beyond keyword frequency | C5 advantage is not purely lexical; quote semantics provide distinct signal | Same-word matching is approximate; residual confounds possible |
+| Randomly selected non-symptom quotes with matching domain-term count, 10 random seeds | 0.688 | Tests whether C5 advantage over random-same-word baselines is stable across sampling | C5 (0.754) exceeds random-same-word ensemble (mean AUC ≈ 0.688); random seed sensitivity is moderate (SD ≈ 0.05) | C5 consistently outperforms random-same-word baselines; quote content matters | 10-seed sampling may miss worst/best-case random draws |
+| Only explicit interview template utterances (e.g., "How has your sleep been?") | 0.754 | Template questions follow a fixed depression-assessment protocol with predictable topic transitions | Template text alone achieves AUC comparable to C5 (0.754 vs 0.754); protocol structure encodes label-relevant information | Interview protocol structure carries discriminative signal independent of patient speech | Cannot say interviewer semantics drive prediction; template structure is confounded with interview phase |
+| Binary vector indicating which template patterns occurred in the interview | 0.759 | Template-presence encodes which protocol sections were completed for each participant | Template presence (0.759) matches template text (0.754); pattern alone is sufficient | Protocol-structure signal is robust to text-vs-pattern encoding | Presence vector is derived from text extraction; not an independent protocol variable |
+| Template text with utterance order randomized per participant | 0.561 | Destroys sequential protocol structure while preserving vocabulary | AUC drops from template_only (0.754) to shuffled (0.561); sequential structure is essential | Protocol signal resides in the structured interview sequence, not just template vocabulary | Shuffling is within-participant; cross-participant confounds not tested |
+| Non-template interviewer utterances trimmed to match template length distribution | 0.637 | Tests whether non-template interviewer speech carries label signal after controlling for length | AUC drops from C3 (0.803) to length-matched (0.637); template structure is the key interviewer-side signal source | Non-template interviewer speech contributes little beyond template structure | Length-matching is approximate; residual acoustic/prosodic confounds possible |
+| Non-template interviewer utterances matched by interview-position bin | 0.804 | Tests whether interviewer speech at specific interview positions carries signal beyond template content | Position-matched non-template text (0.804) matches C3 (0.803); non-template at same position may carry contamination from adjacent template content | Position-matching reveals likely template contamination in non-template speech | Position binning may be too coarse to separate template/non-template |
+
+## Signal Categories
+
+### C5: Symptom Evidence Controls
+
+The C5 control suite tests whether symptom-quote-based prediction relies on (a) specific quote semantics, (b) domain-coverage states, (c) keyword frequency, or (d) random same-word effects.
+
+**Key finding**: domain_presence/count (AUC=0.790-0.794) matches or exceeds C5 reviewed evidence (AUC=0.754), suggesting symptom-domain coverage captures most of C5's discriminative information. Source-level incremental models confirm C5 adds zero incremental AUC beyond domain_count (M4 vs M3: ΔAUC=-0.004, CI crosses zero).
+
+### C4: Interview Protocol Structure Controls
+
+The C4 control suite tests whether interviewer-side signal originates from (a) template question content, (b) sequential protocol structure, (c) non-template interviewer speech, or (d) template occurrence patterns.
+
+**Key finding**: template_only (AUC=0.754) and template_presence (AUC=0.759) are nearly identical, indicating protocol-structure signal is robust to encoding choice. Template shuffled control (AUC=0.561) confirms that sequential structure, not vocabulary, drives the signal.
