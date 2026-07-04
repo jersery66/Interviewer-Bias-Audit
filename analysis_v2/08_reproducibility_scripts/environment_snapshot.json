@@ -1,0 +1,36 @@
+{
+  "captured_for": "DAIC-WOZ reanalysis v2 completed run",
+  "python": "3.12.8",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "packages": {
+    "numpy": "2.3.3",
+    "pandas": "2.3.3",
+    "scikit-learn": "1.9.0",
+    "scipy": "1.18.0",
+    "statsmodels": "0.14.5",
+    "matplotlib": "3.10.7",
+    "pillow": "11.3.0",
+    "torch": "2.9.1+cpu",
+    "transformers": "4.57.1",
+    "sentence-transformers": "5.1.2",
+    "huggingface-hub": "0.36.0",
+    "tokenizers": "0.22.1",
+    "safetensors": "0.6.2",
+    "pytest": "9.1.1"
+  },
+  "compute": {
+    "embedding_device": "cpu",
+    "available_gpu": "NVIDIA GeForce RTX 3060 Laptop GPU, 6 GB",
+    "torch_cuda_available_during_run": false
+  },
+  "models": {
+    "mpnet": {
+      "name": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130"
+    },
+    "bge": {
+      "name": "BAAI/bge-large-en-v1.5",
+      "revision": "d4aa6901d3a41ba39fb536a557fa166f842b0e09"
+    }
+  }
+}

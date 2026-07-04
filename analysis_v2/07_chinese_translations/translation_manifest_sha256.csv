@@ -1,0 +1,5 @@
+file,bytes,sha256,source
+图注_中文.md,2172,a8ab73c0d13498aac2a78030bdb76c6154df149d8f5ca1c93340727088718dd7,"main_text/figure_1_legend.md; main_text/figure_2_legend.md; supplement/figure_s1_legend.md; supplement/figure_s2_legend.md"
+复现指南_中文.md,2580,50835a5f64305e24f67c7061f061fd1d866450c90baad3177ab2a35574a94fb6,REPRODUCIBILITY.md
+最终方法学审计报告_中文.md,3043,21ac6809b3831d0f3ebc30554a9fb3329c19245e67903bbe8073767971f14365,FINAL_AUDIT_REPORT.md
+统计验证报告_中文.md,4011,f5fcbca2e86142c8831a37bf7193b8a5a494dafb4de65ae8909ce160ff6be524,validation_report.md

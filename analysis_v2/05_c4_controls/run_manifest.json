@@ -1,0 +1,26 @@
+{
+  "cohort": {
+    "n": 142,
+    "negative": 99,
+    "positive": 43
+  },
+  "completed_at_utc": "2026-07-03T18:25:23.482238+00:00",
+  "elapsed_seconds": 407.446706,
+  "family_test_count": 8,
+  "interpretation_guardrail": "Template, position, topic coverage, and text quantity jointly constitute protocol signal; results do not isolate natural-language template semantics.",
+  "length_master_seed": 20260715,
+  "n_permutations": 10000,
+  "nontemplate_definition": "canonical interviewer turns with is_explicit_clinical_prompt == 0",
+  "output_file_count": 16,
+  "output_inventory_sha256": "3836b5a19b6d99a9323340c4c2a491dc99c06f251d46178fe239ce315dd990ac",
+  "shuffled_seed_formula": "base_seed + 2000 + 100*repeat + fold; donors permuted separately within outer train and test",
+  "split_sha256": "e4202fcd4d492a37fa68c579767ea940ca0629b4230374b06ddc8778e32045b3",
+  "started_at_utc": "2026-07-03T18:18:36.035532+00:00",
+  "status": "complete",
+  "template_definition": "canonical interviewer turns with is_explicit_clinical_prompt == 1",
+  "template_id_definition": "sorted unique normalized explicit-clinical-prompt text",
+  "turns_source": {
+    "path": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\01_inputs\\c4_turns_official142_frozen.csv",
+    "sha256": "d2416dbdf981563df2213ca4101b8601964e469f0f744e8e4da001c4520c4229"
+  }
+}

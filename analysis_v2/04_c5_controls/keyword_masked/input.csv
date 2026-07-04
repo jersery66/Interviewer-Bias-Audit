@@ -1,0 +1,1139 @@
+participant_id,official_avec_split,paper_label_phq8_ge10,paper_phq8_score,condition_id,canonical_source_condition,transcript_format,text,word_count,computed_word_count,is_empty,text_sha256
+302,dev,0,4,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"mm not officially but i think i might be [MASKED]
+well i mean since my mom passed it's been kinda rough
+grumpy irritable fidgety just a big ball of nerves
+i don't stay in that place too long just go ahead and think about it and move on
+uh my big sister michelle uh my friend troy um i mean there's others but those two uh no matter good or bad they're always in my corner for me",78,78,False,8B1FC0213F03DBEAE256A0F0C86F539FF887E2414DF26EEE3BBB62901891A75B
+303,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"read take a long walk hot bath meditate just close my eyes sometimes
+my kids will keep me you know sane and you know i love them and my family
+pretty much you know i need my rest because i'm out there driving that bus and dealing with all these people and you know the job itself if very stressful so i feel like if i'm rested it'll help me
+what am i like irritated [MASKED] um lazy you know feel like i wanna lay [MASKED] probably go to [MASKED] <laughter> get the rest that i need but <laughter>
+i try to stay happy i'd rather be happy than [MASKED] my kids keep me going you know what i mean",120,120,False,DCA35BB57F0D24A0A7CC35C0AEFB952DE8A79FC837241EB841D16EF6182A6FE5
+304,train,0,6,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i'm [MASKED] <laughter> and i kind of fall asleep during class and whatnot
+no i feel pretty happy right now
+being with my boyfriend makes me really happy",28,28,False,F8350BCB640B5126B1A51F83DD73C95DBD432B5A6AC9DE33928792D5647EAB1A
+305,train,0,7,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i just have my i have racing thoughts
+or i get [MASKED] you know 'cause i or i worry about things that you know that really i have no control over
+lately i just been sleeping a bit too much uh at least for me because i'm so used to just sleeping four to five hours a a a night but now it's changed to about eight to nine hours and i'm still [MASKED]
+if i don't [MASKED] well sometimes then i just dwell back on the same things that have been bothering me
+uh i've been diagnosed with uh bipolarism
+i don't medicate so i mean i have been on medication before in the past
+i've been on probably every imaginable pill that there is for that
+uh get the same anxiety as if i if i was on medication for it or not so i just
+sometimes it's not good you know i get irritated at people a lot i don't like people
+you just get a lot of loud obnoxious people on there sometimes i gotta get off the bus
+i have a lot of ups and downs
+i talked to a therapist probably on a weekly basis for a while
+it helps a lot you know uh just to get out my anger uh my thoughts
+i just don't let a lot of stuff bother me it does bother me but i try not to to let it continue to bother me",246,246,False,3F0B73B5611DC5D2A3F646D0312A35D38848A134D2C7EC738C11F9E0A8E9473A
+307,dev,0,4,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i always [MASKED] so easy
+i usually get enough [MASKED] and i've been working out more so it's kind of energizing me so no it's not too bad
+i guess i've just been more negative but it has to do with like circumstances kind of like uh it's been about five months since i quit my full time job haven't found anything else haven't really found anything else i'm interested in
+but yeah usually it's been kind of like [MASKED] because i'm just trying to find like what i'm supposed to like you know what do i want to do next and like money situations which is very stressful
+i think everyone goes through [MASKED] here and there so i don't know if you can but not like medically diagnose i'm not on meds
+i hated it from like the second from like the first week i just knew that i chose the wrong college and i was like miserable for the entire year
+the thought of going back to wellesley was super depressing",174,174,False,4F769E8243321A7EF194ABCEB55E7EDB08D588F8ECBA0BAF3F415DBEAA1A48C6
+310,train,0,4,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"uh in terms of lashing out at other people physically i don't do that but in order to let off some aggressions if if need be i'll i'm not above you know punching a wall or punching something nearby
+i don't know that i would call it [MASKED] but i'm not necessarily what you would call you know cheery but i don't know that i'm necessarily [MASKED]
+that i didn't didn't fall into drugs like a lot of other other people that i know
+listening to music on vinyl
+being around dogs",92,92,False,A4C63983D0616ED952A0F28B1442BE7CACDF8ED153A42C337525766D407007ED
+312,train,0,2,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i don't enjoy traveling
+i'm probably like i am now normal i think not as not as happy about everything but still pretty okay i can still function
+yes i have changes in my thoughts um applying to grad school again it's been awhile and slightly apprehensive happy that it's looks good but apprehensive that it might not be good and things like that",64,64,False,E8A8812481DB1FFCC20B212F5BABC1F2B24355E882DC198ED4CFCE2B68DA58CE
+313,train,0,7,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i'm easier more easily irritated and uh yell more [MASKED] more uh kind of [MASKED] feeling [MASKED] more not as productive
+don't know exactly it's been a few years but i still feel the same as i did when they diagnosed me so i assume i'm still [MASKED]
+i'm a big believer in talking to people about your problems
+talking to friends i would consider therapy somebody who will listen so helps you get stuff off your chest
+talking to him always helps give me perspective",86,86,False,19938C8026BE96BE8874484CD705E12A038CCD688A2B74F96E341DE49890F099
+315,train,0,2,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i'm doing pretty well for [MASKED] so i am happy
+yes a lot of things i regret um i regret a lot of decisions in my life
+i tend to get upset and then my thoughts get clouded
+i'm pretty close with my family
+my friends and i are very close
+my grandmother she's always been a um a a positive influence
+accomplishments being able to if i or if i'm have a goal or or something i'm supposed to do that week or that day and i accomplishment it always puts me in a good mood
+being a positive role model right now um for younger kids
+couple days ago my football team um we're in the playoffs made the playoffs so that always makes me happy",128,128,False,355E9605D96A5960B6FC1F16FDFA39B7C2122F09D5FF2896298C9A5076C232AF
+316,train,0,6,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"couple years back i was feeling very not energized <energi> not energized and it was <wa> i was [MASKED]
+i i [MASKED] a lot more and it's i'm not that motivated to go out and have fun
+i push [MASKED] farther to get out of the house or to try to enjoy life and to be you know better to [MASKED]
+i'm a pretty good person caring person
+as a good caring friend and somebody who likes to do things",80,80,False,0C7B9C7C5DE23805CE9EA8C759FCA2B27410FF1EBEF09A795DF3494487D7F8A3
+317,train,0,8,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"just feeling overwhelmed and anxious about some things that had happened and um so i went into therapy for a while
+i've been more confident a little more at ease with [MASKED] less anxious
+i guess sorta sorta [MASKED] generally
+feeling [MASKED] and sluggish
+less less motivated and less interested in things
+i'd say yesterday i saw a movie and i felt better",63,63,False,E70936844E09E0133D4B9C878CA4A5EE48790C2E2E5555D7458A733CF5877A8C
+318,train,0,3,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"sluggish and [MASKED] all day if i don't [MASKED] well all day i'm just laying around
+i'm generally in a good mood every day i mean waking up puts me in a good mood",34,34,False,74B77A51A759D708624E428794358A26633AD3832B2474C8654DDE57C862F538
+319,train,1,13,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"um recognizing that there were some things in me that that were wrong
+i knew that there was something wrong 'cause i wasn't [MASKED]
+well you know i was always [MASKED] and not excited about things anymore and kinda lethargic you know laying around and just not feeling [MASKED]
+well it's you know it's you know i see a psychologist and um we talk about things um i don't really wanna elaborate in detail but you know it's it i seem to think that it's helpful
+well i still like sports you know and um watching a good game or something is usually puts me in a good mood particularly if my team wins you know i like u_s_c",119,119,False,E4EEB56AD88F375879EF77829EDFA1F97A5A759DC3F87C81D008B3598E3225CA
+320,train,1,11,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"a little uneasy because of my experience the things i went through have been going through
+it's not easy for me to [MASKED] to get a good night's [MASKED]
+maybe sluggish maybe sometimes i can be more irritable if i don't [MASKED] well i don't [MASKED] well that often
+yes that's what i have been diagnosed
+i knew i had a problem but i didn't know what it was
+i didn't [MASKED]
+i didn't eat
+i had nightmares i still have them
+of the things that's happened to me was disturbing [di] are disturbing thoughts
+if i see four men together with hoods on it's i have it triggered by that
+sometimes when i have to go upstairs it's a trigger because of the of what happened they took me upstairs
+i haven't been to therapy in a while but i've noticed how to calm [MASKED] [MASKED] when i get um afraid and that's about it
+i cope it's it's difficult but i do cope
+right now uh it's we're we're close i have a pretty close family",178,178,False,F8B52C4769390950CAAFFAF57C2C31EF0FD7A4F383EAC7568ACB10B52167155B
+321,train,1,20,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"um the love of my children
+very excited and happy and just um all my cares were gone
+i couldn't function i couldn't drive i couldn't [MASKED] i couldn't eat um at my i i couldn't do anything i was completely shut [MASKED]
+i felt like i felt like i was looking out a window and and life was going on outside that window and i was just stuck i behind the glass i i couldn't participate
+lately i've been feeling [MASKED]
+i haven't had a good night's [MASKED] in a year i would say
+i i my regular pattern is to maybe [MASKED] in a an hour up to three hour intervals and i just keep waking up and i never quite get into a deep [MASKED]
+um groggy and i have no [MASKED]
+it's very hard because it's uh difficult to work
+and it's difficult to [MASKED] i make mistakes and i forget a lot
+no i'm not in therapy right now i could not afford to continue
+i can think clearer because i'm using the tools that i've learned through therapy",184,184,False,0385EA45CA6E25BF07CC85912D7438BE59A2FFC8517A0BB75D13354EDCF6FF70
+322,train,0,5,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i was feeling [MASKED] <d> uh [MASKED]
+i was not interested in things that i was <wa> that i was normally interested in
+i was not able to [MASKED] on my things
+i lost [MASKED] i was not sleeping well and i i had difficulty um concentrating you know and focusing and uh i was not getting uh my assignments done on time uh these <the> these were some of the problems
+when i was diagnosed with uh [MASKED] i thought i shouldn't be taking any medication for it
+i been feeling good
+i started doing yoga and uh you know i've been doing that for about a year and that's uh and meditation and that's helped a lot
+it's a little difficult but uh of late i've been able to [MASKED] uh within half an hour there are days when it takes almost one two hours to uh go to [MASKED]",152,152,False,D09326FC5791D1CFBAF3675E4687112F09AE41B016BEBA20A3A571807E8C4C2A
+324,train,0,5,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"oh that's that's been a problem over the years um i don't know just have a little anger i guess anger anger management problem
+when i was a teenager i just uh i was very restless i was very destructive you know
+yeah just like mood swings i guess mood swings yeah uh it could be just something small and i'll just snap you know
+yeah angry um the anger [ang] i guess it's kinda hard to control the anger you know when you're going through a couple of of a few things in your life that aren't very pleasant you know
+family comes first family is number one
+going exercising going to the gym and working out going to the beach hanging out with uh family members of mine you know friends yeah
+i'm happy to be here",139,139,False,41B76B0AF4FF261E32EE6B8149B1F6DDF665E98DA719C131EF9D8555A639F5EF
+325,train,1,10,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"he always tells me that i'm really hard on [MASKED] which is true
+i think i'm just proud of who i am xxx i don't know if that's the answer that most people give but i think that i'm i'm really proud of who i am i try really hard um i've done a lot of things in my life i'm a really good person
+um i was cutting and my one of my best friends called um called my parents and let them know and at that point they took me in for treatment
+i that wasn't the first time i had ever been to a therapist or a psychiatrist but um before it was more they thought i had a_d_h_d
+i haven't for about three years uh i stopped because it felt like uh i was checking in with a parole officer i just wasn't enjoying the relationship i had but i still have the psychiatrist that i go to for med checks
+lately i've been a little bit [MASKED] um i should say a little bit more [MASKED] than usual because i graduated and my routine of go to school and do school things twenty four seven has come to an end and without the routine it's been a little bit weird finding out what to do with my finding a way to be productive and knowing what to do with my time it's also been a little bit um depressing finding out that my intelligence and good grades in school doesn't translate to real world skills and there aren't that many jobs for marine biologists in california
+almost impossible ever since i was a little kid i had a i had trouble falling asleep and um about four years ago it it became really really bad where i just couldn't [MASKED] through the night i was getting about four hours of [MASKED] sometimes i would wake up every hour and i'd wake up in the morning just a complete wreck so for about four years i've been taking trazadone so i can [MASKED]
+i'm just um a complete panicked anxious wreck i i lose my ability to deal with um i lose my ability to deal with things i'm much more likely to lose my temper um i can't regulate my moods i'm just really volatile
+really happy on new year's eve which was um uh ten days ago um i was with my boyfriend and some friends and we took a trip out to palm spring and joshua tree and it was really nice to see them",432,432,False,2D70FD7F83957EFB16BF214297F620583A4B5FA29BF3E8690B19B234DCA62D83
+326,train,0,2,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,but no i'm pretty even keel you know what i'm saying i stay <st> i stay pretty level,18,18,False,E2EE4755D1E8B3BC438E2A496B2DE2660661047E68BDBCAEC168B2BA6941AC53
+327,train,0,4,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"um loneliness [MASKED] um especially after i didn't have any family members left in the united states so
+um i went to a counselor and then to group therapy
+yes i didn't want to admit it but after awhile and feeling [MASKED] for so long i knew i had to do something
+um no just getting more positive better
+it's about fifty fifty some nights i [MASKED] good and some nights i don't
+just lack <l> lack of [MASKED] the next day
+it's hard especially if you get two nights in a row of no [MASKED]
+um holidays always try to you know christmas trees and kids and everything so usually is a good time makes me feel good
+most of the time i'm in a good mood",128,128,False,35D954DC488FD92D413C32B8695ED70891D1331B18F188EBDAFAE1068A1011F4
+328,train,0,4,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i guess i get pretty moody you know i could be a little little snappy at people when i don't [MASKED] well when i have lack of [MASKED] but once i get some [MASKED] in me i'm okay
+i enjoy life as much as i possibly can
+just waking up in the morning <laughter> it's always a great thing uh i love ice cream that's always good
+i love laughing ugh if somebody's laughing especially my fiancee 'cause she has a great laugh then that puts me in a good mood",91,91,False,9AB8857909E5C2E2A3EEE9AF8E4F9A171600A96B058855956D5C9216E2474D29
+330,train,1,12,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"yeah i have a mentor who has a lot of positive um thoughts and um suggestions
+takes me a little while to fall asleep but once i'm asleep it's it's reasonably okay
+uh i think i'm a little forgetful and nervous
+well um i think sometimes i do think about challenges ahead of me and uh that can be a little daunting and i i feel [MASKED]
+i don't go to a therapist",73,73,False,93AF591EEDB676B76328DB0028112D7A7A788CA0D366FAF4DD1975294014C756
+331,dev,0,8,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i was just afraid to go out so i needed to get over that so after spending one year in in my home without leaving um and just [MASKED] all the time i i said i have to get out and start talking to people and so i did
+uh yeah a long time ago um you know i've taken many medications here and there and um they really some of 'em would numb me some of them would make me feel hyper so i've recently decided to <t> in the last six months three to six months just to not take anything so i don't take anything i barely even take an aspirin
+always worrying just a lot of worrying always worrying worrying worrying about everything oh what happens if i get in car accident what happens if i can't pay my mortgage what happens if i eh eh just so many things i worry about and that's what was making me [MASKED]
+at some point i've had some good therapists and i've had some bad therapists
+well i'm not going to therapy now but the therapy that i had before um was more like people trying to uh just come in and check in and give me medication
+it's been a long time i can't really think about a time when i felt really happy
+just the way that i've treated people before when i was hurting i was really mean or rude to people
+stopping the drinking is definitely made me have a much clearer mind and just to work through things [MASKED] you know",268,268,False,9AB1B33DE190A8E7AC113A71DEE32892306288EAFBE0575A7DEB2E60766A3BC5
+333,train,0,5,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"it's hard 'cause i don't always maintain uh [MASKED] and motivation i let other things distract me
+i do meditate every day
+i'll do like a form of self-hypnosis and calm [MASKED] which is something i've recently learned how to do which is very helpful
+no but i've been [MASKED] in my life
+for the most part i've i've been feeling good sometimes uh i feel a little blue uh i think you know sometimes if i if i allow <allo> allow a regret to come into my mind that can bring me [MASKED] but i can you know usually get out if it pretty quickly
+pretty easy i don't have a problem sleeping
+i don't know i woke up this morning i was pretty happy
+looking at work and and going to work and feeling productive can put me in it puts me in a good mood",148,148,False,D70CD08ACA04A405BBA9C7027AD0A268F71D37CD629A8FA95C55C942621A83AD
+335,dev,1,12,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i don't usually have trouble talking to people uh i'm pretty friendly
+i take a bath or read a book uh go out with my friends go to the theater
+probably hanging out hanging out with friends the other night i had a good time
+i had a traumatic situation uh where somebody injured me and i i feel <fe> when i looked up p_t_s_d later i realized <reali> i felt like i had all of the symptoms of like going back into situations like that i would get panicky and um it was very uh i held on to it for a really really long time
+i think that i did have it but i just i don't know 'cause i never i never saw anyone about it
+sometimes yeah uh certain physical things with that part of my body can be a trigger or um it happened in a in an acting class so sometimes certain teachers if they criticize in a certain way i start to i start to panic even if they're totally right and i know they're right and like it's something that someone else could tell me and i'd be fine with it eh sometimes it'll make me a little upset or panicky yeah
+i've been having bad dreams
+just like stress dreams i think having to do with my dad
+i am [MASKED] and maybe somewhat irritable goofy i get really goofy
+i don't spend a lot of time like being upset about things i've done in the past
+my friends and family and uh i my talents
+my ability to take situations and take bad situations and continue and uh make the best of everything",283,283,False,1C50DEC87C09B19160961463D7375D3984061DBB4F1EF5FCABB0DC361F679994
+336,train,0,7,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"good a little [MASKED]
+when i was uh a kid my brothers beat me up and i don't feel totally rested in [MASKED] or in my life
+i don't feel totally rested in [MASKED] or in my life
+i don't feel totally safe
+a little irritable
+i have been sleeping better since i met my girlfriend so it's not totally bad
+um well i feel more positive i did the seminar and uh so that let me get rid of some crap in my brain <sniffle> and be more positive about life
+take off work and <yawn> <sniffle> be in a different environment 'cause my job is stressful and <sniffle> my life is stressful so
+i spend a lot of my time worrying and criticizing [MASKED] instead of moving forward
+watching t_v or going to see movies or <sniffle> trying not to think of it but it doesn't solve the problem
+uh well a little bit i haven't paid my bills a lot i still owe money <sniffle> so um it's kind of a self-defeating prophecy <proph> prophecy
+my girlfriend's been really helpful",183,183,False,54ACAEF6C9326428615C1D491C748F2F4CC9EEEA266172A23206ADE4C80D99DD
+338,train,1,15,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i'm doing fine
+wow twenty ten years ago i would tell [MASKED] not to be so angry so upset all the time about things i can't control i would tell [MASKED] to relax and not be so hard on [MASKED]
+i would tell [MASKED] to relax and not be so hard on [MASKED]
+a little [MASKED] but i think everyone is it has a little bit of sadness in them at some point
+day by day day by day i just started a exercise program so i'm trying to look at [MASKED] for the solution
+always known ever since i was a child things moved me differently than other kids so i felt like i was always different i felt like if i was gonna ever understand me as a person then i would have to work on [MASKED] so yes
+happiness comes and goes but i felt happy today
+when i'm around him i try to be happy i try to present a a a situation where we're both gonna be happy no one wants to be around a [MASKED] person
+i like to get out and play sports i play four or five different sports and um i like to go for a walk i like to ride my bike i like to get out and be active",220,220,False,F3944A16DA6BE274CD84994277205537B89CB544F43C936719F56679B96C5F35
+339,train,1,11,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"um when i'm alone i am um extremely <sigh> i guess i would say um inter minded like i um have a lot of thoughts and i keep them to [MASKED] <clears throat> so if i'm in that mode then i don't really um interact with people but i can also interact with people if i change modes
+[MASKED] sometimes um but generally a good person
+certain settings um if i um see certain types of individuals in certain settings it just reminds me of when i was younger when things happened and changed my future plans so i um try to i used to just try to avoid those types of situations and certain types of people at that time
+but now i feel like i um just handle things better as far as um being in the similar settings with similar people i just i um handle those things better
+i don't worry as much
+it's just allowed me to know that actually speaking about the issues um relieves me of the tension of um holding them inside
+um i was diagnosed with [MASKED] and um my doctor felt that i should probably see the therapist
+if i'm planning things it affects my [MASKED] i might wake up in the middle of the night so sometimes it's easy and sometimes it isn't
+irritable um very <v> just very irritable
+i um enjoy people's company most of the time especially if they're in good moods
+being around positive people music um puts me in a good mood um comedy shows put me in a good mood um good food puts me in a good mood",276,276,False,018AB5095B8801264CF97B4CF2CC694B49F965222BEC7E4ACCE0B483996FF20F
+340,train,0,1,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"mm just sleepy
+i'm very good at controlling my temper
+uh started going to church <ch> i gave my life to the lord started going to church so i'm just trying to do the right things now
+yeah i'm happy
+just 'cause it's like i know that everything's gonna be alright and i have no more worries so i'm happy
+cooking love <lo> cooking puts me in a good move and seeing that my kids are happy",77,77,False,292AAB4E8F483FB0BBC09758B62952B2D4B7F72F984A7E7142C74337F6134140
+341,train,0,7,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i'm doing fine just a little [MASKED]
+just having my children they're a blessing i love 'em
+being around my kids you know i just love being around my children and that's always puts me in a good mood
+well i go to bed really early so long as i go to bed early i get a good night's [MASKED] but i wake up early as well so <laughter> it's kinda like good and bad a lil' bit i go to bed like eight eight thirty and then i wake up at like one one thirty
+very moody very irritable short short-tempered i guess
+if anything i think i'm thinking more positively
+as opposed to feeling sorry for him or feeling sorry for [MASKED] you know i'm just finding more avenues to work with him you know different resources to help him as opposed to just feeling [MASKED] or [MASKED] and [MASKED] about it",154,154,False,3A7A1BF431609AEE20D01EFC6634F24433827CF34ABCD5D7484C56A2418E8A12
+343,train,0,9,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i just wasn't feeling good i was feeling [MASKED] you know and wasn't sleeping good and you know just wasn't feeling right
+i had a problem with the way i was feeling that was the whole purpose of me going to seek some kinda help
+oh i don't [MASKED] that good i don't know why if i had an answer if i had an answer i would [MASKED] better
+i never been to therapy
+getting up this morning that was memorable 'cause it was a new day and thankful to be <b> to be living today",96,96,False,219263E2CA3FC85A33FB6D98F864BCF1A597B246282FA376CFAA19717CCA9C6F
+344,train,1,11,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"what i do when i'm annoyed uh i get really upset i really start really cussing people out to be honest with you and it's something that's not really me
+oh my temper can be controlled i can control it pretty well
+i first thing i do when i wake up in the morning i pray so when my spirit's in connection with the uh <sigh> the universe and the world i i feel pretty good
+i suffer from p_t_s_d and uh getting that type of [MASKED] would be would be great because i have recurring nightmares so of a incident so
+i think it is and i don't know what it's triggered by but i think it is and that's why i'm talking to someone or seeing someone 'cause i'm a veteran at the uh v_a about the situation now about the p_t_s_d basically right now
+a lot of nightmares lot of problems lot of anger issues uh [MASKED]
+i noticed all this in me and uh i started i just started to just tell [MASKED] i needed help
+well i'm able to sit [MASKED] and talk to the therapist and uh tell 'em my situation and we usually will go over the problem
+i went to classes i've been to uh uh talking one-on-one with my own doctor so it's helping out a little bit",227,227,False,31515AB83C9C64641E01A05D1713D25AC89A4D3AF4D23827F7D3A88572B2E7C9
+345,train,1,15,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i don't like how crowded it is the crowds make me really nervous and i don't like um all the smog pollution all that stuff
+i'm not so good at it uh my temper's gotten a little worse um i am not good at all at really controlling my temper um i need some help on that
+my grandma she's always giving me encouragement and um she's a therapist a licensed therapist so she's always you know made it really really um easy for me to have someone to talk to and i could always go to her
+i went horseback riding and that was really really made me happy
+things that put me in a good mood like uh music nature
+i don't usually [MASKED] well so um yeah i have trouble falling asleep mostly
+i guess it's just like my mind will be racing a lot of you know sometimes it'll be flashbacks of bad memories
+i just try to stay positive i try to think like okay well you know one day things will get better
+i just i try to call somebody and talk to them if i have trouble like my grandma
+when i don't [MASKED] well um well i start to like cry a lot and i start to get really irritable
+i get really [MASKED] it makes me not feel well at all i get very uh it just is really really bad if i don't get [MASKED] yeah
+yes i was diagnosed um three years ago
+i just wanted help because it just when your mind is after you like that's like it's just awful to have your mind taking control of you like that
+i definitely always thought i had a problem i always thought something was like really wrong
+i just always like kinda nervous around people like i never can really like look anybody in the eye 'cause i'm just so nervous my eyes are always kind of like racing
+um would have sweats if i was in the situation um that reminded me of the situation like i just try to avoid what reminds me and brings those flashbacks yeah
+i guess walking keeps my mind off my p_t_s_d symptoms so i'm trying to walk more that helps
+um yeah i have [MASKED] um yeah
+i noticed that i've had less flashbacks and um i've been more relaxed i guess
+i'm proud that i can actually like you know be a person who can realize okay i have a problem and i need help
+i'm glad to get help because i don't wanna feel that way and i wanna get help for the problem instead of doing that
+i regret you know uh drug abuse you know but that's part of you know the p_t_s_d
+the smile i guess it kind of hides like what's on the inside but you know i'm pretty [MASKED] you know",488,488,False,AA1CEF8436C3D760F8E3F7534DC9BFC61A4AE185EF33BED04B7BF1C65771EC4A
+346,dev,1,23,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i read i do a lot of sleeping <laughter> i'm a little [MASKED] so um
+i don't i don't i don't [MASKED] very well at night and if i do fall asleep i wake up all through the night usually with some kind of anxiety attacks
+i'll dream about something that stressed me out and then i'll wake up and my my chest'll hurt
+i just can't [MASKED] all night because i just think i seem to be i don't know if i'm afraid to go to [MASKED]
+sleeping is just not really something i do well
+i'm uh i'm moody i'm very sensitive
+i'm just negative <ne> a negative person
+i'm just not a not a nice person to be around
+i force [MASKED] to go out and do things um just to keep [MASKED] involved
+i don't really wanna go out and do things i have to actually force [MASKED] to
+if i have make appointments i uh i make appointments to like for auditions or or um even to do this i um i i tend to uh just not like at the last minute i'll i'll try to convince [MASKED] not to go <laughter> but then i force [MASKED] to anyways
+i've been diagnosed for two instances
+i was diagnosed <dia> diagnosed about three years three and a half years ago
+i was diagnosed again um in august
+the first time it was um i just wasn't sleeping <sl> because of the not sleeping um and the uh just the stress <st> the unbelievable stress
+every moment of the day was just thinking about what happened to me
+i was getting too gloomy
+not thinking life was worth it and and i i i that's i just needed to see somebody before anything escalated
+i no <n> do not
+the counselors that i was going to just didn't really seem to be helping me much
+they just seemed to be giving me a lot of medications and i don't believe that that's what i needed
+lately i've been really [MASKED] and i don't know why
+i've been trying to combat that by um keeping [MASKED] busy
+then i went back to being you know going back to feeling miserable
+i realized uh that i'm actually really lucky
+i have um somebody in my life who really loves me and somebody who um is finally there for me
+my <m> a lesser person i guess would've gotten rid of themselves a long time ago
+i'm really [MASKED] and i feel gloomy and i feel <fe> just feel miserable about a lot of things
+although a whole bunch of bad things have happened to me it hasn't ruined me i still try to be a good person
+i still i still have drive in me
+sometimes actually i forget that i have any good qualities",477,477,False,70F47CF0AFE7D940F724E3F9A92B5B1FE493883C2B1C81AE17AD242CC798310E
+347,train,1,16,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"just i i wake up very easily and sometimes it takes a long time to get [MASKED] and fall asleep
+i feel happy all the time though i mean on and off so it's it's real hard to pinpoint",39,39,False,006EEA4C7E0314087EAD2D08BF4F22132701BECB00FAACA377BC7D3FD030AA2C
+348,train,1,20,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i just didn't feel well i just couldn't i just didn't feel right i couldn't pull [MASKED] out of it
+oh just [MASKED] and just lack of [MASKED] and didn't really wasn't really motivated didn't really wasn't really my happy self
+no i'm just not happy i don't feel good and i'm not happy
+i stay <st> don't just stay stay to [MASKED] don't go out with friends as much as i used to
+terrible i don't [MASKED]
+it's hard for me to cope with things easy you know mundane things are just difficult
+well being around my kids is fun
+whenever the weather changes i sorta get [MASKED]",109,109,False,97026DF925DFF67323030FCB01D120C89D4204B553FBBF4FD44509340AFF890B
+350,train,1,11,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"um well i was diagnosed um within the last um year and uh then again most recently within the last three months
+well um fear and just not knowing what to do with uh some of the things i was feeling and not knowing um you know why i couldn't stop feeling the way i was feeling
+you know mostly i uh i gained a lot of [MASKED]
+um i couldn't [MASKED] a lot and then sometimes i could [MASKED] too much <laughter> um felt [MASKED] sometimes like i wanted to cry a lot
+felt [MASKED] sometimes like i wanted to cry a lot
+i've been feeling okay um there are days yeah um i don't know every day is different so i mean today i feel fine
+lately i've been feeling um more like i can be involved <inv> involved in my own life and like i wanna get out and do more things
+well mm i was receiving um uh i guess psychotherapy
+i just kinda got more involved in taking care of other people instead of [MASKED] for a while
+it's kinda difficult um i either have a hard time falling asleep or a hard time staying asleep
+usually it's um thoughts continual thoughts running through my mind that either keep me up or make it hard for me to uh go asleep or make it hard for me to stay asleep
+[MASKED] <laughter> yeah mostly uh [MASKED] um kinda confused
+i don't know for the most part i feel happy",254,254,False,AD9968492FA203EE4F034590C1C00775F673FF7F7EF6EE42299122056476166F
+351,train,1,14,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"sometimes i feel like i don't fit into the crowd so um it's better just sometimes to be more quiet and view everything instead of uh you know going in and actively pursue things
+i'm just uh during that time i was just going through a lot of issues and i was feeling unsafe to [MASKED] so i ended up going um to the doctor to kinda get meds and have therapy and stuff
+i've been in therapy for a really long time so i just knew it was a change
+when i feel connected to a therapist um and when i feel like it's a really great way for me to talk about what i'm going through um so yes i do
+also i tend to take a lot of my emotions and feelings and kind of bury them and make them feel like really bad about [MASKED]
+feeling [MASKED] all the time
+not having you know enough [MASKED] to do things i used to like i had a little bit of [MASKED] issues
+having weird disturbing thoughts sometimes just pop into my mind and just overall just feeling kinda crummy about life
+i feel like i've been a little bit with more withdrawn lately um but that's about it
+i don't know why i have like a lot of thoughts on my mind at night <clears throat> so i tend not to [MASKED] very well and i wake up quite frequently during the night <clears throat>
+very groggy in the morning and um that's about it like during the day i tend to yawn a lot and my friends always are like oh why are you yawning so much are you disinterested <disisinterested> in what we're doing and then trying to tell them it's not that at all <laughter>
+probably christmas time when i was with my family um just really happy and um feeling like everything was alright in my life having a good sense of like where i was at that moment being present with [MASKED]",340,340,False,A02521BF8E49BE3B10CA61567C6F30D718E5EBA1466630FD2D0E9EB82E721E6B
+352,train,1,10,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"no i've never been formally diagnosed although i would say i've probably diagnosed [MASKED] with [MASKED] um just after having studied it a lot in psychology throughout the years i've i'm probably ninety nine percent sure that i've struggled with [MASKED] off and on so yeah
+lately it's been pretty easy but throughout the years i've definitely had a lot of issues with [MASKED] um just like either not being able to fall asleep or just like waking up constantly throughout the night and so right now i'm not really experiencing too much of that but in the past it's definitely been an ongoing issue for me
+i'm not a pleasant person when i don't [MASKED] well [MASKED] is extremely like important for me i think maybe more so than a lot of people i i like need good [MASKED] to function
+i've been feeling really good um over the past several months i was unemployed um after coming out here and that was really really tough um and i just recently got offered my job um just like last week so i definitely think i've been going through a lot of crap and just a lot of [MASKED] but it's like lifted a lot of it has been lifted off me because i don't have that pressure any longer of like how am i gonna make ends meet this city's really expensive and i don't have a job and so i feel i feel much more relieved than i have been feeling which is good
+i feel i feel much more relieved than i have been feeling which is good
+i was kind of like feeling a bit like a hermit in a way it's just hard like being in a new city and not really knowing too many people and of course like i said not having a job kind of causes you to kind of just like be in your own shell i guess and that was kinda how it was how it's been for me
+just since i got offered the job i just have so much more confidence and like positivity that um things are are starting to work out for me which is good",370,370,False,F3581BA4758C7FACE7CDDCDFA8467E2496529355F217EBA611F4F32A703EE2E0
+353,train,1,11,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i was experiencing mental issues that i'd never really came across before paranoia and anxiety
+there's definitely times where i kind of sink back into thinking about the event especially because the event caused me to stop working
+i think i you know i have a difficulty being in public um i'm still dealing with anxiety and paranoia about that and that something may happen
+i'm not that comfortable going out during the day i tend to go out in the mornings and evenings
+i don't like to go into places where there's only one way in and one way out
+before i very much pretty much stayed home
+i've been doing a lot of yoga and meditation
+i usually just deep breathing um i do a lot of breathing exercises
+it's gotten better i'm okay <ok> i'm better now
+the first three months it was very difficult i couldn't [MASKED] through the night and i woke maybe two or three times and would be awake for a couple hours
+now i am um sleeping through the night again
+i feel foggy and out of it
+just low kind of [MASKED]
+my parents 'cause they've always been very supporting and loving
+it's not so easy for me just to do something like grocery shop or um running errands without having a lot of anxiety",224,224,False,FBDBCD452FB952AE8F8FA4D6724C349DD84E32A6E5075D1239F4D155FDA6EDF0
+355,train,1,10,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i was diagnosed with [MASKED] after a hospital visit in april of two thousand eleven and uh i took some lexapro but i stopped after one day i didn't wanna do it anymore
+[MASKED] about not having a job for over two years i lost my job in october two thousand and ten and except for day you know jobs like this which i'm fortunate to get just you know daily things [MASKED] groups like that i haven't worked
+it just the i guess the general feeling of hopelessness
+now that i'm old i i i [MASKED] much more easily
+i pray before i go to [MASKED] and that's that's that's when i can't have any trouble sleeping i just pray recite different prayers like the lord's prayer hail mary stuff like that and i'm able to fall off to [MASKED]
+i haven't really enjoyed anything uh last week
+i don't have a best friend",155,155,False,BD0DBC9696978A43F1184E20F9BF7B93C0AA0D050B2CE67859E10EEE210EEB19
+356,train,1,10,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"well my father noticed some symptoms my father is just well he's passed away but he was a psychiatrist um well i wasn't sleeping i was laying around the house
+i was waking up at noon <laughter> something like and i didn't have a um [MASKED] like for getting a job it wasn't clear enough
+i i remember some job interviews that i'd go to their front door and then i wouldn't go in <laughter> and i think that was all all part of [MASKED]
+yeah i thought i had a problem but i didn't know what it was
+eh i went for three years and then the psychiatrist said that he thought that i was done <laughter> but uh and i and i i did get to a much better place
+i have to watch all the time to see what's going on with [MASKED] so i think i i'll have good days and bad days
+i think i'm um slipping back a little bit uh uh i don't do well during unemployed periods
+right now we have a work slow [MASKED] so it's easy to slip back into sleeping too late or putting things off because the schedule's too wide open for for me for me personally as a [MASKED] person i think that structure is really important
+it gets you out of bed and you have to get somewhere in time and deal interact with people is all those are all beneficial things for someone who's tends to be [MASKED]
+i just tend to be focused on some things that are probably not that um uplifting let's say uh but it's more negative
+my mind seems to go there a lot where i'm just thinking about that and i've been looking <look> looking at it and reading books about that or um video clips on youtube
+i think i regret not finishing college i think i had a i think i was <wa> uh was going into [MASKED] right then and wasn't coping in my senior year very well
+i had a nice experience uh just uh photographing um a soccer game recently i really enjoyed that",360,360,False,8D619327FEE52D41EE94F3824A069B7753E577A0E167CAF98907ADC2D1C75CC8
+357,train,0,7,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i mean i usually just stay up pretty late so i usually my fault that i don't go to [MASKED] early and then i wake up really late in the afternoon
+the same just a little drowsy tend to go to [MASKED] earlier
+nothing i'm still active i don't really change",51,51,False,77CEF29764EFA441093C4BA1659356AF4E31C386223E861B2A2166A088DD8682
+358,train,0,7,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"not <n> not officially but um some people say i do have the symptoms of it when i've been talking about [MASKED]
+um i was diagnosed in the early nineteen nineties with like dysthymia which is like a mild form of [MASKED] i think or a long term lasting mild [MASKED]
+um irritable moody [MASKED]
+airheaded spacey um slow",59,59,False,07BF36D85D07FCEE68C091424122B15795341C97A7589483C7E799B0FCB4BBC5
+360,train,0,4,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"fairly easy most of the time but if there are like noises around me then it gets a little harder like a a neighbor partying or or loud noises in the house then it's hard but usually it's easy
+i'm just like really [MASKED] in the morning like i don't have a attitude or anything but i'm just like [MASKED] in the morning like i need more [MASKED] when i wake up
+i've been feeling okay just i'm [MASKED] sometimes i [MASKED] a little than i'm i [MASKED] more than i'm used to but i've been okay
+to just do what to do what i have to do strive really hard take care of my business and that's about it
+my grandmother she's really she's really let me see the light she's really let me see the good in [MASKED] she's really let me see that i'm a positive individual and that i can accomplish anything i put my mind to
+i'm proud of my accomplishments i'm proud that no matter what people said about me or thought about me
+i'm a good i'm a good listener a good thinker a good speaker i can overcome a lot of situations and",201,201,False,B2ACEFBCE9EED2689BF883D3676DC6F0C7CE8F4EEF61B9C10A9CA7C3AD07B357
+362,train,1,20,c5_keyword_masked,participant_symptom_evidence_quotes,plain_natural_language,"i think therapy has helped me tremendously i don't think i'd be able to hold a job and be responsible and be a productive member of society <s> of society without therapy
+i'm able to handle things better i don't get so um emotionally upset um a lot more rational i try to stay more rational than emotional more rational and logical
+so-so i've been sick and i've been uh run [MASKED] a little stressed out
+i use the resources <res> draw on the resources that i've learned and i reach out to other people i try not to isolate
+i try to um use the tools that have been given to me in therapy um i don't use medication anymore so it's mainly just proactive treatment where i have to uh do something about it
+it's not it's never easy it's always bad [MASKED] lethargic um it's hard to keep my thoughts in order it's hard just to do the basics during the day
+i have too many regrets right now",172,172,False,EA1107CE1195618BC5FBB11BA84FB83BBE7034F947FA1A3785BCDF7524E71140
+363,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"what i do for uh relaxation or to relieve stress is i actually help <he> help her do yard work take care of all the gardening and things like that and that's actually very uh therapeutic you know
+i felt very [MASKED] and i felt less than a human being at that point in my life
+i don't have problems sleeping that's i i don't ever recall having any problem sleeping so no
+i just uh try to be at peace with my [MASKED] and try to have some peace of mind on a daily basis
+i meditate i read you know i read some books i watch t_v i i do things that i know that um if i can i if i can help [MASKED] i do things to help [MASKED]
+because of my gambling issues i ended up ruining a a very good career
+when i was caught up in all the gambling and compulsive behavior it was because i had an illness a compulsive uh obsessive compulsive behavior that made me ill and um that i was a sick person just trying to become healthy
+every day that's what my life is about it's about recovery",200,200,False,9178DA5356907E588682483C0E9E7C807BCEA85A3F7C6FFD4A0B3E447BE6EB0C
+364,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i feel pretty good i'm wide awake i had an good breakfast and a nice cup of coffee
+i usually find exercise helps me relax the best
+i've had been to some therapy in the past just from you know uh i was in the military and i was never really sure if that that's exactly what it was
+i think i function pretty well
+i generally [MASKED] pretty well
+i've been like anybody else more periods of blue in your life
+boy the last few months i feel great pretty much
+i seem a little happier more content lately
+i've had thought maybe in the past because i do have a family history of it
+it wasn't anything real too debilitating and i wasn't able to really function on my own but i was concerned with it and sought counseling
+i was concerned with it and sought counseling
+i think it's a useful tool if you're open to it
+i don't go now i'm sorta taking a break from it but i'm not against it if i have some issues i wanna bounce off i do have someone that i go to
+i clearly have seasonal affective disorder
+and when the weather's nice i'm generally a lot more happier than when the weather's [laughter] dark and blue and rainy and cold
+i woke up really happy today because i knew it's gonna be a nice day",237,237,False,06612F5294235A5DE028ABD785F4EEFF4E6FE98A907000BA60D4040A398F6B27
+366,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i don't i don't really i'm not the [MASKED] type <laughter> i don't feel [MASKED] i'm not one to shy away from what i've done and i definitely own up to what i do i'm not one to shy away from responsibility but i don't think i ever feel [MASKED] for anything i do
+i'm pretty good at falling asleep except when i'm excited and when i'm reading
+waking up much earlier then when i am now and that's kind of a struggle <st> a little bit of a struggle but i'm getting to it so
+i've been feeling fine you know i'm generally i have a very very happy disposition and so no uh you know deep depressing moods nothing like that
+whenever if i feel do feel like i'm going i don't allow [MASKED] to go to that place
+i was kinda like burning [MASKED] out
+the teacher called saying i was falling asleep in class
+i burnt [MASKED] out um i was spreading [MASKED] too thin
+with that that stuff and the stuff with my dad and working i just kinda like stopped going to school for a while and just worked",195,195,False,2B194233AA69B56A1C59F84884E580885B340F59B7E6BB099E7B5B49A9BCD6AF
+367,dev,1,19,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i'm a little pensive i guess a little uh [MASKED] but more or less okay
+it's difficult i mean it weighs on my mind a lot um i feel like i failed and now i'm here and i can't seem to get back on my feet so it's it's it's hard
+i feel really [MASKED] about the way that that ended and i mean i wasn't i wasn't mean but i was but i was getting more and more messed up and i couldn't stop it
+i wasn't medicated properly i mean now i've been to a doctor and i'm on medication that's completely kind of i mean i still get i still get upset and i still get [MASKED] but it's not like it was
+since the medication it's been better it hasn't been impossible to deal with it hasn't been easy but it's but it's been better
+i take little things and i just think about them all the time in my head until until it drives me crazy i dwell on stuff
+any little detail that comes up i suddenly remember and it can just throw me off for a whole day
+i dealt with it for a long time by by by drinking and and you know just trying to like slow my mind [MASKED] that way
+i kind of have to almost be doing two things at once to occupy my brain completely
+i get up i toss and turn all night you know and now it's just it's yeah i don't [MASKED] too great right now
+i had been given taking stuff for anxiety for for years before that but then i finally got a psychiatrist who actually sat [MASKED] and talked to me
+i was self medicating it was affecting my work
+after everything after being institutionalized once or twice and all this stuff you know they just decided that i was just not worth keeping around so they laid me off
+i go to i go to a_a so that i can um you know keep control of that aspect too
+i have a psychiatrist that i go see but it's really very i've i've only seen her three times in the past year so it's basically to keep my medication coming
+the chemical parts are getting under control like the the [MASKED] is getting under control
+part of what makes it so hard now is knowing that i don't know if i'll ever feel that again",415,415,False,80E0AC7F7B2358CF9EB2CBA0839C0C53683731D902031859DE2BE9039469C4BC
+368,train,0,7,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"when uh when i'm mad i really don't wanna be you know talking to people i don't like to yell i don't like to scream i don't like to hit i don't like to fight i kinda close [MASKED] a lot i don't i just wanna be left alone
+sometimes i tend to drag it on for longer than it should be
+i mean i don't have a lotta [MASKED] i don't do anything like to make me ever feel like you know that bad of a person you know
+it's pretty easy for me to go to [MASKED] actually i i feel like you know i [MASKED] like a baby
+for the most time <ti> part um no i [MASKED] like a rock i [MASKED] really good
+right now generally i've been feeling um worried and and anxious and um you know uh and tense
+i feel like <sharp inhale> you know overwhelmed with a just a lotta like you know things to do
+one of the things i do is like exercise and so i have to work out every day
+i also cope with it too you know playing guitar
+i've never been diagnosed with p_t_s_d
+i mean nothing i feel like nothing makes me happy no more you know
+i learned a new song on the guitar feel <fe> i i feel like not even happy about that you know
+i'm never feeling great i'm never feeling happy i'm never feeling like so sensationalized
+i just wish i had a little bit more inspiration a lot more motivation to like to um <laughter> <sigh> do things
+i don't take drugs i don't drink i don't fight
+i'm pretty happy and content with being you know the cautious you know
+i don't know if i'm really there all the time you know i don't know if i'm really you know i'm always thinking about something else i'm always thinking about something different
+if they're just asking for a favor i almost feel you know i do it half you know with a lotta lackluster lotta half-heartedness
+i don't feel like like that proud of [MASKED]",358,358,False,0A610E1607C8B955870067C6477D8D22D26D647168B68D96C26D53B32EC2C8D0
+369,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"when i was younger i you know uh could've been better older sister and i i wasn't and that makes me feel [MASKED] for sure you know i could've been a better sister better role model
+lately i haven't been able to [MASKED] like at night right away because i don't know just you know just i'm laying there and i'm just like trying to go to [MASKED] and i'm just like ugh but eventually i do
+i'm [MASKED] <laughter> i get [MASKED] throughout throughout the day you know but i kind of try to shake it off
+if not then i just go to [MASKED] throughout the day which sucks
+been feeling good yeah i've been feeling really good um you know a lot of things in my life have you know it i'm having a really good year so far so i'm very happy with that you know everything's you know going good
+just smile and be happy you know and whatever hard things happen you know you're gonna get through them eventually
+as long as i'm alive i'm just i still gotta keep going",187,187,False,CD88778B06719288864281296E4382DF1089F4727697107A283B2082E55FF1FF
+370,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i feel like i maybe haven't made the most of my potential yet in life i i think that i could definitely do more despite the fact that i work a lot
+sometimes [MASKED] time i feel a little bit [MASKED] about that because there's always something that i could be doing that i'm not
+i wish i could <cou> were like hard-wired to go to [MASKED] earlier because i just i wind up staying up 'til one or two every night
+i've been pretty feeling pretty good i i've been i have no complaints physically and you know health-wise i feel good
+you know my relationships with my my family and friends are good
+everything is great so far i i have absolutely no no real complaints uh as far as how i'm feeling about [MASKED] or anything like that
+everything has been been pretty okay pretty steady no no nothing traumatic nothing um kinda resurfacing from the past nothing of the sort has has happened or is happening
+i'm in a happy period of my life right now",180,180,False,B39523E9962784E513F881B33FD460CB895E321FB361960AD331261D04FE8ABB
+371,train,0,9,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"maybe not accomplishing as much as i should have in my life up to now uh yeah maybe by not having enough uh ambition or drive to be in a better position in my life
+i got a lotta things going on or not going on and it just makes it hard for me to [MASKED] um issues in my life
+well in the last few minutes since we started talking about depressing stuff i starting to feel a little more [MASKED]
+it's been awhile since i've been really happy i don't have uh a whole lot of very happy thoughts as recently",103,103,False,7D689854F8E1F0FCDA77044EF40FCAD3038F62D9CF442617BB7B10F2564D1A75
+372,train,1,13,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i've had some issues some nervous breakdowns actually and right now my son is staying with his dad
+i take benadryl to help me [MASKED]
+last night i was crying before i went to [MASKED]
+sometimes these thoughts start running through your head at night when you're in bed but i tried to push them out and then i got up and i took my benadryl so i could go to [MASKED] more easily
+i'm pretty [MASKED] i'm on anti-depressants
+i take wellbutrin
+i'm not as [MASKED] as i was i mean i got here today i got dressed <laughter> i made it out and i'm here today so not that bad
+i'm not the same person that i was when he married me
+yeah like crying a lot something like i cry all the time <sobbing and laughing> it doesn't take much for me to cry i'm just crying thinking about crying but
+my family would invite me to family events and i would go and just just cry because my son wasn't there
+it's nice to talk about your problems i go in there and i cry every week
+you know i'm not doing much with my life and sitting around all day isn't helping my [MASKED] any either
+i don't know last time i was really happy
+i can't pay much attention when i'm reading so <laughter> i have a short attention span i can only read a couple chapters <deep breath> um",246,246,False,8BC984649BF329EB77ED9B8B3ABBE82CF70CA1A9CD799EAE161BF5D2F4B9BD69
+374,train,0,2,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i feel [MASKED] sometimes that i'm not like doing enough you know like there are times where like there are days where maybe like i should've sent out a few more resumes or done more stuff like i i feel [MASKED] sometimes for not being like productive enough
+i've just had more uh like nights where it either takes me a really long time to go to [MASKED] or i wake up in the middle of the night for no reason
+i felt like i was a really low and like too low for me to get [MASKED] out of it
+just having a hard time functioning on the most basic level like just getting up and taking a shower and like going to the grocery store and you know answering emails was just like it took so much [MASKED]
+i think that therapy is good for me because it helps me [MASKED] on my sort of patterns
+i was kind of like just starting to come out of my [MASKED] then
+my parents are really supportive
+when i was there with them it just um it just felt very like safe and comfortable and that just sort of like you know warm familial embrace",205,205,False,6078CEBF5F1FBB7A65D3F96A19AD57036352177BAB9E36F56E704952C86AA380
+375,train,0,5,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"the past couple days has been kinda hard but i usually go to [MASKED] good
+i've been thinking more positive positively lately and i wanna put a lot of stuff into action so i've been trying to train my mind into knowing that stuff is gonna come to me
+no i just told you i feel positive
+i was happy yesterday <yester> i happy yesterday 'cause i you know i made a couple good decisions
+wanting to be positive and stay away from negative people
+waking up positive and having a good meal in the morning",96,96,False,2937FFC9AEAE2EA8369C2D43536D701DEBE1B9591010B185431C4A69785D9AEF
+376,train,1,12,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i used to like reading but lately my [MASKED] level hasn't been so great so it's hard to get into a good book
+staying asleep is a whole different thing for me because it's like i can't uh i get up and then i'm i'm wide awake i'll go out in the living room turn on the t_v and watch t_v i'm lucky if i get three to four hours [MASKED]
+when your mind goes on overtime mode it eh just affects everything your [MASKED] your [MASKED] your [MASKED] everything
+well i've been i've been [MASKED] for quite some time
+i'm still reeling and trying to get [MASKED] back together
+i just recently i've started pursuing like interests that i used to do that i haven't done in a year because of what happened
+i might get angry a little easier i [MASKED] a lot i eat i overeat
+i get [MASKED] very easily 'cause i'm not getting much [MASKED]
+so sometimes it's hard it seems like i'm struggling to get through the day
+yes i have a uh psychiatrist that prescribes me medication on a regular basis
+oh i was diagnosed quite some time ago um probably ten to fifteen years ago
+i was feeling desperate and [MASKED] and i had attempted to uh take my own life years ago which caused me to be hospitalized
+i haven't been going to therapy recently just psychiatrist just medication
+i still was a heck of a lot happier than i am now
+sometimes i feel a little scatterbrained
+oh i have lots of regrets um uh things that i've done in the past that i'm not too happy about
+well right now i'm on a diet because of my overeating
+after my mom died i was a lot thinner when she was alive i just went crazy with the food and sleeping a lot
+i haven't been to a movie in ages i don't i used to go out shopping all the time i don't now
+it's been quite some time since i've been content and happy with who i am and what i'm doing in my life right now
+there's nothing that i can be proud of
+i'm extremely organized extremely reliable my work loves me because i get everything done that i'm supposed to get done",387,387,False,06C76A2580928A4C8EA16B1A8BC722364D74278D2B222F1065409D0B4EA93D93
+377,dev,1,16,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i wake up feeling [MASKED] like i feel today
+i've had some pretty anxiety-ridden dreams the last couple of weeks
+generally i can [MASKED] through the night
+even when i wake up from those or if i you know stir from those i still can fall back to [MASKED] relatively easily
+she creates a lot of anxiety just in her state of being she's exhausting and utterly depressing
+living with her is pretty hard like it's probably the hardest thing i've ever done and i would never ever choose to do it again
+i feel trapped and helpless like there's you know nothing i can
+there's no way out of the situation that i'm in no matter what i do it doesn't get any better
+oh a long time i was fifteen i think or fourteen so it was over twenty years ago i was [MASKED]
+oh yeah i feel [MASKED] mhm
+we had worked on what needed to be worked on and i was no longer [MASKED]
+then i began therapy again later on
+the last time i felt really happy <sigh> wow huh wow that's pretty [MASKED] um it was at least a year ago
+i like to be with friends
+i spend some time at the beach i'll spend some time with friends",216,216,False,4E8E341F73C22B99EE67C57746229AE91A4DC592E3B0A6D0B50C83F66271672D
+379,train,0,2,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i'm feeling okay little bit [MASKED] but for the most part feeling pretty good
+there was points where like i pretty much couldn't control my temper like whatsoever like <li> i mean i would just pretty much get angry at you know the littlest things everything would just kinda tick me off
+something that i feel [MASKED] about um probably you know not being as nice to others as i could've been in the past
+i haven't been sleeping all that great the last few days 'cause you know my house uh there's workers on the roof so they're you're putting in the new roofing so that's kinda tough
+for the most part i usually get a pretty good [MASKED]
+been feeling pretty good you know because you know things are starting to look up
+things are just going pretty well right now i can't complain
+you know i'm i'm enjoying life so it's the that's the best part
+there there's a there's probably one or two things that i regret
+i know there are times when i i kinda get a little lackadaisical so i wish i could improve upon that and not procrastinate as much",197,197,False,44FA7FC7865BA8A495A83D420FB7F660A12710A49E54744F2008CB677B2186A6
+380,train,1,10,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"it was just a very like isolating isolating <is> 'cause also like i'd fallen <fa> like previously to that time i had fallen in love with one of my like closest another one of my close very close friends and uh that had kind of gone extremely badly and so i wasn't on speaking terms with her and i couldn't like that whole everyone on my list of friends who was like more <mo> closer to xxx her it was wasn't quite like her or me type thing but that that was the way that i kind of saw it at the time so i didn't like you know just being socially isolated etcetera
+well recently it's been awful um i uh i like two so the last last night i slept for like ten and a half hours um which seems to be the length of time that i have to [MASKED] in order to have really vivid dreams but previous to that night so last not last night but the night before last and the night before that i got four hours and two hours of [MASKED] um because i was working on set and i would get back and either and i just like couldn't fall asleep for whatever reason it's um too much riled up [MASKED] or something i i don't know
+[MASKED] uh very
+the sheer difficulty of finding a job and finding people to xxx 'cause i moved here 'cause i have a group of friends here or couple of friends but i don't have like a a large number of friends and the the push to to get out there and meet people and find a job and that sort of pressure was pretty um overwhelming at first and i think that i'm slowly like coming to terms with that um and moving you know moving past it i i but not necessarily <nece> you know like it's still it's still there the pressure's there
+that was like eh more than a year ago though but i guess it's hard to hard to think that i haven't been really truly happy since then
+i guess i wish i was less uh uh less ruled by fear more fearless <f> more fearless in my you know everyday interactions and in my like um you know zest for for living",395,395,False,8482C22B3FA25249DD3BCD3CDF5989D6805A46318415DBC59A4B0369B9FB5281
+381,dev,1,16,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"no i feel a lot of [MASKED] about my my friendships i've not i don't feel like i'm as as good of a friend as i could be but then at the same time i don't really know exactly what uh how i could be a better friend i just feel a little [MASKED] that i'm not that i can't help people anyone who who has a problem i can't i never feel like i can help anyone who i know who has a problem
+oh that happens every day i guess it that happens with everyone who i know and everyone all of my relatives and all of my friends i don't feel like i can really give them anything or help them in their lives you know
+oh it's very easy i [MASKED] a lot and i um yeah i i i have no problem sleeping at all
+no not not really i would say they way i am now it's the way i think i've been my whole life so even when i was a little kid i slept a lot also and no i don't think i've i've changed much
+mm pretty [MASKED] but like i said in a way i could say yeah i'm feeling really [MASKED] but then again i've always been this way so it's hard to say that's it's [MASKED] when it's consistently that way
+a long time ago i was um about ten years old or around there about uh i was just missing a lot of school i didn't wanna go to school so eventually uh they sent me to to a therapist and then to a psychologist and then to a psychiatrist and uh it went from there
+i was just missing a lot of school i didn't wanna go to school
+no i haven't gone to therapy since i was a teenager
+well i didn't feel it was helping me at all so one day i just decided i didn't wanna go anymore
+well i feel pretty happy whenever i see my nephew and uh i have a my best friend's children are i feel like they're my my nephew and my niece and i'm pretty happy when i'm around them
+wish i could be healthier for one thing uh more energetic
+well i sang karaoke with a couple of friends of mine <laughter> and i don't usually do that but yeah i had a that was a lot of fun a few days ago",417,417,False,AD98FC7C5E57F9EC18D61667804ACA9491C4B81B7FD6698869A310E5F5457FD8
+382,dev,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i'm doing fine
+i like uh listening to music uh doing crossword puzzles reading and hanging out with friends on weekends
+i have a very good relationship with my family um i get along with all of my family members and extended you know cousins and aunts and uncles
+a lot of excitement mixed with uh some anxiety but it uh it went away pretty quickly
+i've always had a strong support <s> uh family support system and uh parents and uh siblings
+when i don't [MASKED] well um i tend to be kinda lackadaisical and uh just [MASKED] throughout the day kinda groggy
+no everything's pretty much uh the way it usually is with me i've been feeling pretty good
+i think i'm creative and i think i'm a good listener",132,132,False,D90CDB7C83F4A13A3DC0F9D7BFF036D95DE29EEE93B84769813D9EB8C2D536FD
+383,train,0,7,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i haven't had that feeling in a long time [MASKED]
+i've been feeling kind of like kind of like this kind of just cruising on a on a grey line but it's a nice grey it's a really nice hue um some people wouldn't like this but i really like that and it's uh it's stable yeah it's it's comfortable yeah
+so yeah i think i'm [MASKED] i think i'm really happy i think i'm really angry i think i'm really friendly you know all that but just on different variants different floats
+i i mean i feel really happy a lot uh and i feel really [MASKED] a lot",110,110,False,12EDB3B6F258A1807E54004DB4A3A941C823300D9E2EA6959A66861E164745B6
+385,train,0,8,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,,0,0,True,E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855
+386,train,1,11,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"yeah and i need eight hours of [MASKED] and i've only been getting ooh i'd say like maybe six hours and then i usually wake up once at night too
+i'm not getting a straight eight hours of [MASKED]
+[MASKED] <laughter> very [MASKED] and hard to [MASKED] hard to [MASKED] it just takes me longer to get things done 'cause i don't have my [MASKED] also i haven't been exercising i normally try to walk about half an hour a day but
+it just takes me longer to get things done 'cause i don't have my [MASKED]
+hard to [MASKED] hard to [MASKED]
+i'm not getting my eight hours of [MASKED]
+i am i'm happy most of the time i'm a pretty happy person
+i usually enjoy everything i do there's nothing that stands out more than anything else
+i don't really feel [MASKED] about anything <laughter> right now or that i can think of
+number one would be to lose [MASKED]
+i don't let things get me [MASKED] too much",171,171,False,313B58806CD8948E23BB0B89AF102E7A570FE32E7A69AD1793C1414EF80F4D1F
+388,dev,1,17,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i feel [MASKED] about not having money for the bills <laughter> not having a job <laughter> not doing nothing with my life <laughter>
+i've been feeling alright um just been a little [MASKED]
+my [MASKED] pattern like i i'm just i don't have any like [MASKED] i'm just restless and moody
+whenever i get super bored or i just need some time to for [MASKED] i just play with the dog
+proud to still be alive",76,76,False,4065FB60D232C96860666CC7E352DEC7D97BDE3249A4CE1A80F63DF533F8F287
+389,dev,1,14,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"not easy at all 'cause i can't [MASKED]
+i mean i never really [MASKED] well so i don't i don't really know
+same shit now just feeling kind of useless
+and [MASKED] more be able to turn my mind off more",41,41,False,2AFDF9E8ADCDC147DCC5884E7685942BBF66543AB8195B23334AEA106BE20736
+390,dev,0,9,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i self medicate to go to [MASKED] which i probably don't have to do but i um uh about half the nights i i wake up um much earlier than i would like to
+i cope pretty well i i guess i'm just not quite as functional as i'd like to be
+normally if i i i need seven hours if i only get five or six then i'm you know sluggish and um very anxious
+i am a classic um depressive uh and um yeah i guess i have i i guess i have i see <s> i do see a therapist
+the mm therapist i'm seeing now is not trying to um prescribe drugs or medications um and uh previous ones have
+just uh kind of not wanting to uh face the day just kind of wanting to um just uh kind of a weariness with the struggle uh and um just uh i displeasure with my life
+each little um acting gig that i get makes me happy but uh you know just mildly happy and they usually turn out to be disappointing experiences and so um uh i never over excited <ex> excited um with happiness
+my daughter's a great source of pride and um um the fact that i've been pretty successful in uh my endeavors um and now i'm just uh going for the the big the big apple and uh uh and i hope to be successful there too",246,246,False,5CE46B752162A9F543850B0CA2AD46E9FA2D104DAA62209F411630704DFC66AE
+391,train,0,9,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"kind of [MASKED]
+[MASKED] i'm lazier during the day
+no i'm just more [MASKED]
+i persevere
+be thankful everything you have",21,21,False,51FA29A385D39A950A07320756EC1C94B65D1B4DBA079280D3AFD76521E614AA
+392,train,0,1,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i'm doing well
+um i'll lay [MASKED] or try some sort like deep breathing or uh just maybe do something that's kinda fun and mind numbing like watch t_v
+i guess i feel [MASKED] about the fact that i don't talk to my grandparents as much as i should
+i guess uh when my sister died it was really traumatizing
+uh not really super easy um i sort of i mean it's my probably my fault i go to bed too late just sort of foggy and distracted
+i have trouble concentrating
+sometimes for the things that i write uh people will write negative things about me like in the comment section on a website and that'll make me feel bad
+i am satisfied with [MASKED] and my friends and my status in the world",135,135,False,A75EB38A47DA62B6C31373EF31B8F52897570F27D2BF9B30F7A54192D59DD4B7
+393,train,0,2,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i'm pretty good at it i don't really let things get to me
+my relationship with my family is pretty cool like my mom i get along with my mom <sniff> and i get along with my sister so it's pretty it's pretty uh cool i'm pretty i'm very close to my family
+it's pretty easy it's not a problem <laughter> i could just knock out when i go home at night time
+[MASKED] uh just mainly uh [MASKED]
+i've been okay <o> i've been fine lately
+currently my [MASKED] like i i've put on some pounds and i'm working on losing those pounds
+he would describe me as somebody that's not a quitter somebody that perseveres",117,117,False,143E6D01CD84208C1EC7784279BD0DF0F095C77E0CB4BF172F15DEF367322B12
+395,dev,0,7,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i'm doing fine
+i love the fact that i have lots of friends and family here
+apart from that i i'm generally happy here
+um i love photography
+it's um it wasn't hard it was a passion so i enjoyed it
+um i need to i feel [MASKED] about not generating as much income as i need to right now
+um i been feeling stressed <sigh> um i been feeling um <deep breath> been feeling stressed and and worried
+i don't seem to have any problem with it <laughter> i seem to get a good night's [MASKED] almost every night
+um grumpy and and lethargic and um in the morning
+i felt <sigh> absolutely fantastic i felt happy i felt relaxed um i felt like i didn't have a care in the world temporarily",134,134,False,E886B7744CB28215CF8FDD52DB0BEA82686EB1157DA67FB149C7F57A26923028
+397,train,0,5,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i don't enjoy the traveling anymore at all i did when i was young but no longer <snort> it's the destination point
+when my mother got sick i i wasn't <wa> i wasn't there for her the way i should've been and i don't feel good <goo>
+i've never slept i've never slept a lot and i'm one of those people that if i wake up i have a hard time going back to [MASKED] so it's it's difficult <diffi>
+i had a friend recently who was uh runned over in a crosswalk and uh he's on he's on life support so i haven't been feeling too good about that it's it's affected me
+but i've had moments where i felt i was i was [MASKED]
+i'm happy i have moments of happiness every day 'cause i i either speak to or text with uh my daughters and granddaughters every day
+well i have this theory that you could make me feel bad about [MASKED] only if i let you and i'm not real big on letting <let> letting people do that to me",184,184,False,D7F4D640E6A5197AFDD4BF51759206D91790672E00DCD10A593C9CBD8137EAF8
+400,train,0,7,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"not that good when i get really upset it's usually a problem and i have to work to calm [MASKED] [MASKED] and sometimes i just don't get on something and i don't stop sometimes but i've learned to control it to that extent now
+i'm [MASKED]
+been feeling better than i have in a long time
+yes um less tense and less irritable and uh i have more clarity and more control over my uh decisions and my wants versus what i need
+um <sigh> lack of motivation and basically my my symptoms were paralleling that of [MASKED]
+uh loss of [MASKED] loss of motivation not wanting to do anything not wanting to be social at all having fear of uh social situations",123,123,False,895E081852C266A5F7F336A9DC5BD7B022613480E2757AA6FD63D76336BE3EDC
+401,train,0,9,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i felt like i was abandoning my family
+actually my mind spins so it's not that easy actually it's not that easy
+irritable up and [MASKED] up and up and [MASKED] like sometimes i've been excited and anxious
+sometimes i have a lot of distracting thoughts that have nothing to do with what i need to be focused on in the moment
+i don't feel bad about much
+being a part of the family that i'm a part of",79,79,False,9DF02E32FD9C116924FCA197DD39A6E764129CA5A741A27A21821BC2899AD565
+402,train,1,11,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i have a history of chronic [MASKED] and some health problems so it's challenging um not to feel rested most of the time
+i was having um more trouble with my [MASKED] in the winter
+i was having um more trouble with my [MASKED] in the winter and um having trouble with tolerating cold and so i wasn't doing a lot of the things that i normally do
+i needed to kind of get out of my rut and start um getting more focused around things things that i need to do during the day and walking my dog every day and um not isolating so much and seeing some of my friends more
+i've been feeling a lot better like i've been making progress and um that uh in the past week things have taken a more positive turn
+maybe more than fifteen years ago um i was feeling [MASKED]
+i have been in therapy off and on since i was eighteen
+i was able to get off my anti depressants as well
+even though i've struggled with some bouts of [MASKED] it's never been anything extremely severe
+i felt extremely hopefuly for the first time in a long time
+that despite some very stressful circumstances over long periods of time i haven't given up on taking risks",219,219,False,7C17919840AA30C87B450C4F320AC6BBD21D185D220F010EA3C1113D3892B74F
+403,dev,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i'm doing really good
+i go to the gym and work out quite a bit i find it helps relieve stress and keeps my [MASKED] level going
+keeps my [MASKED] level going i realized <rea> noticed if i don't work out a couple days i feel a little more [MASKED] than normal and
+i really don't feel [MASKED] about anything decisions i've made in my life
+oh i go right to [MASKED]
+pretty good energetic i've been motivated to go look for more event work
+i mean i'm generally pretty happy unless something devastating happens like someone gets cancer or someone i know dies
+it's like an even keel that i feel pretty good all the time
+no i feel good about my choices i've made and i think i'm on the right path",134,134,False,5528513A779F40A513928F1ACA5DDF2D7D0E8DF9AAA0254F05F0B6B8FB957F22
+404,dev,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"sometimes i find it hard to express my own thoughts
+feel [MASKED] about not taking better care of my pet
+i get into arguments with people close to me friends and sometimes i i don't handle them well i am more reactive
+there's uh some days i'm i need time for [MASKED] and i would rather give the time to other people rather than to take time for [MASKED] which has been my experience uh and so that has caused me a lot me a lot of emotional pain uh a little bit of spiritual uh anxiety about my future if i continue to do that sort of thing
+i'm handling my [MASKED] pretty well when i don't [MASKED] well sometimes i can be irritable
+there's also times where i'm unhappy
+happy sort of often not too happy but content
+i don't know uh not usually too happy
+things are going pretty good i'm can't really say there's anything as of yet that i would really want to change or or have anything to regret on that i can remember
+i really enjoy spending time with my girlfriend and her two children and that was yesterday and i'm glad i did that it was a good time for everybody",209,209,False,DB30E55CD863C2A1250E4022DA408D621239C36507726636D0D0CEB1120AC97E
+406,dev,0,2,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"you know i don't really feel [MASKED] about many things
+yeah if i wanna go to [MASKED] i [MASKED] really well though as long as i have enough you know hours
+really really happy and good
+i'm always happy uh <laughter> gosh yesterday um i'm just happy any time i talk to my boyfriend or if i go out and do something i'm just happy um i got off work i'm happy 'cause i'm done for the day i'm just really happy um i'm on spring break i'm really happy right now so
+no i don't really have too many regrets i mean whatever happens happens and you know it was meant to play out that way
+i think my best qualities are i'm a happy person i'm a fun person i'm pretty easy to get along with i think most people like me",144,144,False,22C82FA97DB9A638F5EDDCF832CFF4A69CA5D5988512FBB80AED48B755B371DB
+409,train,1,10,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"this is why maybe i'm kinda like made me a little bit [MASKED]
+so it did it probably makes me a little bit [MASKED] 'cause i don't really feel i have anybody i can really count on or really confide in
+it is challenging to get a good night's [MASKED] i usually uh wake <w> wake up feeling a little bit [MASKED] or achy
+well i've been feeling okay i mean um i've been kinda feeling mellow actually
+i feel a bit of calmness as of late
+i'm not positive if i was technically diagnosed with it
+i think some of the the answers said that they advise that i see a psychologist or a psychiatrist
+i think i might have a you know a mild case of [MASKED]
+you know overall i'm not doing as good as i'd like to
+i think i was pretty happy back then and that was about uh about a month ago
+living sort of a pauper existence right now which is kinda kinda depressing",171,171,False,84751B82912E060D8A6D8BD0218E5F9C21DC239A3FD2C5B1FBA00F9384EDE477
+412,train,1,12,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"it's just tossing and turning i think all night and uh probably thinking thinking too much about things
+[MASKED] [MASKED]
+just uh not as positive
+actually i uh go dancing i like dancing it's relaxing to me
+few weeks ago i received a pretty good uh real estate commission so i was happy about that
+probably uh i have integrity and a good heart",64,64,False,D9FE7F91159CC6E2DE72D4574E2621BF775D9303C2D92F3B617470A506EE2C42
+413,dev,1,10,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"usually it's easy the problem is staying alseep no matter how late i go to bed whether it's ten p_m or four a_m i will be up like clockwork by seven thirty or eight o'clock in the morning the latest every single day and i can't seem to figure out why i cannot stay asleep longer
+i just cannot stay asleep anymore which never used to be a problem this consistent but now it's i cannot remember the last time i slept past eight thirty in the morning
+i mean it just makes if i have to do stuff during the day it makes it a lot more tiring
+i don't know i kind of just feel very mm like so so just no extreme highs no extreme lows it's kind of one note land
+like recently it's just i would say over a period of years i've kind of progressively become more seclusive and just reserved and not very outgoing
+no i have been diagnosed with anxiety
+i had some breathing problems for a day or two and i had to go to the hospital um 'cause i thought it was more serious 'cause i couldn't breathe but they said that it was a physical manifestation of my anxiety
+no i haven't been to therapy since i was a kid
+well i was happy when i was back home at my boyfriend's house with his family over the new year's holiday",242,242,False,76CFD5FAF7C2839F99FF58C0F6108B469AE8C1AE03E07EB1CC431F43B93AB291
+414,train,1,16,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i haven't felt like that in a long time
+i was very [MASKED] and [MASKED]
+i had been so [MASKED] for like a month i stopped going to my classes and work and i told my teachers lies about being sick and i just kept calling in sick to work
+i dropped a class and i was failing my classes and not turning in any work
+i wasn't talking to any of my friends
+when i finally was gonna [MASKED] [MASKED] i realized i needed help
+i had severe [MASKED] when i was a younger teenager and i tried to [MASKED] [MASKED] then and i um got put in therapy for quite some time
+i figured i don't want to go [MASKED] that bad path again i just wanna get better
+just haven't been able to [MASKED] well falling asleep is hard staying <laughter> asleep is hard
+have really crazy vivid dreams that wake me up and are disturbing
+living is worth it and just don't be afraid to ask for help when you need it don't wait until it gets really bad",183,183,False,F1DF932F2F75406D4AFF09C26F2EBCF20442CDD07B1E829C829895F0DCE4ED3A
+415,train,0,3,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"music is much therapy for me
+music has always been like that thing no matter how i feel if i put music on it makes it much better
+i'm pretty good i used to box so it let out a lot of frustration so sometimes i do that too i go to the gym and i do like a kickboxing class
+i always think about it over and over again and i'll cry about it like it happened yesterday
+i'm on call for her whenever so i'm never i never get a good night's [MASKED] ever
+i'm very annoyed and very grouchy when i haven't slept
+[MASKED] and i have crazy headaches but that's probably from not getting enough [MASKED] and working too much
+no not no i don't regret anything",131,131,False,2E22C62CFB05932FDCD0A3C1FD36A58C9E28CEFCF55DB3B9C9D21E3A2D70B6BD
+416,train,0,3,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i think i could do better i i think i sell [MASKED] short so employment opportunities are hard to come by but if i could find a good job i'd be a lot more happy because i could provide for [MASKED] and others so not be so much of a burden to people around me
+pretty easy i'm a good sleeper
+it's harder to do tasks
+you don't have as much [MASKED]
+i usually settle for less
+i feel like i'm an underachiever
+my parents some of my close friends i have i have a good group of three or four friends that've been positive influences",106,106,False,798DC1C1361E42F1534C2AB567A578CCA97D77D04916457F0214347F30DB07EC
+417,dev,0,7,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i don't think i really feel [MASKED] about anything i'd say that i regret things but i think there's a difference between [MASKED] and regret
+sometimes i have trouble sleeping but uh lately i have had no problems
+it depends how long i've gone without [MASKED] i can just be anywhere from like groggy to like um really on edge and like um extremely [MASKED]
+i have been feeling pretty good i uh i have like general anxiety kind of all the time but it's not as bad as it has been in the past so been feeling mostly pretty good
+i think that i've actually been feeling happier lately i wouldn't say that i'm like really happy all the time i mostly just kind of like um neutral but i have been feeling more positive lately
+i know that i i've been seeing uh psychologist <psyc> psychologists for like since i was sixteen um for [MASKED] and uh i think my first psychologist who i saw for a few years thought that i had p_t_s_d but i'm not sure if she ever made a diagnosis",186,186,False,D857608478ECE506C2F67FA434EC1C2C069A098CB1E0524E2409A7E4D5C58C01
+418,dev,1,10,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"there's nothing right now that i feel [MASKED] about
+i i i don't get a good night's [MASKED] or i don't [MASKED] at all unless i take medication and that's that that's all there is to it if i don't take medication i don't [MASKED] i'll be up all night i'll i will be up for days if i don't take medication
+no not p_t_s_d
+my life had gotten so stressful to the point where it was either i had to do something or or end something to tell you the truth yeah
+yeah i think it's useful um you know as a good sounding board you know someone to throw you know your concerns out and you know discuss things that may be bothering you or good things too yeah i think therapy with medication
+since i've been going to therapy um the changes a lot of changes um i've been more focused more hopeful",156,156,False,EFE35E2F167CEE07E5EBAEF8E7D8F335F2CC96FA171C40666EF5EAC18F2962F5
+419,train,0,3,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"in social situations i kind of feel uncomfortable um i'm not one to just go up to people and start conversations um if people come up to me of course i'll talk to them but i feel slightly awkward just kind of out of place at a party
+i usually wake up a few times throughout the night um so i think it's rare for me to [MASKED] uh the whole night through ever um and i do feel a little like [MASKED] in the morning when i wake up
+i have a hard time falling asleep and then sometimes i have bad dreams or i need to get up to use the restroom um but yeah it i don't remember the last time i actually slept the whole night without waking up at least once
+emotionally good um i'm actually on vacation right now from work so that's really nice
+health wise i'm good
+so i could have more friends i don't have a large group of friends because i am very shy",174,174,False,A7DD00C3D0C9FB5E1E7930BE06FA8889B6F7BC7BD3CDCD670F8411F254F64ADE
+420,dev,0,3,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i meditate um work out i run i walk um i write read
+when i was younger there were a lotta things that i seen that no child or adult should've seen
+the same just [MASKED] and yawning
+not p_t_s_d no
+i said yes but i don't figure i'm any more [MASKED] or anything than any other person everyone has their different breaking points
+i'm positive i'm goal-oriented determined um i'm very imaginative very creative",75,75,False,1396BDC365C1334658431A885957D7DFA1D1C2645453C0462C883E4194C0B9DF
+422,dev,1,12,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"being in a deep [MASKED] i'm in a deep [MASKED] a lot but i never feel rested and that's um it's a medical problem of mine
+well i always feel like i haven't slept for two days and um there are points in in the day i would say in some <s> during some days there are points in the day where i really feel alert and alive and and rested but they're short-lived but i [MASKED] a lot i [MASKED] uh pretty crappy <laughter> physically pretty crappy
+i haven't been officially diagnosed with [MASKED]
+they've given me like [MASKED] drugs before but they haven't helped with my [MASKED]
+i would say i feel [MASKED] sometimes <someti> well my life is very strange right now so there are a lot of reasons to feel [MASKED] um i would say that i do feel [MASKED] sometimes a lotta times
+they're just triggered by the fact that my health is is not great and it makes it makes life really difficult
+i experience happiness like when i go out with friends or i go and you know i've find some great new dish i like
+i mean right now um my friend just had surgery and so i'm staying with her this week um i'm really enjoying it
+well i told you i have i have a lotta problems right now and <sigh> so i don't really tell people about them um it it's kind of a it's kind of a killjoy
+that i've perservered i'm very proud that even though i have a lot of difficulties in my life the fact that i'm you know making this commitment to go to school and i'm doing it on my own",288,288,False,A822B9C7664A0B13D51BFBAAFE5C37356DF50AD3A1A5DDDEE1DB9186B4B80246
+423,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i don't tend to feel [MASKED] about too many things
+i've been feeling well
+about three years ago um because i was having issues in my learning environment and um i feeling <f> i was feeling emotionally attacked
+um i think through finding p_t_s_d they were trying to link [MASKED]
+i'm not capable and i haven't found a counselor who is willing and committed to working with me and helping me with my issues
+last time i felt really happy i really don't know
+i'm energetic and i'm a go getter
+i'm self sufficient and i can pay my bills by [MASKED] <laughter> and i'm alive",106,106,False,47488D3356957BF7286172F8E252C070DED65B0B5E7143A27C7E171EF911B77A
+425,train,0,6,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i'm okay i'm feeling a little [MASKED] and uh worried
+sometimes i wake up in the early morning hours and and have trouble going back to [MASKED] but that's not very often
+i've been feeling kind of [MASKED] and low level [MASKED] and like not feeling a lot of options
+just feeling like there wasn't um you know feeling that feeling that things weren't gonna change if i didn't get some help and that if i i didn't have to you know that maybe if some <s> i got some medication that would help me um in the short term
+i'm not going to therapy right now
+when i went to therapy um it was helpful to have somebody who listened and could also offer impartial suggestions for helping me to improve the way i was feeling
+i felt very happy and content
+i'm kind and compassionate and i'm a good listener and i'm intelligent and i have uh i have good ideas",163,163,False,FAB3F835A3F8DF60602ADB9A7FCAB4553F8665FE1F03CE9FCA3D68952A785AA9
+426,train,1,20,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"due to the lack of i guess you could say controlling my emotions i have uh gotten incarcerated sent to prison
+getting jumped getting robbed you know those things i think those inhibit me i guess to to explore certain areas of life that i'm not comfortable with
+i couldn't tell you i i i've always had sleeping issues um i usually just take uh like over the counter [MASKED] medication or nyquil but it makes you drowsy the next morning so it's like it's a negative effect really
+not good at all um yeah i mean i recently got released from prison not too long ago uh i'm older now and a lot more responsibilities and i feel like my life is not where it's supposed to be i feel like i could've made a lot more better decisions in my life you know sometimes feeling sorry for [MASKED] and just things that i've been through and the whole nine yards so yeah
+about two and a half three years ago <deep breath> <sigh> [MASKED] i um i was i was just [MASKED] of not i don't know i guess school kind of made me seek help because i started to understand [MASKED] how my brain works um you know so i decided to seek help maybe to better my life yeah you could say that
+i guess not not necessarily giving up and and um just just i don't know just keep going just just not giving up really",251,251,False,99FF5B310E7F201F90E5EC8413EDD17807E69365A7EFD17FE8DC94F389E8858A
+427,train,0,5,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i fall asleep like within five minutes depending on how [MASKED] i am
+yeah i'm very irritable and not good to be around <laughter> when i'm [MASKED] and i can't [MASKED]
+i've been feeling good fine
+my family is a positive influence <laughter> and my friends now
+i talk to them a lot i see them a lot",58,58,False,380E51B98EEA5A441F2AD6AE6AF71E54484BA443D369F7FA596B9FBA304E72C9
+428,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"whether you're [MASKED] they know you know and they'd be like hey what's wrong you know let's go out and eat somewhere just to cheer you up they're xxx they're your family and they're always there to motivate you and keep you going
+i don't think [MASKED] does affect you but i don't know maybe more [MASKED] but i don't think annoyed or mad or anything like that
+i don't think nothing everything's fine you know thank god everything's good right now
+nah it's hard for someone to put me [MASKED] like that
+being around my family music music always puts me in a good mood",106,106,False,E5F2919745B556F8C637E571BABCC3442FCB1EED5CA8D8357EEC9D73D9D9CA12
+429,train,0,1,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"just the uh the stress <st> getting used to and managing the stress of everyday living
+don't know if i feel [MASKED] as i feel remorseful about actions or words said and done in the past they come up
+extremely easy i [MASKED] well each night about <abo> anywhere from at least eight to ten hours a night
+oh lethargic um <sigh> just going through the motions <laughter> you know
+good um i can't wait to get up and start the day
+no i don't think so no i haven't be diagnosed <diag> no i haven't been xxx diagnosed with any psychological acronym <laughter>
+i was codependant ten or twenty years ago i'd say get some help get some help",120,120,False,1B16D0E90B00D4F62D1014565DF6DA4C683B3500E74DF4A4838C516E1E058348
+430,train,0,3,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"when i have a lot on my mind i have difficult sleeping and uh other times it just if i really need to get to [MASKED] it just requires me listen to the radio listen <lis> uh watching t_v reading and eventually i'll get [MASKED] fall asleep
+crabby uh i suppose like anybody else um [MASKED] listless you know all the normal things i suppose happen when somebody doesn't [MASKED] well
+i was diagnosed probably about about five years ago
+i think i always knew before i got treatment that there was some issue emotionally and hmm and lot of things that are very hard to explain and i just was [MASKED] of feeling that way so i sought help
+think just uh lethargy uh uh no desire to do anything uh motivation just was wasn't there
+no desire to do anything uh motivation just was wasn't there
+social <socia> i became socially awkward which was a little bit different for me 'cause uh growing up i was you know quite talkative
+what brings me real joy the past few years was um become a hobby of mine is is uh rescuing dogs fostering dogs and finding them them homes",200,200,False,40D29F6BD25F68B79EFB9F95EB0F0BA5B4D26031339604A896BD77CA9E95C04C
+433,train,1,10,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"just restless and just a little more stressed constant things more would be on my mind lack of [MASKED] maybe
+not really just same old me day through day just try to stay happy and relaxed calm just try to stay positive [MASKED]
+no i have not been diagnosed by [MASKED]
+we talk about a lot of necessary stuff try to help each other out at all times
+made me feel really really dumb about [MASKED] or tried to accuse me of wrongdoing that i've been drinking and smoking when that was not the cause",95,95,False,2BB48B98AEA3E68CDB26076CA5AB15F1DCCE447427CD425AFD2600E0FF8333D8
+434,train,0,2,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i know if i get angry i usually stay angry for a long time
+yeah it we had a big time explosion and that created and that created a lot of damage for about six to nine months
+taught me how to get my temper under control and how to express my emotions without me <m> me expressing my emotions being threatening to someone else
+when he died i figured out that he was telling me that i should probably spend more time with him before it's time for him to go but i couldn't see it then and i feel i think about it all the time
+my brother hit my mom i always replay that over and over and over and over in my mind and it's like that's one memory i just i can just go without replaying in my mind over and over and over and over and over again
+uh most nights i don't i go to [MASKED] maybe three in the morning and i'm probably <prob> i'm more than likely up at seven in the morning so i don't get much [MASKED]
+if i don't [MASKED] well i'm going eventually i'm gonna be irritable but it doesn't happen right away it depends on my environment and who's around me if there are difficult people that's gonna be a challenge for me
+i'm doing very good today
+i will never stop because i know know that being a counselor is my life mission
+back then i just tolerated [MASKED] now i um actually like [MASKED]
+last time i felt happy was last night 'cause the lakers won the basketball game",275,275,False,CD6AA76050EE966DE7A2C3AEEAB3F079371CE7D80709DB4D914AD6AD2050F6E0
+436,dev,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i'm doing fine
+well normally i just knock out it's not that hard it's like it takes me like half an hour or fifteen minutes but uh sometimes i can't even wake up even with the alarm uh they have to wake me up you know my girl has to wake me up even with the alarm going on it's like so hard so you know i just knock out
+i do get a little either i'm angry or i don't feel good and i'm not filled with [MASKED] but i still have to know i know i have to do something so i still go through with it
+i been well i been uh feeling good you know been a little restless but not that much i had to do stuff so i just you know put [MASKED] to do it no matter how i feel
+so i do uh like to have a good relationship with my family",160,160,False,1EC0F1A1546D7E4F3C8E8C62843556C7BBBE2EE0F43BD53AFDD2111CC6AB758C
+437,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"if i don't [MASKED] well i'm i may be moving around in the bed and you know um messing up the sheets but that doesn't happen too often
+oh pretty good i think i've been feeling pretty good no major health problems or anything
+uh really badly about [MASKED] uh let's see probably when i betrayed a confidence with some friends of mine when i uh taped them when i taped them singing christmas carols and i i played it to some other people and they found out and they really laid a [MASKED] trip on me for doing that
+i'm generally a pretty happy type person
+being successful in my work uh in my life in my marriage and just um yeah just basically being happy with [MASKED]",129,129,False,284C176B93A7EC307B89FB3905F0156F8C866B12BF51290721FF1DF0CEA04FEB
+439,dev,0,1,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i have no problem sleeping
+i've been a little [MASKED] but that's only because of physical condition um i have i found i have vitamin b deficiency and vitamin d xxx deficiency so it's more physical but not in the mental
+i'm basically happily all the time i'm mm more so i'm making other people happy
+if i can stop binging and making food my friend
+not happy with my [MASKED] that's it yeah",74,74,False,E3C8F77E491F68EAEFFAF8EF68FC9B977BD01568CB4634389E2E5410049EE88F
+440,dev,1,19,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i think i um try not to not to um feel or let others know what my emotions are when i'm upset um which is not good 'cause if i don't do anything with them then i know that at some point it's gonna come out and um yeah that that's uh something i have to work on
+if i came to the point where i've had more of yelled it bothers me because um i was yelled at a lot and i just feel bad about that and i try really hard to not handle any kind of situation that involves my children no matter how upset i might get and result in in yelling
+that decision was quite hard because i felt obligated to do so and felt super [MASKED] to not
+i really can't fall asleep on the weekends most of the time but um and you <y> sometimes it's just been so many days of not getting a good night's [MASKED] i'm just exhausted <ex> exhausted i pass out but it's hard
+very stressed
+my son is is um has been uh in dealing with some legal issues and um currently is incarcerated and uh it's been really hard
+yes i've been probably very short moody irritable
+well i often think about a lot of things that aren't even happening <laughter> my mind just goes from one point a to point b and i don't even know how i got there
+about three years ago um my um o_b_g suggested i i uh see a psychiatrist
+i've in the process of changing therapists so it's been about because the program that i was in um lost funding and i lost my therapist or the therapist that i was working with and so it's been about two months maybe three now
+i did notice when i was in therapy um that it was just an intricate part of my my life my week to see my therapist um it really helped me cope
+i visited my son yesterday and that was really good yeah i was happy that he was safe
+my children and uh my accomplishments in um school and work",365,365,False,22486D0CB5CCD23F0063407DC78EBE75F92CB7F5D3FBDC4ADCC3C65D4611CED7
+441,train,1,18,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"well i went through a lot of trauma as a child so as a parent i was very afraid for my child to go through that same trauma
+if i feel disrespected or somebody puts their hands on me i can get very ugly
+i can't let people get too close to me if they do i i lash out
+being assaulted in the military is something i wish i could forget
+just that i felt helpless alone ashamed and angry
+because i was assaulted and and i have a fear of people in uniform
+the feeling that i was always gonna be hurt that someone was out to get me
+i had nightmares panic attacks anxiety attacks outburts <out> outburts of anger
+i was always in emotional pain
+i always wanted to hit somebody
+i feel in fear of them for some reason
+i can't remember the last time i had a good night's [MASKED]
+irritable angry moody pissed off irrational [MASKED] sick of the world angry at the world wanting to be left alone
+sometimes i don't wanna go on
+when i saw my grandchildren when they came to visit <sniff> they're just so innocent and sweet and precious it was just a joy to have them around they make me forget about all the pain in life
+that i could [MASKED] at night",226,226,False,B383B423D0DCB9F0FDC3128C0BD4E57EFD3E0FDE25BF5FACB4156B82C2993235
+443,train,0,1,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"good night's [MASKED] yeah uh i'd say uh eh it's off and on
+really enjoyed wow hasn't been too much of that",22,22,False,4D06D08C5569AD4C11570ACC5C4D453D59EEDE20BB7F24E7CFEF876D5A84D549
+444,train,0,7,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"yes i'm fine i'm doing very well today i feel good today
+i wish i could say i was good at it but usually i um i tend to have outbursts every once in a while um when things are getting too chaotic at my house um and i'm feeling very underappreciated i will have a burst of anger
+sometimes i just end up walking out the door or going to my room
+i think i'm more tense when i'm at home but i'm trying to like through meditation and things of that sort i'm trying to become calmer and more patient
+i'm a been an insomniac all my life i remember as a child laying in my bed watching the stars go across the my bedroom window and um i haven't slept well for a long time
+i have to be physically [MASKED] and intellectually [MASKED] to [MASKED] well um and that's sometimes that's hard to do
+yesterday i didn't feel so good i was um i think a lot of it has to depend on the weather and it was all cloudy and grey yesterday
+i just couldn't didn't kind of feel like doing it um so i just sort of puddled about and wasted a lot of time yesterday
+but today i feel really good so i feel more positive i feel more [MASKED]
+i procrastinate a lot um i start projects and i don't finish them
+i'm very enthusiastic about them when i when i start them and i'll get almost finished and then i don't know what happens i just completely lose [MASKED]",268,268,False,606C93E9A0D71B24DF39B7C037A6EDD63224821ACC2173CECC98399CC186B4A2
+445,train,0,1,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i feel great
+i listen to music and i sit with my girlfriend and she calms me [MASKED] when i'm stressed out
+sometimes when things don't go my way i get [MASKED] or upset
+and i wish i could calm [MASKED] and just realize that i should count my blessings and look at the bright side of everything no matter how bad things get always look at the bright side that's my goal
+my mother being sick and dependent on oxygen for three years and me seeing her health decline that's what plagues me the most in my dreams and in my thoughts if i could erase that if that never happened i would feel better
+be grateful i'm alive and try to [MASKED] on my own objectives and not dwell on the negative things of my memory
+my girlfriend she's a very good positive <po> positive influence she wants me to be a better person
+i [MASKED] well
+sometimes i wake up when i have nightmares about my mother or something but uh i go back to [MASKED]
+i've been feeling uh good
+when i woke up and it was a sunny beautiful day and i had a lot of goals to achieve and i'm achieving each one one by one it gives me a sense of accomplishment and happiness
+maybe complains about his own life too much i wish i could not complain about negative things that happen and learn to roll with the punches and always look at the bright side
+sometimes maybe if i'm angry and i shouldn't be i feel [MASKED] about that i don't ever wanna be short with my girlfriend ever",278,278,False,C057931F762A0CCD326FBEA4093E15088A2C462A5C0CA05E6EFB5D2CFC59A095
+446,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"it varies sometimes i can go to [MASKED] um and fall asleep right away and other times i can go to [MASKED] and it might take awhile to actually fall asleep so it varies
+i've been feeling great lately i i really have been um i can't um say that like i said the last week didn't affect me um you know the argument with my husband but other than that i i've been feeling really good
+you know what honestly i feel happy every day you know every day i wake up i'm happy because that is a chance for me to take advantage carpe diem seize the day
+i feel really really blessed every day
+you know what no regrets no regrets um you live and learn um nothing is perfect um everything that i've gone through has made me the person that i am today so i wouldn't change anything because i'm happy with the person that i am today",163,163,False,C08D23662B7BE0DA30DDE893033E514E91CD34F34ACA3C80BDE15CBBEF39771F
+447,train,0,1,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i'm feeling great uh it's an early morning i don't have school
+i saw a therapist when i was a kid for about a year
+i don't think i do it in the best way because when i'm angry i do decide to like just bottle the my emotions in instead of letting them out in their appropriate outlets
+fairly easy i fall asleep pretty quick it's not a problem except for when my back's hurting you know then it's a problem
+it gets stressful at times and yeah thinking about it for periods of time some days i just sit and i'm just lost in my thoughts and i don't really communicate to anyone because there's nothing anybody can do for me really so i i just bottle it up like i do everything
+i developed a passion for school afterwards so it was like a situation i overcome after feeling so bad and [MASKED]",156,156,False,4C62B44A64C1621E3F2972161B48F56CB912942AE69B059673798BD2F7B3904D
+448,train,1,18,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i've been [MASKED] about that and uh uh but i'm doing better
+my wife she is uh always there for me <sniff> she will <laughter> always surprise me we she's not my wife she's my best friend <sniff> and she <laughter> knows me better than i know [MASKED]
+i just automatically get up after four and a half five hours
+i mean i don't feel [MASKED] i don't feel exhausted i don't feel like i need to go back to [MASKED]
+i'm happy with my life uh there there uh like with anybody else there's a few things that i wish were different
+yeah i feel a little less motivated
+my wife and a few uh friends were noticing that i was um becoming forgetful and i i couldn't remember things
+i was diagnosed with uh mild cognitive impairment and uh it it could've been due also i was told by him uh because of the death of my uncle i could've been pretty [MASKED] i was not able to retain things
+i was diagnosed with uh [MASKED] and anxiety disorder
+i i take medication for that
+i i i i'm doing fine now if i really needed help i would i would do something the medication works for me
+i'm definitely uh been on an [MASKED] binge
+i am this is the heaviest i've ever been in my life
+it's harder to walk with all this [MASKED]
+i've kind of started to slip away from that i don't i can't say it's from lack of [MASKED] but i just don't feel the motivation no more",266,266,False,814BE2EA229F738F1F2590C3A4B3E1BAF434CA598B25D0B0FC26A0D9B851E80D
+449,train,0,2,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i had low self-esteem i you know i wasn't perfect i had a lot of things going on with [MASKED] and i had to learn how to love [MASKED]
+my goal in life is just to have peace of mind so when i put my head [MASKED] at night
+i won't complain i'm very happy for a very simplistic lifestyle that i just kinda foster on my own every day and i just enjoy my little mini accomplishments whether anyone sees them or not
+i don't have any regrets i i think about that all the time",97,97,False,9D77BFFBAE5F5D4979192B8D72386AD6758FAB0DE4E103F12565E36A0A3BE556
+451,dev,0,4,c5_keyword_masked,participant_symptom_evidence_quotes,no_interviewer,"i also am a buddhist i've been a buddhist for um gosh since nineteen eighty eight and um i'm a district leader in my community and we have meetings and that really helps to center me and bring out my higher self so if i get tense or nervous i i chant
+i felt kind of bad that i overreacted
+i just wish that when somebody tells me disappointing information like they're not gonna use me on a job or something that i would take an attitude that um i'll find something better it's okay and move on as opposed to feeling what's wrong with me and you know did i do something wrong and then get angry at them and you know that whole uh thought process that really doesn't help the situation
+if the decision meant that i have to leave my comfort place that would be a very difficult decision for me and probably leaving a relationship very hard because you <y> you know i get dependent on that relationship
+so what i usually do is i don't make the decision and i end up suffering but longer
+it's difficult for me to stay asleep i'd i i i don't get a um a deep [MASKED]
+i was um finding it difficult to stay asleep and so therefore i'm [MASKED] during the day and uh sometimes i'm groggy sometimes i'm irritable
+oh i was happy last week
+we all went and had a good time in vegas i mean i was struggling through my cold but but it was fun it was nice
+don't give up hope live in the moment and um everything will everything will work out everything will work out and if you believe that then you really have nothing to fear",298,298,False,2381D2CEAFC991555C68F8A2F2AF4288BA6FB9B7ABEE7C80D500B5B5E6E21954
+454,train,0,1,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"not really i think i'm getting up there in age so you know with a woman and perimenopausal stuff that's part of the [MASKED] deprivation thing i think
+saddened because i love her and i don't like to fight with her
+i feel happy now",45,45,False,781428739A7B7FB4A82613A7A1D8C063DC49DF5ACE50E4A8E6A8D3852E59FDCE
+455,train,0,1,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"it's just always been my way to really explore all of the things that i enjoy keeps me fresh keeps me happy keeps me alive
+i try to take each experience as they come and try not to have regrets to hold [MASKED] about the way anything uh went
+very easy as soon as i hit the pillow i'm out
+mm no not overall but again i attribute that and i accredit that to the spiritual practices that i perform on a daily basis that keep me pretty even tempered
+i feel really happy every day i'm thankful i'm grateful for my life and uh i'm just thankful for everything that comes into it
+uh there's really nothing that i think i need <laughter> to to do or to have or to be different uh about [MASKED] like i'm okay with everything the way it is",146,146,False,9A228917E942F0ACFD061B63797A5B7D3D3BD4E3DBBB9901758FB269F00A45FD
+456,train,0,6,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i miss my family i feel like it's very crowded here but yet it's very easy to feel eh sort of isolated alone here
+lately it's been a little bit hard my [MASKED]'s been off
+i've been feeling pretty good lately
+just trying to [MASKED] on what i wanna do career-wise and really stop wasting time or you know just procrastinating and and get things done
+my relationship with my family <fam> i have a wonderful family i'm completely blessed amazing parents i have a brother and has he has a little girl so i have a baby niece that i love more than anything in the world and i could not ask for a better family",117,117,False,06F3E8EF029A2C0889936AFFB7C78B5D75EABFC97A20FE7DC9A7BF286DDCEDBE
+457,train,0,3,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i feel [MASKED] about lots of stuff um i feel [MASKED] about [MASKED] more often than anything else
+my memories are important i have lived a spoiled blessed life and if i changed anything then it wouldn't be the same universe i like this universe
+the hard part is going to bed but as soon as i get to to sleepland i'm pretty much there until an earthquake uh hits so i i get to [MASKED] poorly but then i'm a pro at it so it doesn't matter
+my dark circles get slightly larger and i'm pretty much the exact same dude because i've been doing it most of my life
+my excitement is increasing at an almost exponential rate and i'm feeling more and more inspired all the time
+if i could just work on the motivation i'd be set
+i was very unhappy with most of my life for a very long time and then i moved to los angeles and started having fun",166,166,False,920C94483298D89903F9908D9DF88B8A427F121EB91C2928C402C4DBCA54EBBB
+458,dev,0,5,c5_keyword_masked,participant_symptom_evidence_quotes,no_interviewer,"well i'm happy with what's going on now i mean i wish that we could still be a family but since that's not going to happen yes i am happy with my life right now yes
+i've finally gotten over the way the kids treated me at school
+well i just don't get enough hours of [MASKED] i guess that's what it is as i would like to um sometimes
+just sleepy <sigh> yeah sleepy [MASKED] feeling like i wanna go take a nap
+i've been feeling fine
+it was probably when i was in school um school years are terrible for a lot of people because the kids are animals so um they try to make you feel like um you're nothing like you're piece of dirt under their foot so that's probably the last time as an adult no",141,141,False,3DB381C35DA8AF2FC73A9C427608E8CE5542C0E7617006D78AE9E4DD5437B194
+459,train,1,16,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"if i'm really upset it's a lot harder for me to calm [MASKED] and bring [MASKED] [MASKED] through meditation or through self-hypnosis
+i yell when i lose my temper and i have put holes in walls
+i wish i had not blown up or gotten as raged enraged as i can over the situation 'cause it escalated
+when i was sixteen i got um <sigh> i just started doing a a few different drugs and it got out of hand i guess and my mom was trying to get me help and i didn't want the help so i kept uh escaping to different places and running away and not wanting to be in the places so i finally agreed to go to utah and try and get sober
+i either have to have no [MASKED] the night before to get a few hours or i i just i don't i don't [MASKED] well i'm against taking pills and i stopped smoking marijuana and so now i just i don't [MASKED] or haven't been the past few weeks
+i lay in bed until i finally fall asleep in the early morning or i watch t_v until late at night or netflix
+i'm out of it i'm [MASKED] i'm groggy i'm a lot more likely to my anger is a lot more likely to come out
+i've been alright this weekend is been better than most my girlfriend has stayed at my place the entire weekend so i've been happy
+i was i believe i was twelve the first time i was diagnosed i've been diagnosed multiple times though
+my mom sought help for me she saw that i was unhappy and she became worried
+i stopped in on june first when i graduated my uh drug rehab program in utah of last year
+i'm learned coping skills so i'm able to calm [MASKED] [MASKED] when i'm angry easier i i i know how to stay away from the my trigger points and getting away from staying away from being angry or becoming [MASKED]
+i wish i wasn't i was so short fused i wish i wasn't [MASKED] i wish i didn't feel like i needed something to help me [MASKED]
+i haven't really felt like i've accomplished anything to be adequately proud of",383,383,False,DFE9B6544226E73C157CF0528CD712CEC4E5F740B049CD1A8D4E45EB90D70D82
+463,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"uh yes i am very happy
+if i have a problem i i go to them for help
+um my workload was a lot but he didn't understand that so that made me just very like [MASKED]
+i go at three in the morning and i get out at ten a_m so it's really hard for me to get a good night's [MASKED]
+when i don't [MASKED] well i can be a little bit grumpy uh irritated or just frustrated with the situation
+lately i've been okay <o> okay i've been good
+the last time i was really really happy and excited was when i found out that i passed my license board exam to be a nurse",118,118,False,27790A6F8A497DD09D3297C5880EA88D5752FE58332891C8D3AF697CDDB200CA
+464,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"uh post traumatic stress disorder no [MASKED] i know how it's like to be [MASKED] but diagnosed by a doctor no
+being [MASKED] is like being <ss> a fish who can't swim in the water
+pretty much it feels like you're limited
+i i could say today you know earlier when i was just by [MASKED] i felt a little [MASKED]
+but then what happened i fixed it like called up a friend and met up with him and yeah
+i mean at this moment i feel pretty happy you know
+it's actually really easy i sometimes yeah like if i wanted to i could [MASKED] right now in like ten minutes",112,112,False,C9BB323181CC5290651BB44A7FD99C2B1E1A641E450591A9EA008BCFDAA51369
+468,train,0,4,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i'm pretty good feeling a little [MASKED] but uh feeling pretty good for the most part
+i don't really feel [MASKED] about anything pretty good person i think and for the most part i couldn't think of anything
+i love all my memories they're usually positive for the most part i know that's kinda weird for somebody to say but i've lived a pretty good life and i'm happy
+it's pretty easy for the most part i just close my eyes and wake up in the morning
+i'm [MASKED] sometimes i'm could sense that i'm a little drained and uh maybe get a little groggy here and there and that's it
+i have never been diagnosed with p_t_s_d
+i've never been diagnosed with [MASKED]
+just be a little more motivated i used to be so motivated and right now i'm just maybe 'cause i'm just done with school and i'm over it that i just don't feel as motivated but i just i wanna be more motivated and determined right now and that's not i'm not going that way right now so",182,182,False,7280C37ECAC2A418D42E4D7207C9BFDF1CCEE4CD03A8328702AA12B4B3A08AB9
+471,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"usually once my head hits the pillow i am dead asleep like a log but lately i've been having uh just last night i couldn't [MASKED] i woke up at two and i have a feeling it's because of a diagnosis of cancer that i received one month ago
+i'm okay i'm probably ninety percent okay
+i always experience joy when i'm exercising at a very high level of exertion
+i think i've done i'm i'm happy with my life thus far",82,82,False,D7D657AFE77E8CD856C69AE11BC9828F500CE697226D0C002B0F594084A5B786
+472,dev,0,3,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i'm well thank you
+oh it's very good i i love my family very much and they love me very much we're very supportive of each other
+i'm pretty good most of the time i'm not so great when i'm dealing with a lot of rush hour traffic but it's not out of control
+pretty easy <laughter> i fall asleep pretty quick
+easygoing um easy to be around um friendly happy
+i read a great book um the last couple days and i've been working on a new painting that uh i'm really pleased with i like the way it's going
+my kids my the fact that my kids are are uh wonderful human beings i feel very blessed",119,119,False,7414F034BF6931081A9C7E701B18C68E94F482A7BDFC83FED12699631623CBBD
+473,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i don't feel [MASKED] about anything
+whenever i go to the gym i get happy
+i like [MASKED] the way i am
+i can't think of a time someone made me feel bad about [MASKED]
+i'd just tell [MASKED] that everything's gonna be okay
+i really enjoy karaoke and i did that recently",53,53,False,D5255C6076638B30501041CF69B3462D0615E09C75A5A00F6AF00B619786AD0D
+474,train,0,4,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"while i haven't been working um i tend to like my body wants to stay up later and later and later and i'm trying not to like fall into the pattern of going to [MASKED] at like two or three and getting up at like eleven
+i keep trying to make [MASKED] go to [MASKED] by like midnight or twelve thirty and i just end up laying in bed for like an hour or an hour and a half
+uh a little scatterbrained like today i'm a little scatterbrained 'cause uh i i tried to go to [MASKED] early again and i ended up tossing and turning and so <sigh> scatterbrained <laughter>
+i just that maybe a little more absent-minded than usual just lately with uh the not working thing
+as i got older i didn't care as much and i started enjoying life a lot more
+you know sometimes i wish i had more money but nothing too drastic i'm okay",162,162,False,56015D317F19E13881009909FF37805A762A330D2F2214A33D06A9D5AFEAD384
+475,train,0,6,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"so any time i'm stressed i definitely just try to go to the gym or wake up earlier and surf before work
+that's one thing i struggle with i definitely get a good night's [MASKED] but it's hard to go to [MASKED]
+a little bit of [MASKED] i mean it's getting better now that i'm getting older
+i'm trained trained my body to go to bed around one but when i was younger it was two three four in the morning
+i feel okay happy
+yeah like i mean i feel a little a little [MASKED] here and there but at the same time i like i said i just go to the gym or go for a longer run",120,120,False,6D4727589F159083800D12B6B1FDCA69B13F1C58D267613396B903F9C61A59BB
+476,dev,0,3,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"just uh there's a lot of positive <laughter> influences in my life i've got a good group of friends you know my family i love them nonetheless but
+not as groggy as some people get
+things are alright
+last time i i had a really good band practice last night with all the friends i felt really good about that
+i have a lot of projects i've planned for [MASKED] in my life and i have difficulty completing them
+i felt pretty bad about that for a few days",89,89,False,7265C989C39F654AB715036A465732513EC9A00E07A7C82CD5B15E4898C5DE94
+477,dev,0,2,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i do have a temper so i can get i can get upset from time to time
+i feel [MASKED] um i have a a brother and a sister-in-law and a nephew and they live on the east coast and i love my nephew he's eight he's adorable and um i when i used to live there when he was younger um spent a lot of time with them and since i've been in california and particularly in the last year i've spent a lot less time visiting them
+that i felt bad about because we really enjoy each other's company and he um you know really likes me to be there but then he gets upset when i leave and he asks when am i coming back so that's um that makes me feel bad sometimes
+since i'm an introvert it's not that easy for me to make friends
+i usually meditate right before i go to bed um and that's very helpful um and i can [MASKED] uh you know i i i generally [MASKED] in ninety minute cycles so um you know usually six or seven and a half hours but i can easily [MASKED] nine hours if i have the time and inclination um i usually don't wake up in the middle of the night
+i don't <do> actually don't [MASKED] very well when i travel
+usually the second day is not very good um so i get a lot more [MASKED] uh and it's harder to [MASKED] and um i don't know it just feels like more of a struggle
+i would say good um summer is a little <l> is an is a busy time for the organization that i work for so i'm a little um i i don't know <kn> know if stressed is the right word but i'm you know a little anxious about um everything going well this summer but um in general i'm feeling pretty good",327,327,False,E1731EC3EA218D17855331BD24D331C5ACF061B3E6B95A38689B83A66D85A988
+478,train,0,1,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"um just <jus> just kind of [MASKED] maybe a little bit irritable
+um well i'm recovering from p_t_s_d
+i sometimes feel the the p_t_s_d and then i'll i'll take a medication for that
+i still have the stress from it i'm still being treated for it
+five years ago uh i was i was just um very [MASKED] very [MASKED] and so um i also had anxiety so i i went to to doctor and um they helped me
+and i did uh psychotherapy
+i yeah i have nightmares about my family sometimes
+i feel happy all the time pretty much like i my dogs make me happy and you know my life is really happy so
+i've i've done a lot of a lot of work on [MASKED] in in therapy and stuff so i'm pretty
+i used to have very low self-esteem you know from being abused
+i wish i'd been happier <ha> happier in the past and you know it's taken me a long time to become happy
+no matter what what i did whatever achievements i i was i was never happy in the past i was i was always you know struggling with being [MASKED] i didn't <di> i didn't even know why",208,208,False,A4FF9D432AF0B6914A65B904FB0DEDCC1DCC2966518B57B829F39AF2E393CEE2
+479,train,0,7,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i have to workout and to be able to get my get my body [MASKED] for to go to [MASKED]
+i'm uh i'm um [MASKED] falling asleep wherever i go if or if there's nothing going on
+today uh really [MASKED] 'cause i went out last night
+when i start something i don't i don't give up",57,57,False,9F52ED67098F0CF9DA2265A93B2AF35FF3AFE8A553014F10158D883F5223E201
+482,dev,0,1,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"the um kinda the the scheduling has shifted so i so lately i've been working some nighttime shifts or graveyard shifts so um coming home in the morning you know when it's light then it's been hard for me to [MASKED] but it was it was mostly 'cause i was staying up so late because of work
+when i when i don't [MASKED] then i do get cranky
+i i've been feeling good lately
+sometimes i have i have trouble just talking to people especially if they're in a group if <i> if people are one on one then it's it's usually easier for me to talk to them but kinda talking to people in a group uh i wish i was a little better at that
+if if i'm giving a speech or something to a large group i don't really have a problem with that but if it's more interaction type thing then that's kinda difficult",158,158,False,37B301A52FB0B0E42A7FAB10A3ED6717EA3F2957B7E17F60AA000E81F1DD34E9
+483,dev,1,15,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"overeating 'cause i was [MASKED]
+mm [MASKED] it's reoccurred multiple times
+first time i was diagnosed was in middle school
+whenever i was in the sixth grade that's it's when i first was told that i was [MASKED]
+as far as p_t_s_d goes um post katrina
+i'd make it so i don't feel the incessant need to [MASKED] fourteen hours a day
+when you [MASKED] like more than ten hours a day it's just it's unproductive you waste too much time
+i have to [MASKED] like twelve hours to feel good
+i don't know i oversleep but i like sleeping too
+i just have issues like everybody else um specifically i have uh asperger's so that's a form of autism
+i figure i'm still alive so i should live because i'm still alive
+i'm proud to be alive",138,138,False,BB0D2409DF5499F6C98CDA0A112E0C6F7CD82A247DE210978D35813DE968836D
+484,dev,0,9,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i felt anxious um [MASKED] and angry
+it impacted a relationship and i also felt really bad about what i did
+it's easy for me to [MASKED] what's not easy is getting up because usually i do not forward <f> look forward to what i have to do that day and the thought of it is you know just makes me wanna stay in bed also i wake up pretty [MASKED] not really feeling refreshed
+feeling emotionally drained on some ways and at the same time feeling like i've accomplished a lot and that i've grown
+in two thousand six the convergence of a lot of stressful factors um i was out of touch with my mom i started um well i had transferred to a university that was pretty rigorous and just all those changes going on really um exacerbated things that were already there depressive tendencies that were already there and it got to a point where i just felt really overwhelmed
+i'm better able to accept my emotions and not judge them and also identify them
+able to think <th> think differently about things that happened maybe look at things in a more positive light and also identify the areas i need to work on and the underlying issues in those areas
+i wish i was better able to cope with my anxiety and [MASKED] which i'm working on and <sigh> i wish that i had more [MASKED]",241,241,False,6EFBB76BBF3CAA5C24092B82D89B8B7717D1609DC93E352E4D6AFE4DA2E18032
+485,train,0,2,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i'm not bad i'm a little [MASKED] but okay
+don't know i don't think i'm really [MASKED] about anything i try to avoid being [MASKED]
+i guess most of my friends they're always there to support me and encourage me and help me
+say pretty easy every once in awhile there's a night i can't [MASKED] but it's pretty rare
+mm just [MASKED] groggy i guess my mind's unfocused and day goes by heck of a lot longer
+uh maybe a little bit more [MASKED] 'cause i'm away from most of my friends and family but nothing unmanageable
+just try to talk to 'em when i can think about something else think about happy times
+pretty happy being me i guess",121,121,False,C4F990FE999499DDB4E3A3700A21E1602E1CB8861521653A064386E74E215BCD
+486,train,0,4,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i'm feel great
+very confused or um skittish i guess would be the word lately
+i had just got back from a concert so it was outside it was enjoyable music i was with good friends we ate well and enjoyed the moment",43,43,False,6C0AD8E3DC60071B45EE2B872C9C5D30A4F9F509F99A30BF91DC9A13045BB168
+487,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i grew up in a home of dysfunction so there was just domestic abuse you know and um there were many incidences so you can't just say only one 'cause there is lots of traumatic things
+in general i don't have a problem sleeping
+i've been feeling okay uh less you know stressful in xxx it it goes in general 'cause i'm got several projects that i'm working on so um but in general good
+happiness comes in small or large things but in general every day <d> every day every every moment to me is i mean <mea> i mean every day every morning is great wonderful you know day of happiness
+i don't have big highs and lows like that i think it's something that should be on your continuum",132,132,False,9E3DF6E8E44E6CBF3C54703F39252C44C30475862B4B5FC13CEB0AE5DF53A084
+488,train,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i mean sometimes i'll have trouble going to [MASKED] but generally it's not that bad it's i think it's usually harder for me to wake up in the morning
+well i'm really [MASKED] i can get grumpy but i think usually i'm just groggy
+pretty good i'm a little anxious about um about getting a job and i'm gonna be taking summer school
+i was really anxious in that situation
+i think i i wasn't focusing in school at that time
+a couple of semesters ago i didn't do so well in school and i got a a few ws which i now have to work to get off on my transcript
+i know that i will eventually so mostly i think i just try not to think about it too much and i try not to be pessimistic
+well i think the last time i felt really happy i went to a party with my boyfriend the end of department party",162,162,False,0DBD9CC103AE2284127C2A0CCCFC5633D65131597845A023AB3E93DA06BBCA9B
+489,dev,0,3,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"i'm happy all the time
+because there's too much else to live for to think about the past
+i'm healthy and i understand the world around me and i'm passionate about things that i'm doing and i have goals that i've set that i'm working towards",46,46,False,1EADFF7B24D7045CBFEEAF7079ADA3A731FD91751F97B7C2C60A3FA4A688FC24
+490,dev,0,2,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"feel a little bit more empowered not as defeatist as i was in a process where i wasn't [MASKED] very well wasn't exercising
+i talk to my parents about once a day maybe once every other day and i'm constantly talking with my wife and children
+my wife um she's been there for me for fifteen years now and helped give me the self-confidence to be who i am
+really happy um probably a few weeks ago at the beach when everybody was having a good time",87,87,False,548F6A7DE60754C97CF9E083FCE5F33E677BA98BE0A1D67A28D8F95419EDC261
+491,train,0,8,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"like i said i'm overwhelmed but i can't stop doing what i need to do
+sometimes rather difficult irritable annoyed grouchy
+and the one thing that's keeping me kinda like grounded is going to church
+yeah when i went through that divorce um and my mother passed that i was really [MASKED]
+fatigued [MASKED]
+i no matter what i did i couldn't get any enjoyment just a feeling of emptiness and loneliness and isolation and shock trauma
+yeah i need somebody to talk to <laughter> yes
+oh god we i loved my therapist
+we talked things out and she gives me a different perspective and she just listened to me",110,110,False,232C30DF26179DD44A63E0B9213A4B6C1D51F0A7F2B54120A5EA8560A93CE6CF
+492,dev,0,0,c5_keyword_masked,participant_symptom_evidence_quotes,prompt_annotated,"so i [MASKED] well every night
+but i my normal i've been feeling my normal
+i am very proud of the fact that uh i don't give up",28,28,False,897157459BE6B2CADE00F020497770C36F0FB6C1DB540F98A04790873C14C14F

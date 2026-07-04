@@ -1,0 +1,20 @@
+{
+  "bge_within_and_all_cross_representation_tests_recomputed": true,
+  "combined_metrics_sha256": "3efea2c4247c808e9f2d45d5f2c4276d7a460791e455765027ef880000c0dfc0",
+  "completed_at_utc": "2026-07-03T16:43:13.086237+00:00",
+  "elapsed_seconds": 2435.517515,
+  "family": "representation_robustness",
+  "family_test_count": 120,
+  "fdr": "Benjamini-Hochberg jointly across all 120 predeclared tests",
+  "models": [
+    "model_1_all_mpnet_base_v2",
+    "model_2_bge_large_en_v1_5"
+  ],
+  "mpnet_within_tests_reused_from_verified_10000_permutation_file": true,
+  "n_permutations": 10000,
+  "output_file_count": 50,
+  "output_inventory_sha256": "09db0147a5fcf898d2516eb3ea48e6031b68c56ebe852e4181214a02236f7568",
+  "started_at_utc": "2026-07-03T16:02:37.568722+00:00",
+  "status": "complete",
+  "tests_sha256": "5d45d343ad2a1af11388672d90be2eaaabd04de97300c01233958d52058ce6ce"
+}

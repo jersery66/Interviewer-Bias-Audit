@@ -1,0 +1,71 @@
+{
+  "cache_files": [
+    {
+      "cache_key": "2f9421147072a14f907cedf4b8c33a6e1c9d6cf0cdd2914f56f36817686fd54a",
+      "condition": "full_transcript",
+      "path": "embedding_cache/full_transcript_2f9421147072a14f.npz",
+      "sha256": "55543431d988bc999c4f01cac7a3ba393f1d4266216f41769213ffdcff317bd1"
+    },
+    {
+      "cache_key": "b369a9ce54810fe37ea9fef1de589c081879280cfa6997a569ff82e76cfe4eb8",
+      "condition": "participant_speech",
+      "path": "embedding_cache/participant_speech_b369a9ce54810fe3.npz",
+      "sha256": "b0c5dcbf13425f8943d5c54550b673d1bc198285883f622d139e7e9f352fa01e"
+    },
+    {
+      "cache_key": "5124d7a5fa6d9cf14f6cbadf59e0fe7faab2b27d5028c6274cd64c7b8d78fa53",
+      "condition": "interviewer_speech",
+      "path": "embedding_cache/interviewer_speech_5124d7a5fa6d9cf1.npz",
+      "sha256": "caaca80c76d4a30b54c6b713c98e28e2f6b80430d6005e9801ef3622360bf9f5"
+    },
+    {
+      "cache_key": "70c360fe698d0b4d895bb2dab8d18ee58050d0b60c09d0c0f36d7646082d4356",
+      "condition": "non_explicit_interviewer_speech",
+      "path": "embedding_cache/non_explicit_interviewer_speech_70c360fe698d0b4d.npz",
+      "sha256": "b43857071d7a2e44defa02878ad40577db6fb1aca88eda041d814db09efacaaf"
+    },
+    {
+      "cache_key": "8ad7cab0c7e0e84c42952b967a61d0aef057e89c39a3996a7063d8fbd9ed7707",
+      "condition": "participant_symptom_evidence",
+      "path": "embedding_cache/participant_symptom_evidence_8ad7cab0c7e0e84c.npz",
+      "sha256": "150ef90e29c4e366a19096051498b09329d83ae17899c2257e3a1f0f57b3e06f"
+    }
+  ],
+  "cohort": {
+    "n": 142,
+    "negative": 99,
+    "positive": 43
+  },
+  "completed_at_utc": "2026-07-03T11:43:03.666592+00:00",
+  "cv": {
+    "C_grid": [
+      0.01,
+      0.1,
+      1.0,
+      10.0
+    ],
+    "base_seed": 20260624,
+    "inner_folds": 3,
+    "outer_folds": 5,
+    "outer_repeats": 10
+  },
+  "elapsed_seconds": 4399.856376,
+  "empty_document_policy": "all-zero vector",
+  "model": {
+    "batch_size": 64,
+    "chunk_words": 200,
+    "device": "cpu",
+    "embedding_dim": 768,
+    "name": "sentence-transformers/all-mpnet-base-v2",
+    "overlap": 50,
+    "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+    "revision_explicitly_passed": true,
+    "slug": "model_1_all_mpnet_base_v2"
+  },
+  "output_file_count": 22,
+  "output_inventory_sha256": "59f0b5fbfd2ec90760f0a687413e3578e5b1908e23c2557e53e4356b301ba93c",
+  "pooling": "unweighted mean of normalized chunk embeddings, then document L2 normalization",
+  "split_file_sha256": "e4202fcd4d492a37fa68c579767ea940ca0629b4230374b06ddc8778e32045b3",
+  "started_at_utc": "2026-07-03T10:29:43.810216+00:00",
+  "status": "complete"
+}

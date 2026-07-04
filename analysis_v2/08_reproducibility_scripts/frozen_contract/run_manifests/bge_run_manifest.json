@@ -1,0 +1,71 @@
+{
+  "cache_files": [
+    {
+      "cache_key": "20a45ea17dec216b94038fe32bf4518164bc3468c836fa2d0db3e623efc5be0b",
+      "condition": "full_transcript",
+      "path": "embedding_cache/full_transcript_20a45ea17dec216b.npz",
+      "sha256": "fa13157fac2d094875e56abca24230a169c095b441ae97c1a5facae2ad8fe9b1"
+    },
+    {
+      "cache_key": "68319958fc1acf6a4c39b1f180fd43b8a20b3e9d7cf93ceb458b1badecd6bc52",
+      "condition": "participant_speech",
+      "path": "embedding_cache/participant_speech_68319958fc1acf6a.npz",
+      "sha256": "d438811c7f647a0e86933ce4569d1ea07d223a536f0186278b1dee78edff10f3"
+    },
+    {
+      "cache_key": "1fe67174baa4afc138d72d0f64c72b83039629ea4f7bac15c888cdac30e79a91",
+      "condition": "interviewer_speech",
+      "path": "embedding_cache/interviewer_speech_1fe67174baa4afc1.npz",
+      "sha256": "92c676eab68d19ba94838269be251c1540d35f48fa3d78bd8c9d268b653cd4b3"
+    },
+    {
+      "cache_key": "240eebc562c94fffd45db1d7dc1df1b379fd2530f298f20aac76b35ae3fdc46f",
+      "condition": "non_explicit_interviewer_speech",
+      "path": "embedding_cache/non_explicit_interviewer_speech_240eebc562c94fff.npz",
+      "sha256": "688d5cd91a18d3956a734f6147296c7394375e3f2304b5c55562acb3f57f070d"
+    },
+    {
+      "cache_key": "67ac1c6f34e3d4e1a6c9eb47327913a139cc0fba5111f792906326c922487e7e",
+      "condition": "participant_symptom_evidence",
+      "path": "embedding_cache/participant_symptom_evidence_67ac1c6f34e3d4e1.npz",
+      "sha256": "81fb56c8da42b5eb8d30517cc266235967d7ed31cbe9ce07eba5ba4c0903e9a6"
+    }
+  ],
+  "cohort": {
+    "n": 142,
+    "negative": 99,
+    "positive": 43
+  },
+  "completed_at_utc": "2026-07-03T15:08:54.926415+00:00",
+  "cv": {
+    "C_grid": [
+      0.01,
+      0.1,
+      1.0,
+      10.0
+    ],
+    "base_seed": 20260624,
+    "inner_folds": 3,
+    "outer_folds": 5,
+    "outer_repeats": 10
+  },
+  "elapsed_seconds": 8430.476387,
+  "empty_document_policy": "all-zero vector",
+  "model": {
+    "batch_size": 32,
+    "chunk_words": 200,
+    "device": "cpu",
+    "embedding_dim": 1024,
+    "name": "BAAI/bge-large-en-v1.5",
+    "overlap": 50,
+    "revision": "d4aa6901d3a41ba39fb536a557fa166f842b0e09",
+    "revision_explicitly_passed": true,
+    "slug": "model_2_bge_large_en_v1_5"
+  },
+  "output_file_count": 22,
+  "output_inventory_sha256": "2fb14e871a525ce247d4e33bf7c113cbaeb9c9e2cefb30c14b6d41a0b5d2857f",
+  "pooling": "unweighted mean of normalized chunk embeddings, then document L2 normalization",
+  "split_file_sha256": "e4202fcd4d492a37fa68c579767ea940ca0629b4230374b06ddc8778e32045b3",
+  "started_at_utc": "2026-07-03T12:48:24.450028+00:00",
+  "status": "complete"
+}

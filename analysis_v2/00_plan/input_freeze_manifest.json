@@ -1,0 +1,73 @@
+{
+  "cohort": {
+    "n_negative": 99,
+    "n_participants": 142,
+    "n_positive": 43
+  },
+  "control_inputs": {
+    "c4_turns": {
+      "alignment_audit_path": "00_plan/c4_turn_source_alignment_audit.csv",
+      "alignment_audit_sha256": "3034664f36ae5939d3f098e54ec3cea9aa91d5e23073a6b7b547cfab3060141a",
+      "annotation_rule": "frozen clinical regex v1, reproduced from canonical source build",
+      "c3_exact_matches": 142,
+      "c4_exact_matches": 142,
+      "explicit_clinical_turns": 858,
+      "participants": 142,
+      "path": "01_inputs/c4_turns_official142_frozen.csv",
+      "rows": 34837,
+      "sha256": "d2416dbdf981563df2213ca4101b8601964e469f0f744e8e4da001c4520c4229",
+      "source_path": "F:\\数据库\\DAIC-WOZ\\processed_research\\verified_source_data_official142_20260703\\03_canonical_text_official142\\turns_official142.csv",
+      "source_sha256": "f4d8b0961917be2f2ac5533e6da06d65654ba634b728404898da5daaf80aff1b"
+    }
+  },
+  "endpoint": "paper_label_phq8_ge10 = int(paper_phq8_score >= 10)",
+  "frozen_inputs": {
+    "full_transcript": {
+      "path": "01_inputs/c1_full_transcript.csv",
+      "rows": 142,
+      "sha256": "ec3fcfe37b529fc9fe7c63cd767386fbb29d5312c29ff71504b8e61d61721d95"
+    },
+    "interviewer_speech": {
+      "path": "01_inputs/c3_interviewer_speech.csv",
+      "rows": 142,
+      "sha256": "c2626ea7ef46b6d84fc4fcdc07de6414b6e3be54a3bc7b950c91a6cfd53ce8b2"
+    },
+    "non_explicit_interviewer_speech": {
+      "path": "01_inputs/c4_non_explicit_interviewer.csv",
+      "rows": 142,
+      "sha256": "6cda8cb83bdf16540a8bd0dc3480767a58aa7a3709996dbc18c7b86b99b70eb0"
+    },
+    "participant_speech": {
+      "path": "01_inputs/c2_participant_speech.csv",
+      "rows": 142,
+      "sha256": "12ad337fa97e0ce352be80ce46148e824eb625c4ffd4ca07591e59b9488f73a8"
+    },
+    "participant_symptom_evidence": {
+      "path": "01_inputs/c5_reviewed_symptom_evidence.csv",
+      "rows": 142,
+      "sha256": "c02382b0699ce94cd1048b95bd8cdbd3502a54443a7ee5863a8fcbda4a037045"
+    }
+  },
+  "generated_at_utc": "2026-07-03T18:17:52.044085+00:00",
+  "official_test_in_primary_analysis": false,
+  "runtime": {
+    "numpy": "2.3.3",
+    "pandas": "2.3.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.8 (tags/v3.12.8:2dc476b, Dec  3 2024, 19:30:04) [MSC v.1942 64 bit (AMD64)]",
+    "scikit_learn": "1.9.0"
+  },
+  "source": {
+    "path": "F:\\数据库\\DAIC-WOZ\\processed_research\\verified_source_data_official142_20260703\\03_canonical_text_official142\\mpnet_conditions_official142_verified.csv",
+    "sha256": "acad515ebae3a9200b984fe2ee01ffc5bfa7d2c8315674c2b5ed25f01413b7d9"
+  },
+  "splits": {
+    "base_seed": 20260624,
+    "membership_rows": 7100,
+    "n_repeats": 10,
+    "n_splits": 5,
+    "path": "00_splits/repeated_5fold_splits_10x5.csv",
+    "repeat_seed_formula": "base_seed + repeat, repeat starts at 1",
+    "sha256": "e4202fcd4d492a37fa68c579767ea940ca0629b4230374b06ddc8778e32045b3"
+  }
+}

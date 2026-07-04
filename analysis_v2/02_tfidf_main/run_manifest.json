@@ -1,0 +1,83 @@
+{
+  "analysis": "TF-IDF C1-C5 with nested thresholds and train-only calibration",
+  "calibration": {
+    "primary": "Platt/sigmoid, outer-train only",
+    "supplementary": "isotonic, outer-train only"
+  },
+  "cohort": {
+    "n": 142,
+    "negative": 99,
+    "positive": 43
+  },
+  "completed_at_utc": "2026-07-03T09:47:25.309350+00:00",
+  "cv": {
+    "base_seed": 20260624,
+    "inner_folds": 3,
+    "inner_seed_formula": "base_seed + 1000 + 100*repeat + fold",
+    "outer_folds": 5,
+    "outer_repeats": 10
+  },
+  "elapsed_seconds": 2627.478793,
+  "inference": {
+    "fdr": "Benjamini-Hochberg within primary input-source family",
+    "level": "participant mean across repeated OOF predictions",
+    "permutations": 10000
+  },
+  "input_files": {
+    "full_transcript": {
+      "path": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\01_inputs\\c1_full_transcript.csv",
+      "sha256": "ec3fcfe37b529fc9fe7c63cd767386fbb29d5312c29ff71504b8e61d61721d95"
+    },
+    "interviewer_speech": {
+      "path": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\01_inputs\\c3_interviewer_speech.csv",
+      "sha256": "c2626ea7ef46b6d84fc4fcdc07de6414b6e3be54a3bc7b950c91a6cfd53ce8b2"
+    },
+    "non_explicit_interviewer_speech": {
+      "path": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\01_inputs\\c4_non_explicit_interviewer.csv",
+      "sha256": "6cda8cb83bdf16540a8bd0dc3480767a58aa7a3709996dbc18c7b86b99b70eb0"
+    },
+    "participant_speech": {
+      "path": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\01_inputs\\c2_participant_speech.csv",
+      "sha256": "12ad337fa97e0ce352be80ce46148e824eb625c4ffd4ca07591e59b9488f73a8"
+    },
+    "participant_symptom_evidence": {
+      "path": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\01_inputs\\c5_reviewed_symptom_evidence.csv",
+      "sha256": "c02382b0699ce94cd1048b95bd8cdbd3502a54443a7ee5863a8fcbda4a037045"
+    }
+  },
+  "model": {
+    "classifier": {
+      "C": 1.0,
+      "class_weight": "balanced",
+      "max_iter": 2000,
+      "solver": "liblinear",
+      "type": "LogisticRegression"
+    },
+    "vectorizer": {
+      "lowercase": true,
+      "max_features": 50000,
+      "min_df": 2,
+      "ngram_range": [
+        1,
+        2
+      ],
+      "strip_accents": "unicode",
+      "sublinear_tf": true
+    }
+  },
+  "output_file_count": 16,
+  "output_inventory_sha256": "6f342f283c1eb132ed2fce2fc876ca21df5864bebb430976e1fc9684da20ede9",
+  "runtime": {
+    "numpy": "2.3.3",
+    "pandas": "2.3.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.8 (tags/v3.12.8:2dc476b, Dec  3 2024, 19:30:04) [MSC v.1942 64 bit (AMD64)]",
+    "scikit_learn": "1.9.0"
+  },
+  "split_file": {
+    "path": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\00_splits\\repeated_5fold_splits_10x5.csv",
+    "sha256": "e4202fcd4d492a37fa68c579767ea940ca0629b4230374b06ddc8778e32045b3"
+  },
+  "started_at_utc": "2026-07-03T09:03:37.830557+00:00",
+  "status": "complete"
+}
