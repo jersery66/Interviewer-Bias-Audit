@@ -1,4 +1,4 @@
 check,config_a,auc_a,config_b,auc_b,delta
-domain_count vs domain_presence,domain_count,0.8132487667371388,domain_presence,0.8043222926943857,0.008926474042753041
-template_presence vs template_only,template_presence,0.8132487667371388,template_only,0.8198261686633781,-0.006577401926239346
-with vs without C5 quote,without C5,0.8132487667371388,with C5,0.8132487667371389,1.1102230246251565e-16
+domain_count vs domain_presence,domain_count,0.8252290345313601,domain_presence,0.8224101479915433,0.0028188865398167673
+template_presence vs template_only,template_presence,0.8252290345313601,template_only,0.8259337561663143,-0.0007047216349541641
+with vs without C5 quote,without C5,0.8252290345313601,with C5,0.8217054263565892,-0.0035236081747709314

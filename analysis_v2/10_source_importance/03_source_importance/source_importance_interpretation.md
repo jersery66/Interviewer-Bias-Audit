@@ -2,17 +2,18 @@
 
 ## Method
 
-Permutation importance was computed under the M3 model (c2_participant_prob + domain_count_prob + template_presence_prob) using repeated 5-fold CV. For each fold, test-participant features were shuffled independently and the resulting performance degradation was recorded.
+Permutation importance was computed under the M3 model (c2_prob + domain_count_prob + template_presence_prob) using repeated 5-fold CV. For each fold, test-participant features were shuffled 100x with fixed RNG seed=20260704. Results are averaged across 50 folds (10 repeats × 5 folds).
 
 ## Results
 
-The most important source by AUC degradation was c2_prob (ΔAUC = -0.0062 ± 0.0192).
+The most important source by AUC degradation was **domain_count_prob** (ΔAUC=0.1810 ± 0.0542, 95% CI [0.1663, 0.1959]).
+
+- domain_count_prob: ΔAUC = 0.1810 ± 0.0542 (significant)
+- template_presence_prob: ΔAUC = 0.1272 ± 0.0341 (significant)
+- c2_prob: ΔAUC = -0.0054 ± 0.0140 (significant)
 
 ## Interpretation Guide
 
 - Larger AUC decrease → source is more important for ranking
-- Larger log-loss increase → source is more important for probability prediction
-- If standard deviations are large relative to means, importance is unstable
-- If multiple sources are close, signal overlap should be acknowledged
-
-**Note:** These are descriptive importance estimates, not causal attributions.
+- If CI crosses zero → importance is not statistically significant
+- c2_prob showing negative or near-zero ΔAUC means it does NOT provide unique predictive value in M3

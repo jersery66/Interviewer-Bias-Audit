@@ -1,30 +1,32 @@
 # Source Importance Analysis Results
 
-## 1. Source Feature Correlations
+## 1. Incremental Model Performance
 
-Key correlation findings (Spearman):
+The best-performing model (M5: Patient + Domain + Protocol + C3 (sensitivity)) achieved AUC=0.8356.
 
-- C2 patient speech vs C5 symptom evidence: moderate (r ≈ 0.59)
-- C5 vs domain_count: moderate-high (r ≈ 0.59)
-- template_only vs template_presence: high (r ≈ 0.80)
-- C3 interviewer vs template_only: very high (r ≈ 0.85)
+### Key Incremental Comparisons (5000x bootstrap CI)
 
-## 2. Incremental Model Performance
+- M1 vs M0 (AUC): +0.0741 [-0.0026, +0.1545] — does NOT significantly improve
+- M1 vs M0 (Brier): -0.0354 [-0.0632, -0.0050] — significantly improves
+- M1 vs M0 (LogLoss): -0.0768 [-0.1410, -0.0064] — significantly improves
+- M3 vs M0 (AUC): +0.1294 [+0.0460, +0.2138] — significantly improves
+- M3 vs M0 (Brier): -0.0517 [-0.0809, -0.0198] — significantly improves
+- M3 vs M0 (LogLoss): -0.1291 [-0.2012, -0.0495] — significantly improves
+- M4 vs M3 (AUC): -0.0037 [-0.0203, +0.0131] — does NOT significantly improve
+- M4 vs M3 (Brier): +0.0025 [-0.0041, +0.0093] — does NOT significantly improve
+- M4 vs M3 (LogLoss): +0.0049 [-0.0107, +0.0215] — does NOT significantly improve
 
-The best-performing source-level model (M5: Patient + Domain + Protocol + C3 (sensitivity)) achieved AUC=0.8283, Macro-F1=0.7103.
+## 2. Source Importance Ranking
 
-## 3. Source Importance Ranking
+The most important source was **domain_count_prob** (ΔAUC=0.1810 ± 0.0542), followed by **template_presence_prob** (ΔAUC=0.1272 ± 0.0341). **c2_prob** showed no positive incremental contribution (ΔAUC=-0.0054 ± 0.0140).
 
-The most important source was c2_prob (ΔAUC=-0.0062 ± 0.0192).
+## 3. Domain-Level Importance
 
-## 4. Domain-Level Importance
+The most important domain was mental_health_history_presence (ΔAUC=+0.0594 when removed).
 
-The leave-one-domain-out analysis identified which domains most strongly contribute to predictive performance.
+## 4. Key Conclusions
 
-## 5. Sensitivity
-
-Sensitivity checks confirmed that results are [stable/unstable] to variations in feature encoding.
-
-## Interpretation
-
-These analyses characterize the relative contribution of different signal sources in DAIC-WOZ PHQ-8 classification. They are descriptive source-importance audits, not causal attributions. The results show which signal sources provide incremental value beyond patient speech, and which are largely redundant or overlapping.
+1. Domain coverage (domain_count_prob) is the dominant signal source in combined models
+2. Patient speech (c2_prob) provides near-zero unique contribution when domain and protocol are accounted for
+3. C5 quote probability adds no incremental value beyond domain_count (M4-M3 AUC Δ ≈ 0)
+4. Clinical-context domains (functioning_impairment, mental_health_history) are key contributors

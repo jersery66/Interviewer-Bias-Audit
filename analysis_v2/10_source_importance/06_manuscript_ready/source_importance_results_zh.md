@@ -1,30 +1,32 @@
 # 来源重要性分析结果
 
-## 1. 来源特征相关性
+## 1. 增量模型表现
 
-关键相关发现（Spearman）：
+最优模型（M5: Patient + Domain + Protocol + C3 (sensitivity)）AUC=0.8356。
 
-- C2患者语言 vs C5症状证据：中度相关（r ≈ 0.59）
-- C5 vs domain_count：中-高度相关（r ≈ 0.59）
-- template_only vs template_presence：高度相关（r ≈ 0.80）
-- C3访谈者 vs template_only：非常高度相关（r ≈ 0.85）
+### 关键增量比较（5000次bootstrap CI）
 
-## 2. 增量模型表现
+- M1 vs M0（AUC）: +0.0741 [-0.0026, +0.1545] — 无显著改善
+- M1 vs M0（Brier）: -0.0354 [-0.0632, -0.0050] — 显著改善
+- M1 vs M0（LogLoss）: -0.0768 [-0.1410, -0.0064] — 显著改善
+- M3 vs M0（AUC）: +0.1294 [+0.0460, +0.2138] — 显著改善
+- M3 vs M0（Brier）: -0.0517 [-0.0809, -0.0198] — 显著改善
+- M3 vs M0（LogLoss）: -0.1291 [-0.2012, -0.0495] — 显著改善
+- M4 vs M3（AUC）: -0.0037 [-0.0203, +0.0131] — 无显著改善
+- M4 vs M3（Brier）: +0.0025 [-0.0041, +0.0093] — 无显著改善
+- M4 vs M3（LogLoss）: +0.0049 [-0.0107, +0.0215] — 无显著改善
 
-最优来源层级模型（M5: Patient + Domain + Protocol + C3 (sensitivity)）AUC=0.8283，Macro-F1=0.7103。
+## 2. 来源重要性排序
 
-## 3. 来源重要性排序
+最重要的来源为**domain_count_prob**（ΔAUC=0.1810 ± 0.0542），其次为**template_presence_prob**（ΔAUC=0.1272 ± 0.0341）。**c2_prob** 在M3中无明显正向增量贡献（ΔAUC=-0.0054 ± 0.0140）。
 
-最重要的来源为c2_prob（ΔAUC=-0.0062 ± 0.0192）。
+## 3. Domain层级重要性
 
-## 4. Domain层级重要性
+最重要的domain为mental_health_history_presence（删除后ΔAUC=+0.0594）。
 
-Leave-one-domain-out 分析识别出对预测表现最有贡献的临床域。
+## 4. 核心结论
 
-## 5. 敏感性分析
-
-敏感性检验确认结果对不同特征编码方式[稳定/不稳定]。
-
-## 解释
-
-上述分析描述了不同信号来源在DAIC-WOZ PHQ-8阳性预测中的相对贡献，是描述性来源重要性审计，而非因果归因。结果表明哪些信号来源在患者语言之外提供增量价值，哪些来源之间高度重叠。
+1. 症状域覆盖（domain_count_prob）是综合模型中的主导信号来源
+2. 患者语言（c2_prob）在控制domain和protocol后无独特贡献
+3. C5 quote概率在domain_count进入后无增量价值（M4-M3 AUC Δ ≈ 0）
+4. 临床背景域（functioning_impairment、mental_health_history）是domain层面的关键贡献者

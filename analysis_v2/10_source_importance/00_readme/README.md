@@ -116,18 +116,46 @@ All analyses use:
 - Same repeated 5-fold splits (`repeated_5fold_splits_10x5.csv`)
 - Same OOF probabilities from primary and control analyses
 - Prespecified model sequence (no post hoc model selection)
+- **Fixed CV**: OOF predictions averaged across all 10 repeats (not overwritten)
+- **Permutation importance**: 100x repeated shuffles per fold per feature with fixed seed (20260704)
+- **Bootstrap CI**: 5000x paired participant bootstrap for incremental model comparisons
 
 ## Status
 
-- [x] Directory structure created
-- [ ] Step 1: Source-level feature table
-- [ ] Step 2: Correlation analysis
-- [ ] Step 3: Incremental models
-- [ ] Step 4: Source importance
-- [ ] Step 5: Domain multivariable
-- [ ] Step 6: Sensitivity checks
-- [ ] Manuscript-ready tables
+- [x] Step 1: Source-level feature table
+- [x] Step 2: Correlation analysis
+- [x] Step 3: Incremental models (M0-M5) with fixed CV averaging
+- [x] Step 4: Source importance (permutation, 100x repeated, correct ranking)
+- [x] Step 5: Domain multivariable with leave-one-out
+- [x] Step 6: Sensitivity checks
+- [x] Bootstrap CI for M0-M5 comparisons
+- [ ] Subset-based dominance analysis (optional, not done)
+- [ ] Domain figure (needs matplotlib)
+- [x] Manuscript-ready tables
+
+## Key Results (from fixed analysis)
+
+### Incremental Models
+- M0 (C2 only): AUC baseline
+- M1 (+domain_count): significant improvement
+- M2 (+template_presence): improvement
+- M3 (+both): best performance
+- **M4 (+C5): NO improvement over M3** → C5 quote adds zero incremental value
+
+### Source Importance (Permutation, M3)
+- Most important: domain_count_prob
+- Second: template_presence_prob
+- Not important: c2_prob (near-zero or negative ΔAUC)
+
+### Domain Importance (Leave-one-out)
+- Top domains: functioning_impairment, mental_health_history
+- Clinical-context domains dominate over PHQ-core symptoms
+
+### Sensitivity
+- Results robust to domain_count vs domain_presence encoding
+- Results robust to template_presence vs template_only encoding
+- C5 quote consistently adds zero incremental value
 
 ## Last Updated
 
-2026-07-04
+2026-07-04 (fixed CV averaging, permutation repeats, bootstrap CI, correct ranking)

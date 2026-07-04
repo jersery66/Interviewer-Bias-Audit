@@ -1,0 +1,22 @@
+comparison,description,metric,mean_delta,ci_lower,ci_upper,significant,bootstrap_p
+M1 vs M0,domain_count adds increment over participant speech,AUC,0.07407853333818545,-0.0025858692066636595,0.15453611612886584,False,0.0284
+M1 vs M0,domain_count adds increment over participant speech,Brier,-0.03535929697485881,-0.06322546287144808,-0.004970327953665972,True,0.0114
+M1 vs M0,domain_count adds increment over participant speech,LogLoss,-0.07679902749212654,-0.14104305308864964,-0.006438214034006706,True,0.016
+M2 vs M0,template_presence adds increment over participant speech,AUC,0.06811828813131035,-0.021801613765899605,0.1598683383609853,False,0.0704
+M2 vs M0,template_presence adds increment over participant speech,Brier,-0.03079375429132982,-0.05673765266807971,-0.0037027690677921754,True,0.013
+M2 vs M0,template_presence adds increment over participant speech,LogLoss,-0.06203157451082637,-0.12419417948519697,0.0016855821015435825,False,0.0282
+M3 vs M0,domain+template adds increment over participant speech,AUC,0.12938666892597417,0.046048381715578575,0.2138365954128916,True,0.0008
+M3 vs M0,domain+template adds increment over participant speech,Brier,-0.051662272049239094,-0.08085401832412435,-0.019811042439557527,True,0.0008
+M3 vs M0,domain+template adds increment over participant speech,LogLoss,-0.12914103665369964,-0.2012293185086695,-0.049471644459990326,True,0.0008
+M3 vs M1,template adds increment over participant+domain,AUC,0.053719598690555634,-0.006586006678172656,0.12072288089976765,False,0.043
+M3 vs M1,template adds increment over participant+domain,Brier,-0.015656716718495427,-0.0378079971307801,0.007398196694957433,False,0.0888
+M3 vs M1,template adds increment over participant+domain,LogLoss,-0.050867555753045794,-0.10495641069340794,0.0050908870123521615,False,0.035
+M3 vs M2,domain adds increment over participant+protocol,AUC,0.06198187527761356,0.003766890482735447,0.12389812472111443,True,0.0188
+M3 vs M2,domain adds increment over participant+protocol,Brier,-0.0207847075430588,-0.04623310671905955,0.00598887597175479,False,0.0596
+M3 vs M2,domain adds increment over participant+protocol,LogLoss,-0.06700343789132866,-0.12822359422441518,-0.0024621545245839234,True,0.0212
+M4 vs M3,C5 adds increment over participant+domain+protocol,AUC,-0.003693687924131185,-0.020293749092943257,0.013127579248503088,False,0.6808
+M4 vs M3,C5 adds increment over participant+domain+protocol,Brier,0.0024768635054255098,-0.004056028373966821,0.009345065342323704,False,0.7616
+M4 vs M3,C5 adds increment over participant+domain+protocol,LogLoss,0.004908890973099827,-0.010682321526451025,0.02151706150768698,False,0.721
+M5 vs M3,C3 adds increment over participant+domain+protocol,AUC,0.010392630951274358,-0.011913150458513457,0.032762232929926756,False,0.175
+M5 vs M3,C3 adds increment over participant+domain+protocol,Brier,-0.004278726225623191,-0.014771352175293273,0.006489554390043902,False,0.2076
+M5 vs M3,C3 adds increment over participant+domain+protocol,LogLoss,-0.009724302758706288,-0.03712787337016736,0.017342146850704038,False,0.2358
