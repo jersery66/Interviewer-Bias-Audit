@@ -1,0 +1,5 @@
+case_type,participant_id,label,c2_prob,c3_prob,template_only_prob,c5_prob,domain_presence_prob,pattern,interpretation
+A,414,1,0.494,0.742,0.731,0.489,0.526,C2 default false negative nested positive,"Threshold artifact: C2 has signal but default 0.5 threshold creates false negative"
+B,356,1,0.481,0.701,0.848,0.523,0.537,Protocol high participant low,"Protocol structure carries signal independent of participant symptom language"
+C,343,0,0.476,0.567,0.591,0.482,0.479,C5 close to domain,"Symptom evidence and domain coverage give similar predictions"
+D,305,0,0.481,0.642,0.558,0.501,0.463,"Full transcript source conflict","C1 includes both participant and interviewer cannot be directly interpreted as participant language"
