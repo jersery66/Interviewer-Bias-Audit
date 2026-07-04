@@ -62,7 +62,7 @@ Significant domains (FDR < 0.05) in presence analysis:
 - `case_analysis_table.md` - Case analysis table (Markdown) ✅ UPDATED with C1 fields
 - `selected_cases_for_manuscript.csv` - Selected cases (CSV) ✅ UPDATED with C1 fields
 - `case_selection_log.md` - Selection criteria and counts
-- `candidate_cases.csv` - ❌ NOT YET GENERATED (see Issue A below)
+- `candidate_cases.csv` - ✅ GENERATED (142 rows, eligibility flags for 4 case types)
 - `generate_candidate_cases.py` - Script to generate candidate_cases.csv
 - `run_case_analysis.py` - Selection script (blocked by sandbox)
 - `inspect_cases_readonly.py` - Read-only inspection script
@@ -77,38 +77,13 @@ Significant domains (FDR < 0.05) in presence analysis:
 - Added C1 prob and C1 default prediction fields to `selected_cases_for_manuscript.csv` and `case_analysis_table.md`
 - Case D now shows: C1 pred=1 (false positive), C2 pred=0 (correct), demonstrating source conflict
 
-**Status:** MOSTLY COMPLETE (pending candidate_cases.csv generation)
+**Status:** COMPLETE (including candidate_cases.csv)
 
-### Issue A: candidate_cases.csv Not Yet Generated
+### 04. Bootstrap CI for Primary Input-Source Tables ⏸️ (OPTIONAL)
 
-**Problem:** The analysis plan requires `candidate_cases.csv` to show the full candidate pool for each case type, but this file has not been generated yet.
+**Status:** NOT STARTED (optional). The primary input-source tables (C1-C5, representation, C4/C5 controls) do not yet have bootstrap CIs.
 
-**Why:** Python scripts that write files are blocked by sandbox permissions.
-
-**Solution:** Run `generate_candidate_cases.py` locally to generate `candidate_cases.csv`.
-
-**Instructions for user:**
-```bash
-cd E:/CodexWorktrees/DAIC-WOZ/reanalysis-v2/analysis_v2/09_bridge_interpretation/03_case_based_error_analysis
-python generate_candidate_cases.py
-```
-
-This will generate `candidate_cases.csv` with:
-- All 142 participants
-- Probabilities and predictions from all conditions (C1-C5, domain_presence, domain_count, template_only, template_presence)
-- Eligibility flags for each case type (eligible_A, eligible_B, eligible_C, eligible_D)
-
-**Candidate counts (from script output):**
-- Case Type A: 20 eligible
-- Case Type B: 32 eligible
-- Case Type C: 118 eligible
-- Case Type D: 51 eligible
-
-### 04. Bootstrap CI (Optional) ⏸️
-
-**Status:** NOT STARTED (optional, but recommended for English paper)
-
-**Note:** The final audit report acknowledges lack of CI as a remaining limitation. Adding bootstrap CI would increase conformity with English paper norms, but is not fatal.
+**Note:** Bootstrap CIs have been completed for source-level incremental models in `10_source_importance/` (5000x paired participant bootstrap for M0-M5 comparisons). These provide CI coverage for the main incremental contribution findings. All-primary-table CI remains optional and is not required for the current manuscript.
 
 ## Technical Issues Encountered
 
@@ -117,23 +92,15 @@ This will generate `candidate_cases.csv` with:
 - Git operations (commit, gc) fail with "No space left on device"
 - **Solution needed:** Free up space on F: drive, or move .git directory to E: drive
 
-### 2. Sandbox Permission Issues
-- Python scripts that write files are blocked by sandbox
-- **Workaround:** Used Write tool to create files manually, ran read-only scripts to generate content
-- **Impact:** `candidate_cases.csv` not yet generated (requires local execution)
-
-### 3. Missing Python Packages
+### 2. Missing Python Packages
 - matplotlib not available (figure generation skipped)
 - tabulate not available (Markdown generation done manually)
 - **Solution:** Install packages in managed environment, or create figures separately
 
 ## Next Steps
 
-1. **Generate candidate_cases.csv** - Run `generate_candidate_cases.py` locally
-2. **Create domain figure** (install matplotlib or create manually)
-3. **Optional: Run bootstrap CI analysis** (if time permits)
-4. **Commit all changes** to git
-5. **Push to GitHub**
+1. **Create domain figure** (install matplotlib or create manually)
+2. **Optional: Bootstrap CI for primary tables** (if time permits for English paper; source-level model CI already done in `10_source_importance/`)
 
 ## File Inventory
 
@@ -147,21 +114,21 @@ This will generate `candidate_cases.csv` with:
 │   ├── domain_presence_group_comparison.csv ✅
 │   ├── domain_count_group_comparison.csv ✅
 │   ├── domain_summary_table.csv ✅
-│   ├── domain_summary_table.md ✅ (updated 2026-07-04, added cautious interpretation)
+│   ├── domain_summary_table.md ✅ (updated 2026-07-04)
 │   ├── figure_domain_group_difference.png ❌ (needs matplotlib)
 │   ├── figure_domain_group_difference.svg ❌ (needs matplotlib)
 │   └── run_domain_analysis.py ✅
 ├── 03_case_based_error_analysis/
 │   ├── case_analysis_table.md ✅ (updated 2026-07-04, added C1 fields)
 │   ├── selected_cases_for_manuscript.csv ✅ (updated 2026-07-04, added C1 fields)
-│   ├── candidate_cases.csv ❌ (PENDING: run generate_candidate_cases.py locally)
+│   ├── candidate_cases.csv ✅ (142 rows, eligibility flags for A/B/C/D)
 │   ├── case_selection_log.md ✅
-│   ├── generate_candidate_cases.py ✅ (creates candidate_cases.csv)
+│   ├── generate_candidate_cases.py ✅
 │   ├── run_case_analysis.py ✅
 │   ├── inspect_cases_readonly.py ✅
 │   └── check_case_d.py ✅
 └── 04_bootstrap_ci_optional/
-    └── (empty, not started)
+    └── (empty — source-level model CI completed in 10_source_importance/)
 ```
 
 ## Reproducibility
@@ -171,7 +138,8 @@ All analyses were performed using the correct data source:
 - 47 participants for test set (separate)
 - Data verified via `input_freeze_manifest.json` and split files
 
-The analysis scripts are saved in the respective directories for reproducibility.
+## Cross-Reference
 
-**Important:** `candidate_cases.csv` must be generated locally before submitting the manuscript, to demonstrate that case selection was done from a documented candidate pool.
+- **Bootstrap CI**: Completed for source-level incremental models (M0-M5) in `10_source_importance/` (5000x paired participant bootstrap)
+- **Candidate cases**: Full candidate pool with eligibility flags available in `09_bridge_interpretation/03_case_based_error_analysis/candidate_cases.csv` (142 rows)
 
