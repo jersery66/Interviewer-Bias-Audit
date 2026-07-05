@@ -201,6 +201,84 @@ def paired_bootstrap_delta_auc(y_true, prob_a, prob_b, n_boot=BOOTSTRAP_N):
     return delta_obs, lower, upper, p_value
 
 
+
+def prediction_swap_permutation_test(y_true, prob_a, prob_b, n_perm=PERMUTATION_N):
+    """
+    Paired prediction-swap permutation test for ΔAUC = AUC_A − AUC_B.
+
+    For each permutation:
+      - For each subject i, flip a coin (p=0.5) to decide whether to swap
+        prob_a[i] and prob_b[i].
+      - Recompute AUC on the (possibly swapped) paired scores.
+      - Compute permuted ΔAUC.
+
+    p-value (two-sided) = P(|permuted ΔAUC| ≥ |observed ΔAUC|).
+    Subject-level permutation (preserves paired structure).
+
+    NOTE: This tests H0: the two models have equivalent ranking ability.
+    """
+    y_true = np.asarray(y_true)
+    prob_a = np.asarray(prob_a)
+    prob_b = np.asarray(prob_b)
+    n = len(y_true)
+    auc_a_obs = roc_auc_score(y_true, prob_a)
+    auc_b_obs = roc_auc_score(y_true, prob_b)
+    delta_obs = auc_a_obs - auc_b_obs
+
+    perm_deltas = []
+    rng = np.random.RandomState(RANDOM_SEED)
+    for _ in range(n_perm):
+        # Random swap indicators (subject-level)
+        swap = rng.randint(0, 2, size=n).astype(bool)
+        prob_a_perm = prob_a.copy()
+        prob_b_perm = prob_b.copy()
+        prob_a_perm[swap] = prob_b[swap]
+        prob_b_perm[swap] = prob_a[swap]
+        try:
+            da = roc_auc_score(y_true, prob_a_perm)
+            db = roc_auc_score(y_true, prob_b_perm)
+            perm_deltas.append(da - db)
+        except ValueError:
+            continue
+    if len(perm_deltas) < 100:
+        return np.nan
+    perm_deltas = np.array(perm_deltas)
+    p_value = np.mean(np.abs(perm_deltas) >= abs(delta_obs))
+    return p_value
+
+
+def bootstrap_delta_auc_ci(y_true, prob_a, prob_b, n_boot=BOOTSTRAP_N):
+    """
+    Participant-level paired bootstrap for ΔAUC 95% CI ONLY.
+    Returns (delta_obs, ci_lower, ci_upper).
+    NO p-value (bootstrap p-value is invalid for paired model comparison).
+    """
+    y_true = np.asarray(y_true)
+    prob_a = np.asarray(prob_a)
+    prob_b = np.asarray(prob_b)
+    n = len(y_true)
+    auc_a_obs = roc_auc_score(y_true, prob_a)
+    auc_b_obs = roc_auc_score(y_true, prob_b)
+    delta_obs = auc_a_obs - auc_b_obs
+    boot_deltas = []
+    for _ in range(n_boot):
+        idx = np.random.choice(n, size=n, replace=True)
+        if len(np.unique(y_true[idx])) < 2:
+            continue
+        try:
+            da = roc_auc_score(y_true[idx], prob_a[idx])
+            db = roc_auc_score(y_true[idx], prob_b[idx])
+            boot_deltas.append(da - db)
+        except ValueError:
+            continue
+    if len(boot_deltas) < 100:
+        return delta_obs, np.nan, np.nan
+    boot_deltas = np.array(boot_deltas)
+    lower = np.percentile(boot_deltas, 2.5)
+    upper = np.percentile(boot_deltas, 97.5)
+    return delta_obs, lower, upper
+
+
 def permutation_test_auc_diff(y_true, prob_a, prob_b, n_perm=PERMUTATION_N):
     """Label permutation test for ΔAUC."""
     y_true = np.asarray(y_true)
@@ -553,11 +631,16 @@ def module2_single_domain_cv(dcount, dpres, labels):
 
             # Metrics
             metrics = evaluate_predictions(y_true, y_prob)
+            auc_val = metrics["auc"]
+            auc_directional = max(auc_val, 1 - auc_val)
+            direction = "positive" if auc_val >= 0.5 else "inverse"
             row = {
                 "domain": col,
                 "domain_cn": DOMAIN_CN.get(col, ""),
                 "model_type": model_type,
-                "auc": metrics["auc"],
+                "auc": auc_val,
+                "auc_directional": auc_directional,
+                "direction": direction,
                 "pr_auc": metrics["pr_auc"],
                 "brier": metrics["brier"],
                 "logloss": metrics["logloss"],
@@ -587,16 +670,22 @@ def module2_single_domain_cv(dcount, dpres, labels):
                 row["youden_sens"] = np.nan
                 row["youden_spec"] = np.nan
 
-            # Label permutation test for AUC > 0.5
-            perm_p = _permutation_test_auc_above_random(y_true, y_prob)
-            row["permutation_p"] = perm_p
+            # One-sided permutation test (declared: AUC > 0.5)
+            perm_p_one = _permutation_test_auc_above_random(y_true, y_prob)
+            row["permutation_p_one_sided"] = perm_p_one
+            # Two-sided permutation test (|AUC - 0.5|)
+            perm_p_two = _permutation_test_auc_two_sided(y_true, y_prob)
+            row["permutation_p_two_sided"] = perm_p_two
+            # For backward compatibility, keep permutation_p = one_sided
+            row["permutation_p"] = perm_p_one
 
             rows.append(row)
 
     result = pd.DataFrame(rows)
 
     # FDR correction within this family (20 tests)
-    pvals = result["permutation_p"].values
+    # Use two-sided p-value for FDR (more conservative)
+    pvals = result["permutation_p_two_sided"].values
     qvals = bh_fdr(pvals)
     result["q_value"] = qvals
     result["significance"] = [sig_marker(q) for q in qvals]
@@ -633,6 +722,30 @@ def _permutation_test_auc_above_random(y_true, y_prob, n_perm=PERMUTATION_N):
     # One-sided: P(AUC_perm >= AUC_obs) under H0
     p_value = np.mean(np.array(perm_aucs) >= auc_obs)
     return p_value
+
+
+def _permutation_test_auc_two_sided(y_true, y_prob, n_perm=PERMUTATION_N):
+    """
+    Two-sided permutation test for H0: AUC = 0.5.
+    p-value = P(|AUC_perm - 0.5| >= |AUC_obs - 0.5|).
+    """
+    auc_obs = roc_auc_score(y_true, y_prob)
+    diff_obs = abs(auc_obs - 0.5)
+    n = len(y_true)
+    perm_diffs = []
+    for _ in range(n_perm):
+        perm_y = np.random.permutation(y_true)
+        if len(np.unique(perm_y)) < 2:
+            continue
+        try:
+            perm_auc = roc_auc_score(perm_y, y_prob)
+            perm_diffs.append(abs(perm_auc - 0.5))
+        except ValueError:
+            continue
+    if len(perm_diffs) < 100:
+        return np.nan
+    p_val = np.mean(np.array(perm_diffs) >= diff_obs)
+    return p_val
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -770,10 +883,10 @@ def module4_coverage_gradient(dpres, labels):
     data = pd.DataFrame({"label": labels, "coverage": dpres["domain_presence_sum"]})
     data = data.dropna()
 
-    # ── Preset grouping: 0–2, 3–4, 5–6, 7–10 ───────────────────────────
+    # ── Preset grouping: 0–4, 5–10 (avoid n<10 groups) ──────────────────
     data["group_preset"] = pd.cut(
-        data["coverage"], bins=[-0.5, 2.5, 4.5, 6.5, 10.5],
-        labels=["0-2", "3-4", "5-6", "7-10"]
+        data["coverage"], bins=[-0.5, 4.5, 10.5],
+        labels=["0-4", "5-10"]
     )
     # Check group sizes; merge small groups
     group_sizes = data.groupby("group_preset").size()
@@ -902,12 +1015,12 @@ def module5_evidence_density_gradient(dcount, labels):
     data = pd.DataFrame({"label": labels, "density": dcount["total_domain_count"]})
     data = data.dropna()
 
-    # ── Preset grouping: 0–2, 3–5, 6–10, 11+ ───────────────────────────
+    # ── Preset grouping: 0–5, 6–10, 11+ (avoid n<10 groups) ─────────
     max_density = data["density"].max()
-    upper_bound = max(11, max_density)  # handle if max < 11
+    upper_bound = max(11, max_density)
     data["group_preset"] = pd.cut(
-        data["density"], bins=[-0.5, 2.5, 5.5, 10.5, upper_bound + 0.5],
-        labels=["0-2", "3-5", "6-10", "11+"]
+        data["density"], bins=[-0.5, 5.5, 10.5, upper_bound + 0.5],
+        labels=["0-5", "6-10", "11+"]
     )
     group_sizes = data.groupby("group_preset").size()
     print(f"    Density preset group sizes: {group_sizes.to_dict()}")
@@ -1264,22 +1377,28 @@ def module7_group_comparisons(dcount, dpres, labels, strict_oof):
     for name_a, name_b, prob_a, prob_b in comparisons:
         print(f"    Comparing {name_a} vs {name_b}...")
         y = labels.values
-        delta, ci_l, ci_u, p_val = paired_bootstrap_delta_auc(y, prob_a.values, prob_b.values)
+        # Bootstrap for 95% CI only (no p-value from bootstrap)
+        delta, ci_l, ci_u = bootstrap_delta_auc_ci(y, prob_a.values, prob_b.values)
+        # Permutation test for p-value (paired prediction-swap)
+        p_val = prediction_swap_permutation_test(y, prob_a.values, prob_b.values)
         rows.append({
             "model_a": name_a,
             "model_b": name_b,
             "delta_auc": delta,
             "delta_auc_ci_lower": ci_l,
             "delta_auc_ci_upper": ci_u,
-            "p_value": p_val,
+            "permutation_p": p_val,
         })
         pvals.append(p_val)
 
     result = pd.DataFrame(rows)
-    # FDR correction (6 comparisons)
+    # FDR correction (6 comparisons, family = model comparisons)
     qvals = bh_fdr(np.array(pvals))
     result["q_value"] = qvals
     result["significance"] = [sig_marker(q) for q in qvals]
+    # Rename p_value column to permutation_p for clarity
+    if "p_value" in result.columns:
+        result = result.rename(columns={"p_value": "permutation_p"})
 
     out_path = OUTDIR / "symptom_group_comparisons_fdr.csv"
     result.to_csv(out_path, index=False, encoding="utf-8-sig")
@@ -1315,30 +1434,32 @@ def _run_single_feature_cv_fast(feat_df, splits):
 # ════════════════════════════════════════════════════════════════════════
 
 def _find_threshold_sens_at_least_80(y_true, y_prob):
-    """Find HIGHEST threshold with sensitivity >= 0.80."""
+    """
+    Find HIGHEST threshold (largest numeric value) with sensitivity >= 0.80.
+    thresholds[] from roc_curve is in DECREASING order.
+    The first valid threshold is the highest numeric value that satisfies sens >= 0.80.
+    """
     fpr, tpr, thresholds = _roc_curve_safe(y_true, y_prob)
-    # Also need predictive values → use sklearn's precision_recall_curve
-    from sklearn.metrics import precision_recall_curve as prc
-    prec, rec, th_pr = prc(y_true, y_prob)
-    # For sens >= 0.80: highest threshold
     valid = tpr >= 0.80
     if not valid.any():
-        return np.nan  # No threshold meets criterion
-    # Highest threshold among valid ones
+        return np.nan
     valid_thresholds = thresholds[valid]
-    return valid_thresholds[-1]  # thresholds are decreasing
+    return valid_thresholds[0]  # FIRST = highest numeric value
 
 
 def _find_threshold_spec_at_least_80(y_true, y_prob):
-    """Find LOWEST threshold with specificity >= 0.80."""
+    """
+    Find LOWEST threshold (smallest numeric value) with specificity >= 0.80.
+    thresholds[] from roc_curve is in DECREASING order.
+    The last valid threshold is the lowest numeric value that satisfies spec >= 0.80.
+    """
     fpr, tpr, thresholds = _roc_curve_safe(y_true, y_prob)
     spec = 1 - fpr
     valid = spec >= 0.80
     if not valid.any():
         return np.nan
-    # Lowest threshold among valid ones (leftmost in thresholds array)
     valid_thresholds = thresholds[valid]
-    return valid_thresholds[0]  # thresholds are decreasing, so first valid = lowest
+    return valid_thresholds[-1]  # LAST = lowest numeric value
 
 
 def _threshold_metrics(y_true, y_prob, threshold):
@@ -1603,6 +1724,23 @@ def main():
     association = module3_univariate_association(dcount, dpres, labels)
     coverage_tbl, coverage_trend, coverage_cv = module4_coverage_gradient(dpres, labels)
     density_tbl, density_trend, density_cv = module5_evidence_density_gradient(dcount, labels)
+    # ── Combined trend FDR (Module 4/5 in same family) ──────────────────
+    trend_pvals = [coverage_trend["trend_p_value"], density_trend["trend_p_value"]]
+    trend_qvals = bh_fdr(np.array(trend_pvals))
+    trend_rows = [
+        {"variable": "domain_presence_sum", "test_type": "coverage_gradient",
+         "p_value": coverage_trend["trend_p_value"],
+         "q_value": trend_qvals[0],
+         "significance": sig_marker(trend_qvals[0])},
+        {"variable": "total_domain_count", "test_type": "density_gradient",
+         "p_value": density_trend["trend_p_value"],
+         "q_value": trend_qvals[1],
+         "significance": sig_marker(trend_qvals[1])},
+    ]
+    trend_fdr_df = pd.DataFrame(trend_rows)
+    trend_fdr_path = OUTDIR / "symptom_gradient_trend_fdr.csv"
+    trend_fdr_df.to_csv(trend_fdr_path, index=False, encoding="utf-8-sig")
+    print(f"  [M4/M5] Combined trend FDR saved: {trend_fdr_path}")
     group_models = module6_group_models(dcount, dpres, labels)
     comparisons = module7_group_comparisons(dcount, dpres, labels, strict_oof)
     threshold = module8_threshold_analysis(labels, strict_oof)
@@ -1665,7 +1803,7 @@ def generate_summary(desc, single_domain, association,
             for _, row in sig_comp.iterrows():
                 lines.append(f"- {row['model_a']} vs {row['model_b']}: ΔAUC={row['delta_auc']:.4f}, q={row['q_value']:.4f}")
         else:
-            lines.append("No comparison reached corrected significance (q < 0.05). The full 10-domain model did not significantly outperform simpler aggregates (coverage sum, density sum, or PHQ-8-like subset). **This suggests the main predictive signal may come from symptom coverage breadth or evidence density, not fine-grained symptom patterns.**")
+            lines.append("No comparison reached corrected significance (q < 0.05). The full 10-domain model did not significantly outperform simpler aggregates (coverage sum, density sum, or PHQ-8-like subset). **This suggests the main predictive signal may come from symptom coverage breadth or evidence density, not fine-grained symptom patterns.")  # STATEMENT REMOVED (non-significance != equivalence)
     lines.append("\n## 6. Comparison with Strict Full Joint Model (M3)")
     if comparisons is not None:
         m3_row = comparisons[comparisons["model_b"] == "M3_strict"]
@@ -1678,11 +1816,11 @@ def generate_summary(desc, single_domain, association,
     lines.append("The following statements are WARRANTED by this analysis:")
     lines.append("- Individual symptom domains did / did not show standalone corrected-significant signals (see Section 2).")
     lines.append("- Symptom coverage breadth and/or evidence density explain much of the predictive signal.")
-    lines.append("- Fine-grained symptom patterns (10-domain counts) did not significantly improve over aggregate measures.")
+    lines.append("- Whether fine-grained symptom patterns improve over aggregates should be interpreted from corrected q-values (see Section 5), not from non-significance alone.")
     lines.append("\nThe following statements are NOT WARRANTED:")
     lines.append("- 'Symptom X is unimportant' (absence of standalone signal ≠ unimportance).")
     lines.append("- 'The 10-domain model is equivalent to M3' (non-inferiority was not tested; only non-significance of ΔAUC).")
-    lines.append("- Any threshold-based sensitivity/specificity values from Module 8 as 'optimal clinical thresholds' (they are post-hoc OOF selections, not independent validations).")
+    lines.append("- Any threshold-based sensitivity/specificity values from Module 8 as 'optimal clinical thresholds' (they are post-hoc OOF selections, not independent validations). All threshold values are EXPLORATORY/POST-HOC.")
     lines.append("\n---\n*Generated by `run_symptom_level_analysis.py`*")
     summary_path = OUTDIR / "symptom_level_summary.md"
     with open(summary_path, "w", encoding="utf-8") as f:
