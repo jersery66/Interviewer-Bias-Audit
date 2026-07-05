@@ -49,14 +49,15 @@ from sklearn.calibration import calibration_curve
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# ── Paths (hard-coded, SPEC-compliant) ───────────────────────────────────────
-BASE = Path("E:/CodexWorktrees/DAIC-WOZ/reanalysis-v2/analysis_v2")
-DOMAIN_COUNT_CSV = BASE / "04_c5_controls/domain_count/input.csv"
-DOMAIN_PRESENCE_CSV = BASE / "04_c5_controls/domain_presence/input.csv"
-SPLIT_CSV = BASE / "00_splits/repeated_5fold_splits_10x5.csv"
-STRICT_OOF_CSV = BASE / "10_source_importance/07_strict_joint_models/participant_oof_predictions.csv"
-STRICT_MANIFEST = BASE / "10_source_importance/07_strict_joint_models/run_manifest.json"
-OUTDIR = Path(__file__).parent
+# ── Paths (relative to script location, repo-reproducible) ──────────────────
+SCRIPT_DIR = Path(__file__).parent
+BASE = SCRIPT_DIR.parent.parent  # analysis_v2/
+DOMAIN_COUNT_CSV = SCRIPT_DIR.parent.parent / "04_c5_controls/domain_count/input.csv"
+DOMAIN_PRESENCE_CSV = SCRIPT_DIR.parent.parent / "04_c5_controls/domain_presence/input.csv"
+SPLIT_CSV = SCRIPT_DIR.parent.parent / "00_splits/repeated_5fold_splits_10x5.csv"
+STRICT_OOF_CSV = SCRIPT_DIR.parent.parent / "10_source_importance/07_strict_joint_models/participant_oof_predictions.csv"
+STRICT_MANIFEST = SCRIPT_DIR.parent.parent / "10_source_importance/07_strict_joint_models/run_manifest.json"
+OUTDIR = SCRIPT_DIR
 
 # ── Symptom domain definitions ─────────────────────────────────────────────────
 # Column names as they appear in the CSV files:
@@ -164,45 +165,10 @@ def bootstrap_auc_ci(y_true, y_pred, n_boot=BOOTSTRAP_N, alpha=0.05):
     return lower, upper
 
 
-def paired_bootstrap_delta_auc(y_true, prob_a, prob_b, n_boot=BOOTSTRAP_N):
-    """
-    Participant-level paired bootstrap for ΔAUC = AUC(prob_a) - AUC(prob_b).
-    Returns (delta_auc_obs, ci_lower, ci_upper, p_value).
-    p_value = P(ΔAUC <= 0) under bootstrap.
-    """
-    y_true = np.asarray(y_true)
-    prob_a = np.asarray(prob_a)
-    prob_b = np.asarray(prob_b)
-    n = len(y_true)
-    auc_a_obs = roc_auc_score(y_true, prob_a)
-    auc_b_obs = roc_auc_score(y_true, prob_b)
-    delta_obs = auc_a_obs - auc_b_obs
-    boot_deltas = []
-    for _ in range(n_boot):
-        idx = np.random.choice(n, size=n, replace=True)
-        if len(np.unique(y_true[idx])) < 2:
-            continue
-        try:
-            da = roc_auc_score(y_true[idx], prob_a[idx])
-            db = roc_auc_score(y_true[idx], prob_b[idx])
-            boot_deltas.append(da - db)
-        except ValueError:
-            continue
-    if len(boot_deltas) < 100:
-        return delta_obs, np.nan, np.nan, np.nan
-    boot_deltas = np.array(boot_deltas)
-    lower = np.percentile(boot_deltas, 2.5)
-    upper = np.percentile(boot_deltas, 97.5)
-    # Two-sided p-value: P(|delta| >= |delta_obs|)
-    p_value = 2 * min(
-        np.mean(boot_deltas <= -abs(delta_obs)),
-        np.mean(boot_deltas >= abs(delta_obs)),
-    )
-    return delta_obs, lower, upper, p_value
 
 
 
-def prediction_swap_permutation_test(y_true, prob_a, prob_b, n_perm=PERMUTATION_N):
+def prediction_swap_permutation_test(y_true, prob_a, prob_b, n_perm=PERMUTATION_N, seed=None):
     """
     Paired prediction-swap permutation test for ΔAUC = AUC_A − AUC_B.
 
@@ -226,7 +192,7 @@ def prediction_swap_permutation_test(y_true, prob_a, prob_b, n_perm=PERMUTATION_
     delta_obs = auc_a_obs - auc_b_obs
 
     perm_deltas = []
-    rng = np.random.RandomState(RANDOM_SEED)
+    rng = np.random.RandomState(seed if seed is not None else RANDOM_SEED)
     for _ in range(n_perm):
         # Random swap indicators (subject-level)
         swap = rng.randint(0, 2, size=n).astype(bool)
@@ -986,7 +952,7 @@ def module4_coverage_gradient(dpres, labels):
         cv_metrics["auc_ci_lower"], cv_metrics["auc_ci_upper"] = bootstrap_auc_ci(y_true, y_prob)
 
     # Save outputs
-    risk_table_path = OUTDIR / "symptom_coverage_gradient.csv"
+    risk_table_path = OUTDIR / "symptom_coverage_gradient_main.csv"
     risk_table.to_csv(risk_table_path, index=False, encoding="utf-8-sig")
     print(f"  [M4] Risk table saved: {risk_table_path}")
 
@@ -1113,7 +1079,7 @@ def module5_evidence_density_gradient(dcount, labels):
         cv_metrics = evaluate_predictions(y_true, y_prob)
         cv_metrics["auc_ci_lower"], cv_metrics["auc_ci_upper"] = bootstrap_auc_ci(y_true, y_prob)
 
-    risk_table_path = OUTDIR / "symptom_evidence_density_gradient.csv"
+    risk_table_path = OUTDIR / "symptom_evidence_density_gradient_main.csv"
     risk_table.to_csv(risk_table_path, index=False, encoding="utf-8-sig")
     print(f"  [M5] Risk table saved: {risk_table_path}")
     print(f"  [M5] Trend result: OR={trend_or:.3f} (95% CI {trend_or_ci[0]:.3f}-{trend_or_ci[1]:.3f}), p={trend_p:.4f}")
@@ -1121,595 +1087,77 @@ def module5_evidence_density_gradient(dcount, labels):
     return risk_table, trend_result, cv_metrics
 
 
-print("[Main] Script loaded successfully.")
-
-# ══════════════════════════════════════════════════════════════════════════
-# MODULE 6: SYMPTOM GROUP MODELS
-# ══════════════════════════════════════════════════════════════════════════
-
-# Preset symptom group definitions
-SYMPTOM_GROUPS = {
-    "depressive_core": ["depressed_mood", "anhedonia_interest",
-                         "sleep_fatigue_energy", "appetite_weight",
-                         "self_worth_guilt", "concentration_psychomotor",
-                         "suicide_self_harm"],
-    "phq8_like": ["depressed_mood", "anhedonia_interest",
-                   "sleep_fatigue_energy", "appetite_weight",
-                   "self_worth_guilt", "concentration_psychomotor",
-                   "functioning_impairment"],
-    "mood_cognitive": ["depressed_mood", "anhedonia_interest",
-                        "self_worth_guilt", "concentration_psychomotor"],
-    "somatic_behavioral": ["sleep_fatigue_energy", "appetite_weight",
-                             "functioning_impairment"],
-    "risk_clinical_history": ["suicide_self_harm", "mental_health_history",
-                               "functioning_impairment"],
-    "protective_absent": ["protective_or_absent_symptom"],
-    "all_ten_domains": None,  # use all DOMAIN_COLS
-}
-
-def _get_group_cols(group_name):
-    if group_name == "all_ten_domains":
-        return DOMAIN_COLS
-    return SYMPTOM_GROUPS[group_name]
 
 
-def _run_group_cv(df_features, label_series, splits):
+# ════════════════════════════════════════════════════════════════════
+# HELPER: Fine-grained gradient outputs (supplementary)
+# ════════════════════════════════════════════════════════════════════
+
+
+def module4_coverage_gradient_fine(dpres, labels):
+    """Supplementary fine-grained coverage gradient.
+    Output: symptom_coverage_gradient_fine.csv
+    Grouping: 0-2, 3-4, 5-7, 8-10
     """
-    Generic participant-level 10x5 CV for a set of features.
-    df_features: DataFrame with participant_id + feature columns.
-    Returns: Series(index=participant_id, values=mean OOF prob).
-    """
-    all_probs = []
-    for (rpt, fold), fold_rows in splits.groupby(["repeat", "fold"]):
-        train_ids = fold_rows[fold_rows["role"] == "train"]["participant_id"].values
-        test_ids = fold_rows[fold_rows["role"] == "test"]["participant_id"].values
-        train_df = df_features[df_features["participant_id"].isin(train_ids)]
-        test_df = df_features[df_features["participant_id"].isin(test_ids)]
-        if len(train_df) == 0 or len(test_df) == 0:
-            continue
-        feat_cols = [c for c in df_features.columns if c != "participant_id"]
-        X_train = train_df[feat_cols].values
-        y_train = label_series.loc[train_df["participant_id"].values]
-        X_test = test_df[feat_cols].values
-        prob = fit_fold_local_model(X_train, y_train.values, X_test, scale=True)
-        for pid, p in zip(test_df["participant_id"].values, prob):
-            all_probs.append({"participant_id": pid, "repeat": rpt, "prob": p})
-    if len(all_probs) == 0:
-        return pd.Series(dtype=float)
-    prob_df = pd.DataFrame(all_probs)
-    return prob_df.groupby("participant_id")["prob"].mean()
-
-
-def module6_group_models(dcount, dpres, labels):
-    """
-    Fit symptom group models (presence + count versions for each group).
-    Output: sympton_group_model_metrics.csv
-    """
-    print("\n  [M6] Module 6: Symptom group models...")
-    splits = pd.read_csv(SPLIT_CSV)
+    print("\n  [M4-fine] Coverage gradient (fine-grained)...")
+    dp = dpres.copy()
+    dp["domain_presence_sum"] = dp[DOMAIN_COLS].sum(axis=1)
+    data = pd.DataFrame({
+        "participant_id": dp.index,
+        "coverage": dp["domain_presence_sum"],
+        "label": labels.reindex(dp.index).values,
+    }).dropna().set_index("participant_id")
+    data["group"] = pd.cut(
+        data["coverage"],
+        bins=[-0.5, 2.5, 4.5, 7.5, 10.5],
+        labels=["0-2", "3-4", "5-7", "8-10"],
+    )
+    print("    Fine group sizes:", data.groupby("group").size().to_dict())
     rows = []
-
-    for group_name in SYMPTOM_GROUPS.keys():
-        cols = _get_group_cols(group_name)
-        print(f"    Group: {group_name} ({len(cols)} domains)")
-
-        # ── Presence version ────────────────────────────────────────────────
-        feat_df_pres = dpres[["participant_id"] + cols].copy()
-        part_prob_pres = _run_group_cv(feat_df_pres, labels, splits)
-        if len(part_prob_pres) > 0:
-            y_true = labels.loc[part_prob_pres.index].values
-            y_prob = part_prob_pres.values
-            m = evaluate_predictions(y_true, y_prob)
-            ci_l, ci_u = bootstrap_auc_ci(y_true, y_prob)
-            # Youden threshold (exploratory)
-            fpr, tpr, thresholds = _roc_curve_safe(y_true, y_prob)
-            youden = tpr - fpr
-            best_idx = np.argmax(youden)
-            y_thresh = thresholds[best_idx] if best_idx < len(thresholds) else 0.5
-            y_pred = (y_prob >= y_thresh).astype(int)
-            cm = confusion_matrix(y_true, y_pred)
-            if cm.shape == (2, 2):
-                tn, fp, fn, tp = cm.ravel()
-                y_sens = tp / (tp + fn) if (tp + fn) > 0 else np.nan
-                y_spec = tn / (tn + fp) if (tn + fp) > 0 else np.nan
-            else:
-                y_sens = np.nan
-                y_spec = np.nan
-            rows.append({
-                "group_name": group_name,
-                "version": "presence",
-                "n_domains": len(cols),
-                "auc": m["auc"],
-                "auc_ci_lower": ci_l,
-                "auc_ci_upper": ci_u,
-                "pr_auc": m["pr_auc"],
-                "brier": m["brier"],
-                "logloss": m["logloss"],
-                "sens_50": m["sens_50"],
-                "spec_50": m["spec_50"],
-                "youden_threshold": y_thresh,
-                "youden_sens": y_sens,
-                "youden_spec": y_spec,
-            })
-
-        # ── Count version ──────────────────────────────────────────────────
-        feat_df_count = dcount[["participant_id"] + cols].copy()
-        part_prob_count = _run_group_cv(feat_df_count, labels, splits)
-        if len(part_prob_count) > 0:
-            y_true = labels.loc[part_prob_count.index].values
-            y_prob = part_prob_count.values
-            m = evaluate_predictions(y_true, y_prob)
-            ci_l, ci_u = bootstrap_auc_ci(y_true, y_prob)
-            fpr, tpr, thresholds = _roc_curve_safe(y_true, y_prob)
-            youden = tpr - fpr
-            best_idx = np.argmax(youden)
-            y_thresh = thresholds[best_idx] if best_idx < len(thresholds) else 0.5
-            y_pred = (y_prob >= y_thresh).astype(int)
-            cm = confusion_matrix(y_true, y_pred)
-            if cm.shape == (2, 2):
-                tn, fp, fn, tp = cm.ravel()
-                y_sens = tp / (tp + fn) if (tp + fn) > 0 else np.nan
-                y_spec = tn / (tn + fp) if (tn + fp) > 0 else np.nan
-            else:
-                y_sens = np.nan
-                y_spec = np.nan
-            rows.append({
-                "group_name": group_name,
-                "version": "count",
-                "n_domains": len(cols),
-                "auc": m["auc"],
-                "auc_ci_lower": ci_l,
-                "auc_ci_upper": ci_u,
-                "pr_auc": m["pr_auc"],
-                "brier": m["brier"],
-                "logloss": m["logloss"],
-                "sens_50": m["sens_50"],
-                "spec_50": m["spec_50"],
-                "youden_threshold": y_thresh,
-                "youden_sens": y_sens,
-                "youden_spec": y_spec,
-            })
-
-    result = pd.DataFrame(rows)
-    out_path = OUTDIR / "symptom_group_model_metrics.csv"
-    result.to_csv(out_path, index=False, encoding="utf-8-sig")
-    print(f"  [M6] Saved: {out_path}")
-    return result
+    for g, gd in data.groupby("group"):
+        n = len(gd); npos = int(gd["label"].sum())
+        rows.append({"group": str(g), "n": n, "n_positive": npos,
+                     "positive_rate": npos/n if n>0 else float("nan")})
+    tbl = pd.DataFrame(rows)
+    out = OUTDIR / "symptom_coverage_gradient_fine.csv"
+    tbl.to_csv(out, index=False, encoding="utf-8-sig")
+    print("  [M4-fine] Saved:", out)
+    return tbl
 
 
-def _roc_curve_safe(y_true, y_prob):
-    from sklearn.metrics import roc_curve
-    fpr, tpr, thresholds = roc_curve(y_true, y_prob)
-    return fpr, tpr, thresholds
-
-
-
-# ════════════════════════════════════════════════════════════════════════
-# MODULE 7: SYMPTOM GROUP MODEL COMPARISONS
-# ════════════════════════════════════════════════════════════════════════
-
-def module7_group_comparisons(dcount, dpres, labels, strict_oof):
+def module5_evidence_density_gradient_fine(dcount, labels):
+    """Supplementary fine-grained evidence density gradient.
+    Output: symptom_evidence_density_gradient_fine.csv
+    Grouping: 0-2, 3-5, 6-10, 11+
     """
-    Compare key models using paired bootstrap + permutation.
-    Comparison family (6 comparisons, one-sided or two-sided):
-      1. all_ten_domains_count vs domain_presence_sum
-      2. all_ten_domains_count vs total_domain_count
-      3. all_ten_domains_count vs phq8_like_count
-      4. all_ten_domains_count vs risk_clinical_history_count
-      5. all_ten_domains_count vs all_ten_domains_presence
-      6. all_ten_domains_count vs M3 (strict OOF)
-    FDR: BH within this family (6 comparisons).
-    """
-    print("\n  [M7] Module 7: Symptom group model comparisons...")
-    splits = pd.read_csv(SPLIT_CSV)
-
-    # ── Get OOF probabilities for comparison models ─────────────────────────
-    # all_ten_domains_count
-    print("    Fitting all_ten_domains_count...")
-    cols = DOMAIN_COLS
-    feat_df = dcount[["participant_id"] + cols].copy()
-    prob_all10_count = _run_group_cv(feat_df, labels, splits)
-    prob_all10_count = prob_all10_count.reindex(labels.index)
-
-    # domain_presence_sum (coverage)
-    print("    Fitting domain_presence_sum...")
-    dpres2 = dpres.copy()
-    dpres2["coverage"] = dpres2[DOMAIN_COLS].sum(axis=1)
-    feat_cov = pd.DataFrame({
-        "participant_id": dpres2["participant_id"],
-        "feature": dpres2["coverage"],
-    })
-    feat_cov["label"] = labels.reindex(feat_cov["participant_id"]).values
-    prob_coverage = _run_single_feature_cv_fast(feat_cov, splits)
-    prob_coverage = prob_coverage.reindex(labels.index)
-
-    # total_domain_count (density)
-    print("    Fitting total_domain_count...")
-    dcount2 = dcount.copy()
-    dcount2["density"] = dcount2[DOMAIN_COLS].sum(axis=1)
-    feat_den = pd.DataFrame({
-        "participant_id": dcount2["participant_id"],
-        "feature": dcount2["density"],
-    })
-    feat_den["label"] = labels.reindex(feat_den["participant_id"]).values
-    prob_density = _run_single_feature_cv_fast(feat_den, splits)
-    prob_density = prob_density.reindex(labels.index)
-
-    # phq8_like_count
-    print("    Fitting phq8_like_count...")
-    phq8_cols = ["depressed_mood", "anhedonia_interest",
-                  "sleep_fatigue_energy", "appetite_weight",
-                  "self_worth_guilt", "concentration_psychomotor",
-                  "functioning_impairment"]
-    feat_phq8 = dcount[["participant_id"] + phq8_cols].copy()
-    prob_phq8 = _run_group_cv(feat_phq8, labels, splits)
-    prob_phq8 = prob_phq8.reindex(labels.index)
-
-    # risk_clinical_history_count
-    print("    Fitting risk_clinical_history_count...")
-    risk_cols = ["suicide_self_harm", "mental_health_history",
-                 "functioning_impairment"]
-    feat_risk = dcount[["participant_id"] + risk_cols].copy()
-    prob_risk = _run_group_cv(feat_risk, labels, splits)
-    prob_risk = prob_risk.reindex(labels.index)
-
-    # all_ten_domains_presence
-    print("    Fitting all_ten_domains_presence...")
-    feat_pres = dpres[["participant_id"] + DOMAIN_COLS].copy()
-    prob_all10_pres = _run_group_cv(feat_pres, labels, splits)
-    prob_all10_pres = prob_all10_pres.reindex(labels.index)
-
-    # M3 (strict OOF)
-    prob_m3 = strict_oof.set_index("participant_id")["M3_prob"].reindex(labels.index)
-
-    # ── Compute comparisons ──────────────────────────────────────────────────
-    comparisons = [
-        ("all10_count", "coverage_sum", prob_all10_count, prob_coverage),
-        ("all10_count", "density_sum", prob_all10_count, prob_density),
-        ("all10_count", "phq8_count", prob_all10_count, prob_phq8),
-        ("all10_count", "risk_count", prob_all10_count, prob_risk),
-        ("all10_count", "all10_presence", prob_all10_count, prob_all10_pres),
-        ("all10_count", "M3_strict", prob_all10_count, prob_m3),
-    ]
-
+    print("\n  [M5-fine] Evidence density gradient (fine-grained)...")
+    dc = dcount.copy()
+    dc["total_domain_count"] = dc[DOMAIN_COLS].sum(axis=1)
+    data = pd.DataFrame({
+        "participant_id": dc.index,
+        "density": dc["total_domain_count"],
+        "label": labels.reindex(dc.index).values,
+    }).dropna().set_index("participant_id")
+    mx = data["density"].max()
+    upper = max(11, mx)
+    data["group"] = pd.cut(
+        data["density"],
+        bins=[-0.5, 2.5, 5.5, 10.5, upper + 0.5],
+        labels=["0-2", "3-5", "6-10", "11+"],
+    )
+    print("    Fine group sizes:", data.groupby("group").size().to_dict())
     rows = []
-    pvals = []
-    for name_a, name_b, prob_a, prob_b in comparisons:
-        print(f"    Comparing {name_a} vs {name_b}...")
-        y = labels.values
-        # Bootstrap for 95% CI only (no p-value from bootstrap)
-        delta, ci_l, ci_u = bootstrap_delta_auc_ci(y, prob_a.values, prob_b.values)
-        # Permutation test for p-value (paired prediction-swap)
-        p_val = prediction_swap_permutation_test(y, prob_a.values, prob_b.values)
-        rows.append({
-            "model_a": name_a,
-            "model_b": name_b,
-            "delta_auc": delta,
-            "delta_auc_ci_lower": ci_l,
-            "delta_auc_ci_upper": ci_u,
-            "permutation_p": p_val,
-        })
-        pvals.append(p_val)
-
-    result = pd.DataFrame(rows)
-    # FDR correction (6 comparisons, family = model comparisons)
-    qvals = bh_fdr(np.array(pvals))
-    result["q_value"] = qvals
-    result["significance"] = [sig_marker(q) for q in qvals]
-    # Rename p_value column to permutation_p for clarity
-    if "p_value" in result.columns:
-        result = result.rename(columns={"p_value": "permutation_p"})
-
-    out_path = OUTDIR / "symptom_group_comparisons_fdr.csv"
-    result.to_csv(out_path, index=False, encoding="utf-8-sig")
-    print(f"  [M7] Saved: {out_path}")
-    return result
+    for g, gd in data.groupby("group"):
+        n = len(gd); npos = int(gd["label"].sum())
+        rows.append({"group": str(g), "n": n, "n_positive": npos,
+                     "positive_rate": npos/n if n>0 else float("nan")})
+    tbl = pd.DataFrame(rows)
+    out = OUTDIR / "symptom_evidence_density_gradient_fine.csv"
+    tbl.to_csv(out, index=False, encoding="utf-8-sig")
+    print("  [M5-fine] Saved:", out)
+    return tbl()
 
 
-def _run_single_feature_cv_fast(feat_df, splits):
-    """Run CV for a single feature (participant-level). feat_df has participant_id, feature, label."""
-    all_probs = []
-    for (rpt, fold), fold_rows in splits.groupby(["repeat", "fold"]):
-        train_ids = fold_rows[fold_rows["role"] == "train"]["participant_id"].values
-        test_ids = fold_rows[fold_rows["role"] == "test"]["participant_id"].values
-        train_df = feat_df[feat_df["participant_id"].isin(train_ids)]
-        test_df = feat_df[feat_df["participant_id"].isin(test_ids)]
-        if len(train_df) == 0 or len(test_df) == 0:
-            continue
-        X_train = train_df[["feature"]].values
-        y_train = train_df["label"].values
-        X_test = test_df[["feature"]].values
-        prob = fit_fold_local_model(X_train, y_train, X_test, scale=True)
-        for pid, p in zip(test_df["participant_id"].values, prob):
-            all_probs.append({"participant_id": pid, "repeat": rpt, "prob": p})
-    if len(all_probs) == 0:
-        return pd.Series(dtype=float)
-    prob_df = pd.DataFrame(all_probs)
-    return prob_df.groupby("participant_id")["prob"].mean()
-
-
-
-# ════════════════════════════════════════════════════════════════════════
-# MODULE 8: EXPLORATORY THRESHOLD ANALYSIS
-# ════════════════════════════════════════════════════════════════════════
-
-def _find_threshold_sens_at_least_80(y_true, y_prob):
-    """
-    Find HIGHEST threshold (largest numeric value) with sensitivity >= 0.80.
-    thresholds[] from roc_curve is in DECREASING order.
-    The first valid threshold is the highest numeric value that satisfies sens >= 0.80.
-    """
-    fpr, tpr, thresholds = _roc_curve_safe(y_true, y_prob)
-    valid = tpr >= 0.80
-    if not valid.any():
-        return np.nan
-    valid_thresholds = thresholds[valid]
-    return valid_thresholds[0]  # FIRST = highest numeric value
-
-
-def _find_threshold_spec_at_least_80(y_true, y_prob):
-    """
-    Find LOWEST threshold (smallest numeric value) with specificity >= 0.80.
-    thresholds[] from roc_curve is in DECREASING order.
-    The last valid threshold is the lowest numeric value that satisfies spec >= 0.80.
-    """
-    fpr, tpr, thresholds = _roc_curve_safe(y_true, y_prob)
-    spec = 1 - fpr
-    valid = spec >= 0.80
-    if not valid.any():
-        return np.nan
-    valid_thresholds = thresholds[valid]
-    return valid_thresholds[-1]  # LAST = lowest numeric value
-
-
-def _threshold_metrics(y_true, y_prob, threshold):
-    """Compute sensitivity/specificity at a given threshold."""
-    if pd.isna(threshold):
-        return np.nan, np.nan
-    y_pred = (y_prob >= threshold).astype(int)
-    cm = confusion_matrix(y_true, y_pred)
-    if cm.shape == (2, 2):
-        tn, fp, fn, tp = cm.ravel()
-        sens = tp / (tp + fn) if (tp + fn) > 0 else np.nan
-        spec = tn / (tn + fp) if (tn + fp) > 0 else np.nan
-        return sens, spec
-    return np.nan, np.nan
-
-
-def module8_threshold_analysis(labels, strict_oof):
-    """
-    Exploratory threshold analysis for selected models.
-    Thresholds are post-hoc OOF selections → mark exploratory.
-    """
-    print("\n  [M8] Module 8: Exploratory threshold analysis...")
-    # Get OOF probabilities for each model (participant-averaged)
-    # We need to re-compute OOF probs for coverage, density, all10_count, all10_presence
-    # For simplicity, use the existing strict OOF for M3, and re-run CV for others
-    splits = pd.read_csv(SPLIT_CSV)
-
-    # ── (A) domain_presence_sum ────────────────────────────────────────────
-    dpres = pd.read_csv(DOMAIN_PRESENCE_CSV)
-    dpres = dpres.copy()
-    dpres["coverage"] = dpres[DOMAIN_COLS].sum(axis=1)
-    feat_cov = pd.DataFrame({
-        "participant_id": dpres["participant_id"],
-        "feature": dpres["coverage"],
-        "label": labels.reindex(dpres["participant_id"]).values,
-    })
-    prob_cov = _run_single_feature_cv_fast(feat_cov, splits)
-    prob_cov = prob_cov.reindex(labels.index)
-
-    # ── (B) total_domain_count ──────────────────────────────────────────────
-    dcount = pd.read_csv(DOMAIN_COUNT_CSV)
-    dcount = dcount.copy()
-    dcount["density"] = dcount[DOMAIN_COLS].sum(axis=1)
-    feat_den = pd.DataFrame({
-        "participant_id": dcount["participant_id"],
-        "feature": dcount["density"],
-        "label": labels.reindex(dcount["participant_id"]).values,
-    })
-    prob_den = _run_single_feature_cv_fast(feat_den, splits)
-    prob_den = prob_den.reindex(labels.index)
-
-    # ── (C) all 10 domain counts ───────────────────────────────────────────
-    feat_all10 = dcount[["participant_id"] + DOMAIN_COLS].copy()
-    prob_all10 = _run_group_cv(feat_all10, labels, splits)
-    prob_all10 = prob_all10.reindex(labels.index)
-
-    # ── (D) all 10 domain presence ───────────────────────────────────────
-    feat_all10p = dpres[["participant_id"] + DOMAIN_COLS].copy()
-    prob_all10p = _run_group_cv(feat_all10p, labels, splits)
-    prob_all10p = prob_all10p.reindex(labels.index)
-
-    # ── (E) M3 strict ─────────────────────────────────────────────────────
-    prob_m3 = strict_oof.set_index("participant_id")["M3_prob"].reindex(labels.index)
-
-    models = {
-        "domain_presence_sum": prob_cov,
-        "total_domain_count": prob_den,
-        "all10_domain_counts": prob_all10,
-        "all10_domain_presence": prob_all10p,
-        "M3_strict": prob_m3,
-    }
-
-    rows = []
-    for model_name, probs in models.items():
-        print(f"    Threshold analysis: {model_name}")
-        y = labels.values
-        p = probs.values
-
-        # Default 0.50
-        sens_50, spec_50 = _threshold_metrics(y, p, 0.50)
-
-        # Youden threshold
-        fpr, tpr, thresholds = _roc_curve_safe(y, p)
-        youden = tpr - fpr
-        best_idx = np.argmax(youden)
-        thresh_youden = thresholds[best_idx] if best_idx < len(thresholds) else 0.5
-        sens_youden, spec_youden = _threshold_metrics(y, p, thresh_youden)
-
-        # Macro-F1 threshold
-        from sklearn.metrics import f1_score
-        best_f1_thresh = 0.5
-        best_f1 = -1
-        for t in np.arange(0.01, 0.99, 0.01):
-            y_pred = (p >= t).astype(int)
-            f1 = f1_score(y, y_pred, zero_division=0)
-            if f1 > best_f1:
-                best_f1 = f1
-                best_f1_thresh = t
-        sens_f1, spec_f1 = _threshold_metrics(y, p, best_f1_thresh)
-
-        # Sensitivity >= 0.80 (HIGHEST threshold)
-        thresh_sens80 = _find_threshold_sens_at_least_80(y, p)
-        sens_sens80, spec_sens80 = _threshold_metrics(y, p, thresh_sens80)
-
-        # Specificity >= 0.80 (LOWEST threshold)
-        thresh_spec80 = _find_threshold_spec_at_least_80(y, p)
-        sens_spec80, spec_spec80 = _threshold_metrics(y, p, thresh_spec80)
-
-        rows.append({
-            "model": model_name,
-            "default50_sens": sens_50,
-            "default50_spec": spec_50,
-            "youden_threshold": thresh_youden,
-            "youden_sens": sens_youden,
-            "youden_spec": spec_youden,
-            "youden_note": "exploratory_posthoc",
-            "macroF1_threshold": best_f1_thresh,
-            "macroF1_sens": sens_f1,
-            "macroF1_spec": spec_f1,
-            "macroF1_note": "exploratory_posthoc",
-            "sens80_threshold": thresh_sens80,
-            "sens80_sens": sens_sens80,
-            "sens80_spec": spec_sens80,
-            "sens80_note": "exploratory_posthoc",
-            "spec80_threshold": thresh_spec80,
-            "spec80_sens": sens_spec80,
-            "spec80_spec": spec_spec80,
-            "spec80_note": "exploratory_posthoc",
-        })
-
-    result = pd.DataFrame(rows)
-    out_path = OUTDIR / "symptom_threshold_analysis_exploratory.csv"
-    result.to_csv(out_path, index=False, encoding="utf-8-sig")
-    print(f"  [M8] Saved: {out_path}")
-    return result
-
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# MODULE 9: CALIBRATION ANALYSIS
-# ═══════════════════════════════════════════════════════════════════════
-
-def _calibration_metrics(y_true, y_prob, n_bins=10):
-    """Compute calibration metrics."""
-    # Brier + LogLoss already in evaluate_predictions
-    # Calibration intercept & slope: logistic regression of y_true ~ logit(y_prob)
-    logit_probs = np.log(y_prob / (1 - y_prob) + 1e-12)
-    # Use statsmodels for intercept & slope
-    try:
-        X = sm.add_constant(logit_probs)
-        model = sm.GLM(y_true, X, family=sm.families.Binomial()).fit(disp=0)
-        cal_intercept = model.params[0]
-        cal_slope = model.params[1]
-    except Exception:
-        cal_intercept = np.nan
-        cal_slope = np.nan
-
-    # Expected calibration error (ECE)
-    prob_df = pd.DataFrame({"y": y_true, "p": y_prob})
-    prob_df["bin"] = pd.qcut(prob_df["p"], n_bins, duplicates="drop")
-    ece = 0.0
-    for _, group in prob_df.groupby("bin"):
-        rel_freq = group["y"].mean()
-        conf = group["p"].mean()
-        ece += (len(group) / len(prob_df)) * abs(rel_freq - conf)
-    return {
-        "cal_intercept": cal_intercept,
-        "cal_slope": cal_slope,
-        "ece": ece,
-    }
-
-
-def module9_calibration(labels, strict_oof):
-    """
-    Calibration analysis for selected models.
-    Models: coverage_sum, density_sum, all10_count, all10_presence, M3_strict.
-    """
-    print("\n  [M9] Module 9: Calibration analysis...")
-    splits = pd.read_csv(SPLIT_CSV)
-
-    # Re-run CV to get OOF probs (same as Module 8)
-    dpres = pd.read_csv(DOMAIN_PRESENCE_CSV)
-    dcount = pd.read_csv(DOMAIN_COUNT_CSV)
-
-    dpres2 = dpres.copy()
-    dpres2["coverage"] = dpres2[DOMAIN_COLS].sum(axis=1)
-    feat_cov = pd.DataFrame({
-        "participant_id": dpres2["participant_id"],
-        "feature": dpres2["coverage"],
-        "label": labels.reindex(dpres2["participant_id"]).values,
-    })
-    prob_cov = _run_single_feature_cv_fast(feat_cov, splits)
-    prob_cov = prob_cov.reindex(labels.index)
-
-    dcount2 = dcount.copy()
-    dcount2["density"] = dcount2[DOMAIN_COLS].sum(axis=1)
-    feat_den = pd.DataFrame({
-        "participant_id": dcount2["participant_id"],
-        "feature": dcount2["density"],
-        "label": labels.reindex(dcount2["participant_id"]).values,
-    })
-    prob_den = _run_single_feature_cv_fast(feat_den, splits)
-    prob_den = prob_den.reindex(labels.index)
-
-    feat_all10 = dcount[["participant_id"] + DOMAIN_COLS].copy()
-    prob_all10 = _run_group_cv(feat_all10, labels, splits)
-    prob_all10 = prob_all10.reindex(labels.index)
-
-    feat_all10p = dpres[["participant_id"] + DOMAIN_COLS].copy()
-    prob_all10p = _run_group_cv(feat_all10p, labels, splits)
-    prob_all10p = prob_all10p.reindex(labels.index)
-
-    prob_m3 = strict_oof.set_index("participant_id")["M3_prob"].reindex(labels.index)
-
-    models = {
-        "domain_presence_sum": prob_cov,
-        "total_domain_count": prob_den,
-        "all10_domain_counts": prob_all10,
-        "all10_domain_presence": prob_all10p,
-        "M3_strict": prob_m3,
-    }
-
-    rows = []
-    for model_name, probs in models.items():
-        print(f"    Calibrating: {model_name}")
-        y = labels.values
-        p = probs.values
-        m = evaluate_predictions(y, p)
-        cal = _calibration_metrics(y, p)
-        rows.append({
-            "model": model_name,
-            "brier": m["brier"],
-            "logloss": m["logloss"],
-            "cal_intercept": cal["cal_intercept"],
-            "cal_slope": cal["cal_slope"],
-            "ece": cal["ece"],
-        })
-
-    result = pd.DataFrame(rows)
-    out_path = OUTDIR / "symptom_calibration_metrics.csv"
-    result.to_csv(out_path, index=False, encoding="utf-8-sig")
-    print(f"  [M9] Saved: {out_path}")
-    return result
-
-
-
-
-# ═════════════════════════════════════════════════════════════════════
-# MAIN ORCHESTRATOR
-# ═════════════════════════════════════════════════════════════════════
 
 def main():
     print("=" * 70)
@@ -1724,6 +1172,9 @@ def main():
     association = module3_univariate_association(dcount, dpres, labels)
     coverage_tbl, coverage_trend, coverage_cv = module4_coverage_gradient(dpres, labels)
     density_tbl, density_trend, density_cv = module5_evidence_density_gradient(dcount, labels)
+    # Fine-grained supplementary gradients
+    module4_coverage_gradient_fine(dpres, labels)
+    module5_evidence_density_gradient_fine(dcount, labels)
     # ── Combined trend FDR (Module 4/5 in same family) ──────────────────
     trend_pvals = [coverage_trend["trend_p_value"], density_trend["trend_p_value"]]
     trend_qvals = bh_fdr(np.array(trend_pvals))
