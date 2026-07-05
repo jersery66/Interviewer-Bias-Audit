@@ -9,3 +9,14 @@ __pycache__/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Analysis logs
+*.log
+
+# Temporary scripts
+_gen.py
+_append_main.py
+
+# Windows artifacts
+NUL
+*_trend.json

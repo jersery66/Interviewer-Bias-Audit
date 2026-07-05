@@ -1,0 +1,32 @@
+{
+  "analysis_time": "2026-07-06T02:16:59.145947",
+  "python_version": "3.13.12 (main, Feb  3 2026, 22:53:26) [MSC v.1944 64 bit (AMD64)]",
+  "numpy_version": "2.5.0",
+  "pandas_version": "3.0.3",
+  "sklearn_version": "1.9.0",
+  "scipy_version": "1.18.0",
+  "statsmodels_version": "0.14.6",
+  "input_files": {
+    "domain_count": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\04_c5_controls\\domain_count\\input.csv",
+    "domain_presence": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\04_c5_controls\\domain_presence\\input.csv",
+    "splits": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\00_splits\\repeated_5fold_splits_10x5.csv",
+    "strict_oof": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\10_source_importance\\07_strict_joint_models\\participant_oof_predictions.csv"
+  },
+  "input_sha256": {
+    "domain_count": "7687c70d3770b7e8902900ec3c117d8a679fc6d718abf1c2a7f8d1361b07ae33",
+    "domain_presence": "89945c35a05def98e41fe8ebfbfb87f4016856333e2e990d869d97579aa5948f",
+    "splits": "ceaddff172bf9582987cf76ff0522dcfdd0fe90c5b3014565bcfaacf003703ae",
+    "strict_oof": "33067cf33b101731e2809a2a94633bcd9f4dda68ff7ec025ac22dc8abd9de471"
+  },
+  "random_seed": 20260705,
+  "bootstrap_n": 5000,
+  "permutation_n": 10000,
+  "lr_params": {
+    "penalty": "l2",
+    "C": 1.0,
+    "class_weight": "balanced",
+    "solver": "liblinear",
+    "max_iter": 2000,
+    "random_state": 20260705
+  }
+}
