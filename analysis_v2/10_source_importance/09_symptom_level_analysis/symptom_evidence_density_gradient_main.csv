@@ -1,0 +1,8 @@
+﻿group_type,group,n,n_positive,positive_rate
+preset,0-5,41,6,0.14634146341463414
+preset,6-10,69,13,0.18840579710144928
+preset,11+,32,24,0.75
+quartile,Q1,41,6,0.14634146341463414
+quartile,Q2,36,7,0.19444444444444445
+quartile,Q3,33,6,0.18181818181818182
+quartile,Q4,32,24,0.75

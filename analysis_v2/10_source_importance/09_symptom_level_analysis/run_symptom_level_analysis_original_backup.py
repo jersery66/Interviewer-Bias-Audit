@@ -50,8 +50,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
 # ── Paths (hard-coded, SPEC-compliant) ───────────────────────────────────────
-SCRIPT_DIR = Path(__file__).parent
-BASE = SCRIPT_DIR.parent.parent
+BASE = Path("E:/CodexWorktrees/DAIC-WOZ/reanalysis-v2/analysis_v2")
 DOMAIN_COUNT_CSV = BASE / "04_c5_controls/domain_count/input.csv"
 DOMAIN_PRESENCE_CSV = BASE / "04_c5_controls/domain_presence/input.csv"
 SPLIT_CSV = BASE / "00_splits/repeated_5fold_splits_10x5.csv"
@@ -165,29 +164,44 @@ def bootstrap_auc_ci(y_true, y_pred, n_boot=BOOTSTRAP_N, alpha=0.05):
     return lower, upper
 
 
-
-def bootstrap_delta_auc_ci(y_true, prob_a, prob_b, n_boot=BOOTSTRAP_N, alpha=0.05):
-    """Bootstrap CI for ΔAUC (p-value via permutation, NOT bootstrap)."""
+def paired_bootstrap_delta_auc(y_true, prob_a, prob_b, n_boot=BOOTSTRAP_N):
+    """
+    Participant-level paired bootstrap for ΔAUC = AUC(prob_a) - AUC(prob_b).
+    Returns (delta_auc_obs, ci_lower, ci_upper, p_value).
+    p_value = P(ΔAUC <= 0) under bootstrap.
+    """
     y_true = np.asarray(y_true)
     prob_a = np.asarray(prob_a)
     prob_b = np.asarray(prob_b)
-    obs = roc_auc_score(y_true, prob_a) - roc_auc_score(y_true, prob_b)
-    rng = np.random.RandomState(RANDOM_SEED)
     n = len(y_true)
-    deltas = []
+    auc_a_obs = roc_auc_score(y_true, prob_a)
+    auc_b_obs = roc_auc_score(y_true, prob_b)
+    delta_obs = auc_a_obs - auc_b_obs
+    boot_deltas = []
     for _ in range(n_boot):
-        idx = rng.choice(n, size=n, replace=True)
+        idx = np.random.choice(n, size=n, replace=True)
+        if len(np.unique(y_true[idx])) < 2:
+            continue
         try:
-            d = roc_auc_score(y_true[idx], prob_a[idx]) - roc_auc_score(y_true[idx], prob_b[idx])
+            da = roc_auc_score(y_true[idx], prob_a[idx])
+            db = roc_auc_score(y_true[idx], prob_b[idx])
+            boot_deltas.append(da - db)
         except ValueError:
-            d = 0.0
-        deltas.append(d)
-    deltas = np.array(deltas)
-    lo = np.percentile(deltas, 100 * alpha/2)
-    hi = np.percentile(deltas, 100 * (1 - alpha/2))
-    return obs, lo, hi
+            continue
+    if len(boot_deltas) < 100:
+        return delta_obs, np.nan, np.nan, np.nan
+    boot_deltas = np.array(boot_deltas)
+    lower = np.percentile(boot_deltas, 2.5)
+    upper = np.percentile(boot_deltas, 97.5)
+    # Two-sided p-value: P(|delta| >= |delta_obs|)
+    p_value = 2 * min(
+        np.mean(boot_deltas <= -abs(delta_obs)),
+        np.mean(boot_deltas >= abs(delta_obs)),
+    )
+    return delta_obs, lower, upper, p_value
 
-def permutation_test_auc_diff(y_true, prob_a, prob_b, n_perm=PERMUTATION_N, seed=None):
+
+def permutation_test_auc_diff(y_true, prob_a, prob_b, n_perm=PERMUTATION_N):
     """Label permutation test for ΔAUC."""
     y_true = np.asarray(y_true)
     prob_a = np.asarray(prob_a)
@@ -195,10 +209,9 @@ def permutation_test_auc_diff(y_true, prob_a, prob_b, n_perm=PERMUTATION_N, seed
     auc_a_obs = roc_auc_score(y_true, prob_a)
     auc_b_obs = roc_auc_score(y_true, prob_b)
     delta_obs = auc_a_obs - auc_b_obs
-    rng = np.random.RandomState(seed if seed is not None else RANDOM_SEED)
     perm_deltas = []
     for _ in range(n_perm):
-        perm_y = y_true[rng.permutation(len(y_true))]
+        perm_y = y_true[np.random.permutation(len(y_true))]
         if len(np.unique(perm_y)) < 2:
             continue
         try:
@@ -1248,15 +1261,10 @@ def module7_group_comparisons(dcount, dpres, labels, strict_oof):
 
     rows = []
     pvals = []
-    for idx, (name_a, name_b, prob_a, prob_b) in enumerate(comparisons):
+    for name_a, name_b, prob_a, prob_b in comparisons:
         print(f"    Comparing {name_a} vs {name_b}...")
         y = labels.values
-        # Bootstrap for CI only; permutation for p-value
-        delta, ci_l, ci_u = bootstrap_delta_auc_ci(y, prob_a.values, prob_b.values)
-        p_val = permutation_test_auc_diff(
-            y, prob_a.values, prob_b.values,
-            seed=RANDOM_SEED + idx
-        )
+        delta, ci_l, ci_u, p_val = paired_bootstrap_delta_auc(y, prob_a.values, prob_b.values)
         rows.append({
             "model_a": name_a,
             "model_b": name_b,
@@ -1582,72 +1590,6 @@ def module9_calibration(labels, strict_oof):
 # MAIN ORCHESTRATOR
 # ═════════════════════════════════════════════════════════════════════
 
-
-def module4_coverage_gradient_fine(dpres, labels):
-    """Supplementary fine-grained coverage gradient.
-    Output: symptom_coverage_gradient_fine.csv
-    Grouping: 0-2, 3-4, 5-7, 8-10
-    """
-    print("\n  [M4-fine] Coverage gradient (fine-grained)...")
-    dp = dpres.copy()
-    dp["domain_presence_sum"] = dp[DOMAIN_COLS].sum(axis=1)
-    dp = dp.set_index("participant_id")
-    data = pd.DataFrame({
-        "label": labels.reindex(dp.index),
-        "coverage": dp["domain_presence_sum"],
-    }).dropna()
-    data["group"] = pd.cut(
-        data["coverage"],
-        bins=[-0.5, 2.5, 4.5, 7.5, 10.5],
-        labels=["0-2", "3-4", "5-7", "8-10"],
-    )
-    print("    Fine group sizes:", data.groupby("group").size().to_dict())
-    rows = []
-    for g, gd in data.groupby("group"):
-        n = len(gd); npos = int(gd["label"].sum())
-        rows.append({"group": str(g), "n": n, "n_positive": npos,
-                     "positive_rate": npos/n if n>0 else float("nan")})
-    tbl = pd.DataFrame(rows)
-    out = OUTDIR / "symptom_coverage_gradient_fine.csv"
-    tbl.to_csv(out, index=False, encoding="utf-8-sig")
-    print("  [M4-fine] Saved:", out)
-    return tbl
-
-
-def module5_evidence_density_gradient_fine(dcount, labels):
-    """Supplementary fine-grained evidence density gradient.
-    Output: symptom_evidence_density_gradient_fine.csv
-    Grouping: 0-2, 3-5, 6-10, 11+
-    """
-    print("\n  [M5-fine] Evidence density gradient (fine-grained)...")
-    dc = dcount.copy()
-    dc["total_domain_count"] = dc[DOMAIN_COLS].sum(axis=1)
-    dc = dc.set_index("participant_id")
-    data = pd.DataFrame({
-        "label": labels.reindex(dc.index),
-        "density": dc["total_domain_count"],
-    }).dropna()
-    mx = data["density"].max()
-    upper = max(11, mx)
-    data["group"] = pd.cut(
-        data["density"],
-        bins=[-0.5, 2.5, 5.5, 10.5, upper + 0.5],
-        labels=["0-2", "3-5", "6-10", "11+"],
-    )
-    print("    Fine group sizes:", data.groupby("group").size().to_dict())
-    rows = []
-    for g, gd in data.groupby("group"):
-        n = len(gd); npos = int(gd["label"].sum())
-        rows.append({"group": str(g), "n": n, "n_positive": npos,
-                     "positive_rate": npos/n if n>0 else float("nan")})
-    tbl = pd.DataFrame(rows)
-    out = OUTDIR / "symptom_evidence_density_gradient_fine.csv"
-    tbl.to_csv(out, index=False, encoding="utf-8-sig")
-    print("  [M5-fine] Saved:", out)
-    return tbl
-
-
-
 def main():
     print("=" * 70)
     print("  Symptom-Level Signal Decomposition Analysis")
@@ -1661,26 +1603,6 @@ def main():
     association = module3_univariate_association(dcount, dpres, labels)
     coverage_tbl, coverage_trend, coverage_cv = module4_coverage_gradient(dpres, labels)
     density_tbl, density_trend, density_cv = module5_evidence_density_gradient(dcount, labels)
-    # Fine-grained supplementary gradients
-    module4_coverage_gradient_fine(dpres, labels)
-    module5_evidence_density_gradient_fine(dcount, labels)
-    # Combined trend FDR (Module 4/5 in same family)
-    trend_pvals = [coverage_trend["trend_p_value"], density_trend["trend_p_value"]]
-    trend_qvals = bh_fdr(np.array(trend_pvals))
-    trend_rows = [
-        {"variable": "domain_presence_sum", "test_type": "coverage_gradient",
-         "p_value": coverage_trend["trend_p_value"],
-         "q_value": trend_qvals[0],
-         "significance": sig_marker(trend_qvals[0])},
-        {"variable": "total_domain_count", "test_type": "density_gradient",
-         "p_value": density_trend["trend_p_value"],
-         "q_value": trend_qvals[1],
-         "significance": sig_marker(trend_qvals[1])},
-    ]
-    trend_fdr_df = pd.DataFrame(trend_rows)
-    trend_fdr_path = OUTDIR / "symptom_gradient_trend_fdr.csv"
-    trend_fdr_df.to_csv(trend_fdr_path, index=False, encoding="utf-8-sig")
-    print(f"  [M4/M5] Combined trend FDR saved: {trend_fdr_path}")
     group_models = module6_group_models(dcount, dpres, labels)
     comparisons = module7_group_comparisons(dcount, dpres, labels, strict_oof)
     threshold = module8_threshold_analysis(labels, strict_oof)

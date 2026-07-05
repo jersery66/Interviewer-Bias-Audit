@@ -26,12 +26,10 @@ Trend test (ordinal density group): OR=4.327, p=0.0000
 **Significant risk gradient by total symptom evidence count** was observed. Prediction signal has a density component.
 
 ## 5. Symptom Group Models vs. Full 10-Domain Model
-2 comparison(s) showed q < 0.05:
-- all10_count vs coverage_sum: ΔAUC=0.0432, q=0.0324
-- all10_count vs density_sum: ΔAUC=0.0435, q=0.0324
+No comparison reached corrected significance (q < 0.05). The full 10-domain model did not significantly outperform simpler aggregates (coverage sum, density sum, or PHQ-8-like subset). **This suggests the main predictive signal may come from symptom coverage breadth or evidence density, not fine-grained symptom patterns.**
 
 ## 6. Comparison with Strict Full Joint Model (M3)
-All-10-domain count model vs. M3 (strict OOF): ΔAUC=-0.0200, q=0.4530 (ns)
+All-10-domain count model vs. M3 (strict OOF): ΔAUC=-0.0200, q=0.8615 (ns)
 The 10-domain count model did NOT significantly underperform the strict full joint model. **Low-dimensional symptom domain representations approach the performance of complex joint models.**
 
 ## 7. Interpretation Guidelines for Manuscript
