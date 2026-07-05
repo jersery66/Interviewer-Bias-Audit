@@ -45,3 +45,17 @@
 - Confidence intervals were not part of the frozen plan; paired permutation p/q values and full point estimates are supplied instead.
 - Isotonic calibration is supplementary because of small-sample overfitting risk.
 - The C4 operational definition uses explicit-clinical-prompt turns because the broader spoken-protocol flag leaves insufficient non-template text; this deviation is frozen in the changelog.
+
+## Strict manuscript addendum — 2026-07-05
+
+The source-importance manuscript no longer uses the historical aggregated-OOF stacking outputs in `analysis_v2/10_source_importance/01`–`06`. The replacement `07_strict_joint_models/` fits raw text and numeric sources directly inside every outer training fold and uses participant-level inference.
+
+- Cohort/splits: PASS; 142 participants, 43 positive, shared 10 × 5 participant split, no train/test participant overlap.
+- Fold-local preprocessing: PASS; TF–IDF and numeric scaling are fitted on outer-training participants only.
+- Incremental family: PASS; 7/7 comparisons have 10,000 paired permutations and BH-FDR values; 0/7 are significant.
+- Source-importance family: PASS; 3/3 comparisons are corrected; domain counts alone are significant (`q = 0.0039`, `**`).
+- Domain LOO family: PASS; 20/20 comparisons are corrected; 0/20 are significant.
+- Manuscript consistency: PASS; superseded values and claims were removed, all four figures are embedded, and significance language follows corrected `q` values.
+- Figure consistency: PASS; significance markers in Figures 2–4 match the strict CSV files.
+
+The strict inference remains conditional on fixed repeated OOF predictions: bootstrap and permutation resampling do not retrain all models inside every resample. This limitation is stated explicitly in the manuscript.

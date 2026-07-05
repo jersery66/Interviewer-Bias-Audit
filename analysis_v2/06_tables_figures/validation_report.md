@@ -57,3 +57,14 @@
 - **Artifact integrity**: 177/177 inventoried computational artifacts passed byte/hash verification
 - **Strict contract audit**: 101/101 checks passed
 - **Reason for conservative verdict**: ARS marks reproducibility VERIFIED only after an independent full rerun; the current validation confirms internal integrity and executability but does not substitute for that rerun.
+
+### Strict source-importance manuscript addendum (2026-07-05)
+
+| Finding | Test | Value | Confidence |
+|---|---|---|---|
+| Direct raw-source models | 10 × 5 participant-level repeated OOF | M0 AUC 0.7052; M3 AUC 0.8137 | SOLID for this cohort/design |
+| Incremental model comparisons | 10,000 paired swaps; 7-test BH family | No comparison survived FDR | SOLID for this inferential family |
+| M3 source importance | Foldwise group permutation; 10,000 paired swaps; 3-test BH family | Domain count ΔAUC 0.1142, `q = 0.0039`; other groups `ns` | SOLID as conditional model importance |
+| Individual clinical domains | 10,000 paired swaps; 20-test BH family | No leave-one-out comparison survived FDR | EXPLORATORY only |
+
+The previous source-level stacking results are superseded because participant-aggregated base OOF probabilities were reused in a second CV layer. The revised analysis removes that cross-level design and does not treat repeated folds as independent inferential units.

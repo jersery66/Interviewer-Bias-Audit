@@ -1,0 +1,74 @@
+{
+  "status": "complete",
+  "analysis": "strict raw-source joint models without aggregated-OOF stacking",
+  "started_at_utc": "2026-07-04T17:22:05.676648+00:00",
+  "completed_at_utc": "2026-07-04T18:43:37.967937+00:00",
+  "cohort": {
+    "n": 142,
+    "positive": 43,
+    "negative": 99
+  },
+  "cv": {
+    "repeats": 10,
+    "folds": 5,
+    "split_level": "participant",
+    "preprocessing": "fit within outer training fold only"
+  },
+  "inference": {
+    "bootstrap_resamples": 5000,
+    "paired_permutations": 10000,
+    "importance_shuffles_per_fold": 100,
+    "incremental_family_tests": 7,
+    "importance_family_tests": 3,
+    "domain_loo_family_tests": 20,
+    "multiplicity": "Benjamini-Hochberg within each prespecified family"
+  },
+  "seed": 20260705,
+  "runtime": {
+    "python": "3.12.8 (tags/v3.12.8:2dc476b, Dec  3 2024, 19:30:04) [MSC v.1942 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "numpy": "2.3.3",
+    "pandas": "2.3.3",
+    "scipy": "1.18.0",
+    "scikit_learn": "1.9.0",
+    "statsmodels": "0.14.5",
+    "matplotlib": "3.10.7"
+  },
+  "inputs": [
+    {
+      "path": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\01_inputs\\c2_participant_speech.csv",
+      "bytes": 1043637,
+      "sha256": "c520c713922e671431b40382238d64d0b07779ad5e77d905c9224a6f66b4ec9b"
+    },
+    {
+      "path": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\01_inputs\\c3_interviewer_speech.csv",
+      "bytes": 395653,
+      "sha256": "cf1278335dd4e7ee27dbff13bb792a7c1875341dd9412900c0f72a69f06c5e48"
+    },
+    {
+      "path": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\01_inputs\\c5_reviewed_symptom_evidence.csv",
+      "bytes": 144984,
+      "sha256": "519d08c3063f847a9cb05723652f336831b6589c95c08a0da2781a09eab510a8"
+    },
+    {
+      "path": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\04_c5_controls\\domain_presence\\input.csv",
+      "bytes": 3772,
+      "sha256": "89945c35a05def98e41fe8ebfbfb87f4016856333e2e990d869d97579aa5948f"
+    },
+    {
+      "path": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\04_c5_controls\\domain_count\\input.csv",
+      "bytes": 3772,
+      "sha256": "7687c70d3770b7e8902900ec3c117d8a679fc6d718abf1c2a7f8d1361b07ae33"
+    },
+    {
+      "path": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\05_c4_controls\\template_presence\\input.csv",
+      "bytes": 5639,
+      "sha256": "eafdc60f03c77476f834be4dc0312aed39d6e7d5805a292d551172cf4c2934d8"
+    },
+    {
+      "path": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\00_splits\\repeated_5fold_splits_10x5.csv",
+      "bytes": 183940,
+      "sha256": "ceaddff172bf9582987cf76ff0522dcfdd0fe90c5b3014565bcfaacf003703ae"
+    }
+  ]
+}

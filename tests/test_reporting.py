@@ -8,6 +8,7 @@ from pathlib import Path
 import pandas as pd
 
 from reanalysis_v2.reporting import (
+    frozen_text_hash_match,
     c5_plot_y_layout,
     build_final_package,
     filter_significant,
@@ -19,6 +20,21 @@ def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
     digest.update(path.read_bytes())
     return digest.hexdigest()
+
+
+def test_frozen_text_hash_accepts_only_cross_platform_newlines(tmp_path: Path) -> None:
+    path = tmp_path / "frozen.csv"
+    lf_bytes = b"a,b\n1,2\n"
+    path.write_bytes(lf_bytes.replace(b"\n", b"\r\n"))
+    expected = hashlib.sha256(lf_bytes).hexdigest()
+
+    matched, observed = frozen_text_hash_match(path, expected)
+    assert matched is True
+    assert observed["canonical_lf_sha256"] == expected
+
+    path.write_bytes(b"a,b\r\n1,3\r\n")
+    matched, _ = frozen_text_hash_match(path, expected)
+    assert matched is False
 
 
 def test_verify_inventory_detects_ok_missing_and_hash_mismatch(tmp_path: Path) -> None:

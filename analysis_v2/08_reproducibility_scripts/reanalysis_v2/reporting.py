@@ -43,6 +43,18 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def frozen_text_hash_match(path: Path, expected_sha256: str) -> tuple[bool, dict[str, str]]:
+    """Match a frozen text artifact while tolerating Git's CRLF checkout conversion."""
+    raw = path.read_bytes()
+    raw_sha256 = hashlib.sha256(raw).hexdigest()
+    canonical_lf_sha256 = hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest()
+    observed = {
+        "raw_sha256": raw_sha256,
+        "canonical_lf_sha256": canonical_lf_sha256,
+    }
+    return expected_sha256 in observed.values(), observed
+
+
 def verify_inventory(inventory_path: Path) -> pd.DataFrame:
     inventory_path = Path(inventory_path)
     inventory = pd.read_csv(inventory_path)
@@ -386,13 +398,17 @@ def _strict_audit(analysis_root: Path) -> pd.DataFrame:
             }
         )
 
+    def record_frozen_hash(check: str, path: Path, expected: str) -> None:
+        matched, observed = frozen_text_hash_match(path, expected)
+        record(check, matched, json.dumps(observed, sort_keys=True), expected)
+
     freeze = json.loads((analysis_root / "00_plan" / "input_freeze_manifest.json").read_text(encoding="utf-8"))
     for name, item in freeze["frozen_inputs"].items():
         path = analysis_root / item["path"]
         frame = pd.read_csv(path)
         record(f"input:{name}:exists", path.exists(), path.exists(), True)
         record(f"input:{name}:rows", len(frame) == item["rows"], len(frame), item["rows"])
-        record(f"input:{name}:sha256", sha256_file(path) == item["sha256"], sha256_file(path), item["sha256"])
+        record_frozen_hash(f"input:{name}:sha256", path, item["sha256"])
         record(
             f"input:{name}:official_test_excluded",
             "test" not in set(frame["official_avec_split"].astype(str).str.lower()),
@@ -403,12 +419,7 @@ def _strict_audit(analysis_root: Path) -> pd.DataFrame:
     c4_turns_entry = freeze["control_inputs"]["c4_turns"]
     c4_turns_path = analysis_root / c4_turns_entry["path"]
     c4_turns = pd.read_csv(c4_turns_path, keep_default_na=False)
-    record(
-        "c4:frozen_turn_source_hash",
-        sha256_file(c4_turns_path) == c4_turns_entry["sha256"],
-        sha256_file(c4_turns_path),
-        c4_turns_entry["sha256"],
-    )
+    record_frozen_hash("c4:frozen_turn_source_hash", c4_turns_path, c4_turns_entry["sha256"])
     record(
         "c4:frozen_turn_source_rows",
         len(c4_turns) == int(c4_turns_entry["rows"]),
@@ -422,18 +433,24 @@ def _strict_audit(analysis_root: Path) -> pd.DataFrame:
         142,
     )
     upstream_turns = Path(c4_turns_entry["source_path"])
-    record(
-        "c4:verified_turn_upstream_hash",
-        upstream_turns.exists() and sha256_file(upstream_turns) == c4_turns_entry["source_sha256"],
-        sha256_file(upstream_turns) if upstream_turns.exists() else "missing",
-        c4_turns_entry["source_sha256"],
-    )
+    if upstream_turns.exists():
+        record_frozen_hash(
+            "c4:verified_turn_upstream_hash",
+            upstream_turns,
+            c4_turns_entry["source_sha256"],
+        )
+    else:
+        record(
+            "c4:verified_turn_upstream_hash",
+            False,
+            "missing",
+            c4_turns_entry["source_sha256"],
+        )
     c4_alignment_path = analysis_root / c4_turns_entry["alignment_audit_path"]
     c4_alignment = pd.read_csv(c4_alignment_path)
-    record(
+    record_frozen_hash(
         "c4:turn_alignment_audit_hash",
-        sha256_file(c4_alignment_path) == c4_turns_entry["alignment_audit_sha256"],
-        sha256_file(c4_alignment_path),
+        c4_alignment_path,
         c4_turns_entry["alignment_audit_sha256"],
     )
     record(
@@ -451,7 +468,7 @@ def _strict_audit(analysis_root: Path) -> pd.DataFrame:
 
     split_path = analysis_root / freeze["splits"]["path"]
     splits = pd.read_csv(split_path)
-    record("splits:sha256", sha256_file(split_path) == freeze["splits"]["sha256"], sha256_file(split_path), freeze["splits"]["sha256"])
+    record_frozen_hash("splits:sha256", split_path, freeze["splits"]["sha256"])
     record("splits:rows", len(splits) == 7100, len(splits), 7100)
     record("splits:repeats", splits["repeat"].nunique() == 10, splits["repeat"].nunique(), 10)
     record("splits:folds", splits["fold"].nunique() == 5, splits["fold"].nunique(), 5)

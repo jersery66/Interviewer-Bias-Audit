@@ -99,3 +99,16 @@ python scripts/build_final_package.py --analysis-root analysis_v2
 - 不把 C4 协议信号解释为已分离的模板自然语言语义。
 - 不把官方 test 或 train+dev 写成独立外部验证。
 - 两个 embedding 模型必须同时报告。
+
+## 2026-07-05 严格来源重要性重分析
+
+论文中的来源增量、置换重要性与临床域逐项剔除结果已改用直接原始来源联合建模。旧的受试者级聚合 OOF 概率堆叠结果仅保留作审计历史，不得再用于论文结论。
+
+新增可复现入口：
+
+```powershell
+E:\python3.12.8\python.exe scripts\run_source_importance_strict.py
+E:\python3.12.8\python.exe scripts\generate_source_importance_figures.py
+```
+
+对应代码快照为 `reanalysis_v2/source_importance_strict.py`，图形生成的规范实现为仓库根目录 `reanalysis_v2/source_importance_figures.py`。严格结果应写入 `analysis_v2/10_source_importance/07_strict_joint_models/`，图形写入 `analysis_v2/06_tables_figures/figures/`。正式运行固定为 5000 次受试者级 bootstrap、10,000 次配对置换以及三个预设检验族内的 BH-FDR 校正。
