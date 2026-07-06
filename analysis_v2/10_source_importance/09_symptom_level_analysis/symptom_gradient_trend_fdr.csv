@@ -1,3 +1,3 @@
 ﻿variable,test_type,p_value,q_value,significance
-domain_presence_sum,coverage_gradient,2.9081457582807985e-06,2.9081457582807985e-06,***
+domain_presence_sum,coverage_gradient,1.6857443944683852e-05,1.6857443944683852e-05,***
 total_domain_count,density_gradient,1.3795283718694871e-06,2.7590567437389743e-06,***

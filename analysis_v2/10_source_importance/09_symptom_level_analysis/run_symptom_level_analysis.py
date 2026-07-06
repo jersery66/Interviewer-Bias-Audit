@@ -788,10 +788,10 @@ def module4_coverage_gradient(dpres, labels):
     data = pd.DataFrame({"label": labels, "coverage": dpres["domain_presence_sum"]})
     data = data.dropna()
 
-    # ── Preset grouping: 0–2, 3–4, 5–6, 7–10 ───────────────────────────
+    # ── Preset grouping (main): 0–4, 5–10 ──────────────────────────────
     data["group_preset"] = pd.cut(
-        data["coverage"], bins=[-0.5, 2.5, 4.5, 6.5, 10.5],
-        labels=["0-2", "3-4", "5-6", "7-10"]
+        data["coverage"], bins=[-0.5, 4.5, 10.5],
+        labels=["0-4", "5-10"]
     )
     # Check group sizes; merge small groups
     group_sizes = data.groupby("group_preset").size()
@@ -1751,7 +1751,12 @@ def generate_summary(desc, single_domain, association,
         else:
             lines.append(f"{len(sig)} individual domain model(s) showed q < 0.05:")
             for _, row in sig.iterrows():
-                lines.append(f"- **{row['domain']}** ({row['domain_cn']}), {row['model_type']}: AUC={row['auc']:.3f}")
+                direction = row.get('direction', '?')
+                auc_dir = row.get('auc_directional', row['auc'])
+                lines.append(
+                    f"- **{row['domain']}** ({row['domain_cn']}), {row['model_type']}: "
+                    f"AUC={row['auc']:.3f}, directional AUC={auc_dir:.3f}, {direction}"
+                )
     lines.append("\n## 3. Symptom Coverage Breadth (Presence Sum)")
     if coverage_trend is not None:
         t_or = coverage_trend.get("trend_odds_ratio", float("nan"))
