@@ -575,15 +575,25 @@ def module2_single_domain_cv(dcount, dpres, labels):
                 row["youden_spec"] = np.nan
 
             # Label permutation test for AUC > 0.5
-            perm_p = _permutation_test_auc_above_random(y_true, y_prob)
-            row["permutation_p"] = perm_p
+            # Directional AUC
+            auc = metrics["auc"]
+            row["auc_directional"] = max(auc, 1 - auc)
+            row["direction"] = "positive" if auc >= 0.5 else "inverse"
+            # One-sided permutation p (AUC > 0.5)
+            perm_p_one = _permutation_test_auc_above_random(y_true, y_prob)
+            row["permutation_p_one_sided"] = perm_p_one
+            # Two-sided permutation p (|AUC-0.5|)
+            perm_p_two = _permutation_test_auc_two_sided(y_true, y_prob)
+            row["permutation_p_two_sided"] = perm_p_two
+            # Keep permutation_p = two_sided for backward compatibility
+            row["permutation_p"] = perm_p_two
 
             rows.append(row)
 
     result = pd.DataFrame(rows)
 
     # FDR correction within this family (20 tests)
-    pvals = result["permutation_p"].values
+    pvals = result["permutation_p_two_sided"].values  # Use two-sided p for FDR
     qvals = bh_fdr(pvals)
     result["q_value"] = qvals
     result["significance"] = [sig_marker(q) for q in qvals]
@@ -620,6 +630,27 @@ def _permutation_test_auc_above_random(y_true, y_prob, n_perm=PERMUTATION_N):
     # One-sided: P(AUC_perm >= AUC_obs) under H0
     p_value = np.mean(np.array(perm_aucs) >= auc_obs)
     return p_value
+
+def _permutation_test_auc_two_sided(y_true, y_prob, n_perm=PERMUTATION_N):
+    """Two-sided permutation test: H0: AUC = 0.5."""
+    from sklearn.metrics import roc_auc_score
+    auc_obs = roc_auc_score(y_true, y_prob)
+    obs_stat = abs(auc_obs - 0.5)
+    perm_stats = []
+    for _ in range(n_perm):
+        perm_y = np.random.permutation(y_true)
+        if len(np.unique(perm_y)) < 2:
+            continue
+        try:
+            perm_auc = roc_auc_score(perm_y, y_prob)
+            perm_stats.append(abs(perm_auc - 0.5))
+        except ValueError:
+            continue
+    if len(perm_stats) < 100:
+        return np.nan
+    p_value = np.mean(np.array(perm_stats) >= obs_stat)
+    return p_value
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -678,7 +709,7 @@ def module3_univariate_association(dcount, dpres, labels):
             "odds_ratio": or_val,
             "or_ci_lower": ci_lower,
             "or_ci_upper": ci_upper,
-            "p_value": p_val,
+            "permutation_p": p_val,
         })
 
         # ── Count variable ────────────────────────────────────────────────────
@@ -860,7 +891,7 @@ def module4_coverage_gradient(dpres, labels):
         cv_metrics["auc_ci_lower"], cv_metrics["auc_ci_upper"] = bootstrap_auc_ci(y_true, y_prob)
 
     # Save outputs
-    risk_table_path = OUTDIR / "symptom_coverage_gradient.csv"
+    risk_table_path = OUTDIR / "symptom_coverage_gradient_main.csv"
     risk_table.to_csv(risk_table_path, index=False, encoding="utf-8-sig")
     print(f"  [M4] Risk table saved: {risk_table_path}")
 
@@ -889,12 +920,12 @@ def module5_evidence_density_gradient(dcount, labels):
     data = pd.DataFrame({"label": labels, "density": dcount["total_domain_count"]})
     data = data.dropna()
 
-    # ── Preset grouping: 0–2, 3–5, 6–10, 11+ ───────────────────────────
+    # ── Preset grouping: 0–5, 6–10, 11+ ─────────────────────────────
     max_density = data["density"].max()
-    upper_bound = max(11, max_density)  # handle if max < 11
+    upper_bound = max(11, max_density)
     data["group_preset"] = pd.cut(
-        data["density"], bins=[-0.5, 2.5, 5.5, 10.5, upper_bound + 0.5],
-        labels=["0-2", "3-5", "6-10", "11+"]
+        data["density"], bins=[-0.5, 5.5, 10.5, upper_bound + 0.5],
+        labels=["0-5", "6-10", "11+"]
     )
     group_sizes = data.groupby("group_preset").size()
     print(f"    Density preset group sizes: {group_sizes.to_dict()}")
@@ -987,7 +1018,7 @@ def module5_evidence_density_gradient(dcount, labels):
         cv_metrics = evaluate_predictions(y_true, y_prob)
         cv_metrics["auc_ci_lower"], cv_metrics["auc_ci_upper"] = bootstrap_auc_ci(y_true, y_prob)
 
-    risk_table_path = OUTDIR / "symptom_evidence_density_gradient.csv"
+    risk_table_path = OUTDIR / "symptom_evidence_density_gradient_main.csv"
     risk_table.to_csv(risk_table_path, index=False, encoding="utf-8-sig")
     print(f"  [M5] Risk table saved: {risk_table_path}")
     print(f"  [M5] Trend result: OR={trend_or:.3f} (95% CI {trend_or_ci[0]:.3f}-{trend_or_ci[1]:.3f}), p={trend_p:.4f}")
@@ -1263,7 +1294,7 @@ def module7_group_comparisons(dcount, dpres, labels, strict_oof):
             "delta_auc": delta,
             "delta_auc_ci_lower": ci_l,
             "delta_auc_ci_upper": ci_u,
-            "p_value": p_val,
+            "permutation_p": p_val,
         })
         pvals.append(p_val)
 
@@ -1598,8 +1629,8 @@ def module4_coverage_gradient_fine(dpres, labels):
     }).dropna()
     data["group"] = pd.cut(
         data["coverage"],
-        bins=[-0.5, 2.5, 4.5, 7.5, 10.5],
-        labels=["0-2", "3-4", "5-7", "8-10"],
+        bins=[-0.5, 2.5, 4.5, 6.5, 10.5],
+            labels=["0-2", "3-4", "5-6", "7-10"],
     )
     print("    Fine group sizes:", data.groupby("group").size().to_dict())
     rows = []

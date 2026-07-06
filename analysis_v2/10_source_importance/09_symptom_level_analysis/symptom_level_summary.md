@@ -12,17 +12,21 @@ All critical checks passed (see `input_validation_report.json`).
 Merged sample size = 142, positive = 43, negative = 99.
 
 ## 2. Single Symptom Domain Prediction Signals
-3 individual domain model(s) showed q < 0.05:
+7 individual domain model(s) showed q < 0.05:
 - **depressed_mood** (情绪低落), count: AUC=0.628
+- **anhedonia_interest** (兴趣/愉悦感缺失), presence: AUC=0.320
+- **self_worth_guilt** (自价值感/罪恶感), presence: AUC=0.288
+- **self_worth_guilt** (自价值感/罪恶感), count: AUC=0.281
 - **functioning_impairment** (功能损害), count: AUC=0.696
 - **mental_health_history** (精神健康史), count: AUC=0.707
+- **protective_or_absent_symptom** (保护性或症状缺失), count: AUC=0.370
 
 ## 3. Symptom Coverage Breadth (Presence Sum)
 Trend test (ordinal coverage group): OR=4.195, p=0.0000
 **Significant risk gradient by symptom coverage breadth** was observed. Prediction signal appears cumulative across symptom domains.
 
 ## 4. Symptom Evidence Density (Count Sum)
-Trend test (ordinal density group): OR=4.327, p=0.0000
+Trend test (ordinal density group): OR=4.947, p=0.0000
 **Significant risk gradient by total symptom evidence count** was observed. Prediction signal has a density component.
 
 ## 5. Symptom Group Models vs. Full 10-Domain Model
