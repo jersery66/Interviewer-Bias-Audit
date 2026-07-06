@@ -30,7 +30,8 @@ warnings.filterwarnings("ignore")
 # CONFIG
 # =============================================================================
 
-BASE_DIR = Path(r"E:\CodexWorktrees\DAIC-WOZ\reanalysis-v2\analysis_v2")
+SCRIPT_DIR = Path(__file__).parent
+BASE_DIR = SCRIPT_DIR.parent.parent
 
 # FROZEN inputs (NOT superseded 01 table)
 SPLITS_PATH       = BASE_DIR / "00_splits/repeated_5fold_splits_10x5.csv"
