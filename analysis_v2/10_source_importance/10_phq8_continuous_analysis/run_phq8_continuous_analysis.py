@@ -86,6 +86,7 @@ DOMAIN_CN = {
 
 RANDOM_SEED = 20260705
 BOOTSTRAP_N = 5000
+PERMUTATION_N = 10000
 np.random.seed(RANDOM_SEED)
 
 
@@ -132,7 +133,7 @@ def regression_metrics(y_true, y_pred):
     y_true = np.asarray(y_true, dtype=float)
     y_pred = np.asarray(y_pred, dtype=float)
     mae = mean_absolute_error(y_true, y_pred)
-    rmse = float(np.sqrt(mean_squared_error(y_true, y_pred)))
+    rmse = _rmse(y_true, y_pred)
     ss_res = float(np.sum((y_true - y_pred) ** 2))
     ss_tot = float(np.sum((y_true - y_true.mean()) ** 2))
     r2 = (1.0 - ss_res / ss_tot) if ss_tot > 0 else np.nan
@@ -141,20 +142,29 @@ def regression_metrics(y_true, y_pred):
     return mae, rmse, r2, pear, spear
 
 
+def _rmse(y_true, y_pred):
+    """Fast RMSE via plain numpy (no sklearn overhead in hot loops)."""
+    return float(np.sqrt(np.mean((np.asarray(y_true, dtype=float) - np.asarray(y_pred, dtype=float)) ** 2)))
+
+
 def _metric_single(y_true, y_pred, metric):
     if metric == "mae":
         return mean_absolute_error(y_true, y_pred)
     if metric == "rmse":
-        return float(np.sqrt(mean_squared_error(y_true, y_pred)))
+        return _rmse(y_true, y_pred)
     raise ValueError(metric)
 
 
-def bootstrap_metric_diff(y_true, pred_a, pred_b, metric="rmse", n_boot=BOOTSTRAP_N):
+def bootstrap_metric_ci(y_true, pred_a, pred_b, metric="rmse", n_boot=BOOTSTRAP_N):
     """
-    Participant-level bootstrap for the difference in a regression metric
-    between two models (A - B). pred_a / pred_b are participant-level OOF
+    Participant-level bootstrap for the 95% CI of the difference in a regression
+    metric between two models (A - B). pred_a / pred_b are participant-level OOF
     predictions aligned with y_true (same order, same participants).
-    Returns (obs_diff, ci_lower, ci_upper, two_sided_p).
+
+    IMPORTANT: the bootstrap distribution is used ONLY for the percentile 95% CI,
+    NOT as a p-value. Significance is assessed by permutation_rmse_diff(), which is
+    a proper null-hypothesis test.
+    Returns (obs_diff, ci_lower, ci_upper).
     """
     rng = np.random.RandomState(RANDOM_SEED)
     y_true = np.asarray(y_true, dtype=float)
@@ -167,14 +177,43 @@ def bootstrap_metric_diff(y_true, pred_a, pred_b, metric="rmse", n_boot=BOOTSTRA
     diffs = []
     for _ in range(n_boot):
         idx = rng.choice(n, size=n, replace=True)
-        da = _metric_single(y_true[idx], pred_a[idx], metric)
-        db = _metric_single(y_true[idx], pred_b[idx], metric)
+        da = _rmse(y_true[idx], pred_a[idx])
+        db = _rmse(y_true[idx], pred_b[idx])
         diffs.append(da - db)
     diffs = np.array(diffs)
     lo = float(np.percentile(diffs, 2.5))
     hi = float(np.percentile(diffs, 97.5))
-    two_sided_p = float(np.mean(np.abs(diffs) >= abs(obs_diff)))
-    return obs_diff, lo, hi, two_sided_p
+    return obs_diff, lo, hi
+
+
+def permutation_rmse_diff(y_true, pred_a, pred_b, n_perm=PERMUTATION_N, seed=None):
+    """
+    Participant-level PAIRED permutation test for the difference in RMSE between
+    two models. For each participant the two OOF predictions form a pair; under the
+    null that the two models are exchangeable, the A/B labeling within each
+    participant is arbitrary, so we randomly swap the pair per participant and
+    recompute the RMSE difference. This is a proper two-sided null-hypothesis test.
+    Returns (obs_delta_rmse, permutation_p).
+    """
+    rng = np.random.RandomState(seed if seed is not None else RANDOM_SEED)
+    y_true = np.asarray(y_true, dtype=float)
+    pred_a = np.asarray(pred_a, dtype=float)
+    pred_b = np.asarray(pred_b, dtype=float)
+    n = len(y_true)
+    rmse_a_obs = _rmse(y_true, pred_a)
+    rmse_b_obs = _rmse(y_true, pred_b)
+    obs_diff = rmse_a_obs - rmse_b_obs
+    perm_deltas = []
+    for _ in range(n_perm):
+        swap = rng.randint(0, 2, size=n).astype(bool)
+        a_perm = np.where(swap, pred_b, pred_a)
+        b_perm = np.where(swap, pred_a, pred_b)
+        rmse_a = _rmse(y_true, a_perm)
+        rmse_b = _rmse(y_true, b_perm)
+        perm_deltas.append(rmse_a - rmse_b)
+    perm_deltas = np.array(perm_deltas)
+    p_value = float(np.mean(np.abs(perm_deltas) >= abs(obs_diff)))
+    return obs_diff, p_value
 
 
 def run_regression_cv(df, feature_cols, score_col="phq8_score"):
@@ -207,6 +246,30 @@ def run_regression_cv(df, feature_cols, score_col="phq8_score"):
     return participant_pred
 
 
+def run_baseline_cv(df, score_col="phq8_score"):
+    """
+    Fold-local baseline: each fold predicts the TRAIN-set mean PHQ-8 score for its
+    test participants. This avoids the information leakage of a global mean and is
+    the honest no-information reference. Returns participant-level mean OOF baseline
+    prediction (Series, index=participant_id).
+    """
+    splits = pd.read_csv(SPLIT_CSV)
+    all_preds = []
+    for (rpt, fold), fold_rows in splits.groupby(["repeat", "fold"]):
+        train_ids = fold_rows[fold_rows["role"] == "train"]["participant_id"].values
+        test_ids = fold_rows[fold_rows["role"] == "test"]["participant_id"].values
+        train_df = df[df["participant_id"].isin(train_ids)]
+        test_df = df[df["participant_id"].isin(test_ids)]
+        if len(train_df) == 0 or len(test_df) == 0:
+            continue
+        train_mean = float(train_df[score_col].mean())
+        for pid in test_df["participant_id"].values:
+            all_preds.append({"participant_id": pid, "repeat": rpt, "fold": fold, "pred": train_mean})
+    pred_df = pd.DataFrame(all_preds)
+    participant_pred = pred_df.groupby("participant_id")["pred"].mean()
+    return participant_pred
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # DATA LOADING & VALIDATION
 # ═══════════════════════════════════════════════════════════════════════════
@@ -219,11 +282,35 @@ def load_and_validate():
     oof = pd.read_csv(STRICT_OOF_CSV)
     splits = pd.read_csv(SPLIT_CSV)
 
+    errors = []
+
+    # ── Check A: frozen PHQ-8 score must be constant per participant ──────────
+    g_score = frozen.groupby("participant_id")["paper_phq8_score"]
+    nuniq = g_score.nunique()
+    bad = nuniq[nuniq > 1].index.tolist()
+    if bad:
+        errors.append(f"CRITICAL: paper_phq8_score not constant for "
+                      f"{len(bad)} participants: {bad[:10]}")
+
+    # ── Check B: binary label must equal (score >= 10) ───────────────────────
+    score_pp = g_score.first()
+    label_pp = frozen.groupby("participant_id")["paper_label_phq8_ge10"].first()
+    derived_pos = (score_pp >= 10).astype(int)
+    if not derived_pos.equals(label_pp):
+        mismatch = int((derived_pos != label_pp).sum())
+        errors.append(f"CRITICAL: label != (score>=10) for {mismatch} participants")
+
     # Build per-participant PHQ-8 continuous score + binary label
     pid_score = frozen.groupby("participant_id").agg(
         phq8_score=("paper_phq8_score", "first"),
         label=("paper_label_phq8_ge10", "first"),
     ).reset_index()
+
+    # ── Check C: domain_count / domain_presence participant_id unique ─────────
+    if not dcount["participant_id"].is_unique:
+        errors.append("CRITICAL: duplicate participant_id in domain_count")
+    if not dpres["participant_id"].is_unique:
+        errors.append("CRITICAL: duplicate participant_id in domain_presence")
 
     # Merge domain features
     feat = dcount.merge(dpres, on="participant_id", suffixes=("_count", "_pres"))
@@ -242,17 +329,28 @@ def load_and_validate():
     else:
         print("[LOAD] WARNING: M0/M3 probabilities not found in OOF file; skipping correlation-only eval.")
 
-    # Validation
-    errors = []
+    # ── Check D: df participant_id set must equal splits participant_id set ───
+    if set(df["participant_id"]) != set(splits["participant_id"].unique()):
+        in_df_not_splits = set(df["participant_id"]) - set(splits["participant_id"].unique())
+        in_splits_not_df = set(splits["participant_id"].unique()) - set(df["participant_id"])
+        errors.append(f"CRITICAL: participant_id mismatch with splits "
+                      f"(in_df_not_splits={len(in_df_not_splits)}, "
+                      f"in_splits_not_df={len(in_splits_not_df)})")
+
+    # ── Check E: domain_count / domain_presence pid must exactly match df ─────
+    if set(dcount["participant_id"]) != set(df["participant_id"]):
+        errors.append("CRITICAL: domain_count participant_id does not match merged df")
+    if set(dpres["participant_id"]) != set(df["participant_id"]):
+        errors.append("CRITICAL: domain_presence participant_id does not match merged df")
+
+    # ── Check F: sample size, duplicates, missing scores ─────────────────────
     if len(df) != 142:
         errors.append(f"CRITICAL: merged n={len(df)}, expected 142")
     if df["participant_id"].duplicated().any():
-        errors.append("CRITICAL: duplicate participant_id")
-    lost = set(df["participant_id"]) - set(splits["participant_id"].unique())
-    if lost:
-        errors.append(f"CRITICAL: {len(lost)} participants missing from splits")
+        errors.append("CRITICAL: duplicate participant_id after merge")
     if df["phq8_score"].isna().any():
         errors.append("CRITICAL: missing PHQ-8 score for some participants")
+
     if errors:
         for e in errors:
             print("  ", e)
@@ -435,11 +533,13 @@ def module_d_cv_metrics(df):
             "pearson_r": pear,
             "spearman_rho": spear,
         })
-    # Baseline: predict global mean
-    mean_pred = pd.Series(y.mean(), index=y.index)
-    mae0, rmse0, r2_0, pear0, spear0 = regression_metrics(y.values, mean_pred.values)
+    # Baseline: fold-local train-mean prediction (no information leakage)
+    base_pred = run_baseline_cv(df)
+    mae0, rmse0, r2_0, pear0, spear0 = regression_metrics(
+        y.loc[base_pred.index].values, base_pred.values
+    )
     rows.append({
-        "model": "基线 (预测全体均值)",
+        "model": "基线 (折内训练集均值)",
         "n_features": 0,
         "MAE": mae0, "RMSE": rmse0, "R2": r2_0,
         "pearson_r": pear0, "spearman_rho": spear0,
@@ -455,36 +555,45 @@ def module_d_cv_metrics(df):
 # ═══════════════════════════════════════════════════════════════════════════
 
 def module_e_comparisons(y, preds):
-    print("\n[M-E] Model comparisons (bootstrap CI)...")
+    print("\n[M-E] Model comparisons (bootstrap CI + paired permutation)...")
     pairs = [
-        ("十个症状域计数 (10维)", "症状覆盖广度 (1维)", "rmse"),
-        ("十个症状域计数 (10维)", "症状证据密度 (1维)", "rmse"),
-        ("十个症状域是否出现 (10维)", "症状覆盖广度 (1维)", "rmse"),
-        ("十个症状域是否出现 (10维)", "症状证据密度 (1维)", "rmse"),
-        ("十个症状域计数 (10维)", "十个症状域是否出现 (10维)", "rmse"),
+        ("十个症状域计数 (10维)", "症状覆盖广度 (1维)"),
+        ("十个症状域计数 (10维)", "症状证据密度 (1维)"),
+        ("十个症状域是否出现 (10维)", "症状覆盖广度 (1维)"),
+        ("十个症状域是否出现 (10维)", "症状证据密度 (1维)"),
+        ("十个症状域计数 (10维)", "十个症状域是否出现 (10维)"),
     ]
     rows = []
-    for a, b, metric in pairs:
+    perm_ps = []
+    for a, b in pairs:
         pa = preds[a].loc[y.index].values
         pb = preds[b].loc[y.index].values
-        obs, lo, hi, p = bootstrap_metric_diff(y.values, pa, pb, metric=metric)
+        delta, lo, hi = bootstrap_metric_ci(y.values, pa, pb, metric="rmse")
+        _, p_perm = permutation_rmse_diff(y.values, pa, pb, n_perm=PERMUTATION_N)
+        perm_ps.append(p_perm)
         rows.append({
             "model_a": a,
             "model_b": b,
-            "metric": metric,
-            "delta": obs,
-            "ci_lower": lo,
-            "ci_upper": hi,
-            "two_sided_p": p,
-            "significant": "yes" if p < 0.05 else "no",
+            "delta_rmse": float(delta),
+            "bootstrap_ci_lower": float(lo),
+            "bootstrap_ci_upper": float(hi),
+            "permutation_p": float(p_perm),
+            "q_value": np.nan,            # filled after FDR
+            "significant_fdr": "no",      # filled after FDR
             "interpretation": (
-                f"{a} 相对 {b} 的 {metric.upper()} 差异为 {obs:+.4f} "
-                f"(95% CI {lo:+.4f} 至 {hi:+.4f}), p={p:.3f}"
+                f"{a} 相对 {b} 的 RMSE 差异为 {delta:+.4f} "
+                f"(bootstrap 95% CI {lo:+.4f} 至 {hi:+.4f}), "
+                f"配对置换检验 p={p_perm:.3f}"
             ),
         })
+    # BH FDR across all permutation p-values in this comparison family
+    qvals = bh_fdr(np.array(perm_ps))
+    for i, r in enumerate(rows):
+        r["q_value"] = float(qvals[i])
+        r["significant_fdr"] = "yes" if qvals[i] < 0.05 else "no"
     out = pd.DataFrame(rows)
     out.to_csv(OUTDIR / "phq8_score_model_comparisons.csv", index=False, encoding="utf-8-sig")
-    print(f"[M-E] Saved phq8_score_model_comparisons.csv")
+    print(f"[M-E] Saved phq8_score_model_comparisons.csv ({len(rows)} comparisons, FDR applied)")
     return out
 
 
@@ -629,14 +738,20 @@ def module_g_summary(overall, band_df, corr, reg_coeff, metrics, comp, grad):
                      f"{r['R2']:.3f} | {r['pearson_r']:.3f} | {r['spearman_rho']:.3f} |")
     lines.append("")
 
-    lines.append("## 5. 模型比较（自助法 95% CI）")
+    lines.append("## 5. 模型比较（bootstrap 95% CI + 配对置换检验）")
+    lines.append("- 说明：bootstrap percentile 95% CI 仅用于区间估计；显著性由参与者级配对置换检验"
+                 "（每被试随机交换两模型 OOF 预测，10,000 次）的 permutation_p 经 BH FDR 校正后判断。")
     for _, r in comp.iterrows():
-        lines.append(f"- {r['model_a']} vs {r['model_b']}（{r['metric'].upper()}）："
-                     f"Δ={r['delta']:+.4f} (95% CI {r['ci_lower']:+.4f} 至 {r['ci_upper']:+.4f}), "
-                     f"p={r['two_sided_p']:.3f}, 显著={r['significant']}")
+        lines.append(f"- {r['model_a']} vs {r['model_b']}："
+                     f"ΔRMSE={r['delta_rmse']:+.4f} "
+                     f"(bootstrap 95% CI {r['bootstrap_ci_lower']:+.4f} 至 {r['bootstrap_ci_upper']:+.4f}), "
+                     f"置换 p={r['permutation_p']:.3f}, FDR q={r['q_value']:.3f}, "
+                     f"显著={r['significant_fdr']}")
     lines.append("")
 
-    lines.append("## 6. 梯度趋势（PHQ-8 总分随症状负荷升高）")
+    lines.append("## 6. 梯度趋势（描述性展示）")
+    lines.append("- 说明：以下分组梯度仅作描述性展示，主要统计依据仍为连续相关分析、OLS 回归与"
+                 "交叉验证回归；梯度趋势不作为唯一证据。")
     lines.append(f"- 症状覆盖广度主分组趋势 p={grad['breadth_main_trend_p']:.2e} "
                  f"(q={grad['breadth_main_trend_q']:.2e})")
     lines.append(f"- 症状证据密度主分组趋势 p={grad['density_main_trend_p']:.2e} "
@@ -694,8 +809,15 @@ def generate_manifest():
         },
         "random_seed": RANDOM_SEED,
         "bootstrap_n": BOOTSTRAP_N,
+        "permutation_n": PERMUTATION_N,
         "outcome": "PHQ-8 total score (continuous, paper_phq8_score)",
         "n_participants": 142,
+        "baseline_method": "fold-local train mean (no leakage)",
+        "comparison_methods": {
+            "bootstrap_ci": "participant-level, 5000 resamples, percentile 95% (interval estimate only)",
+            "permutation_test": "participant-level paired swap, 10000 reps, two-sided",
+            "fdr": "Benjamini-Hochberg across all model comparisons",
+        },
     }
     (OUTDIR / "run_manifest.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8-sig"
