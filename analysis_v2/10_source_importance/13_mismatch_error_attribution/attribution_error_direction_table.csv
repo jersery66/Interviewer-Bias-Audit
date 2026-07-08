@@ -1,0 +1,17 @@
+﻿model,group,group_cn,n,n_error,error_rate,n_underestimate,n_overestimate,main_error_direction
+base,A_consistent_high,A 一致高症状（PHQ高+证据高）,35,6,0.1714,6,0,低估
+base,B_consistent_low,B 一致低症状（PHQ低+证据低）,64,0,0.0,0,0,—
+base,C_self_high_ev_low,C 自评高但证据低,8,8,1.0,8,0,低估
+base,D_self_low_ev_high,D 自评低但证据高,35,29,0.8286,0,29,高估
+count,A_consistent_high,A 一致高症状（PHQ高+证据高）,35,5,0.1429,5,0,低估
+count,B_consistent_low,B 一致低症状（PHQ低+证据低）,64,4,0.0625,0,4,高估
+count,C_self_high_ev_low,C 自评高但证据低,8,8,1.0,8,0,低估
+count,D_self_low_ev_high,D 自评低但证据高,35,14,0.4,0,14,高估
+pres,A_consistent_high,A 一致高症状（PHQ高+证据高）,35,5,0.1429,5,0,低估
+pres,B_consistent_low,B 一致低症状（PHQ低+证据低）,64,8,0.125,0,8,高估
+pres,C_self_high_ev_low,C 自评高但证据低,8,8,1.0,8,0,低估
+pres,D_self_low_ev_high,D 自评低但证据高,35,17,0.4857,0,17,高估
+complex,A_consistent_high,A 一致高症状（PHQ高+证据高）,35,7,0.2,7,0,低估
+complex,B_consistent_low,B 一致低症状（PHQ低+证据低）,64,8,0.125,0,8,高估
+complex,C_self_high_ev_low,C 自评高但证据低,8,6,0.75,6,0,低估
+complex,D_self_low_ev_high,D 自评低但证据高,35,8,0.2286,0,8,高估

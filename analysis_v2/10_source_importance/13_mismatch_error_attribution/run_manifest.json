@@ -1,0 +1,75 @@
+{
+  "module": "13_mismatch_error_attribution",
+  "created": "2026-07-08T23:34:28",
+  "random_seed": 20260705,
+  "decision_threshold": 0.5,
+  "phq_positive_cut": 10,
+  "coverage_predef_high": 5,
+  "density_predef_high": 11,
+  "evidence_high_definition": "union: coverage_breadth>=5 OR evidence_density>=11",
+  "coding_cap_per_type": 15,
+  "n_perm": "n/a (attribution is human-coded)",
+  "models": {
+    "base": {
+      "type": "logistic_cv",
+      "features": [
+        "coverage_breadth",
+        "evidence_density"
+      ]
+    },
+    "count": {
+      "type": "logistic_cv",
+      "features": [
+        "coverage_breadth",
+        "evidence_density",
+        "depressed_mood_count",
+        "anhedonia_interest_count",
+        "sleep_fatigue_energy_count",
+        "appetite_weight_count",
+        "self_worth_guilt_count",
+        "concentration_psychomotor_count",
+        "suicide_self_harm_count",
+        "functioning_impairment_count",
+        "mental_health_history_count",
+        "protective_or_absent_symptom_count"
+      ]
+    },
+    "pres": {
+      "type": "logistic_cv",
+      "features": [
+        "coverage_breadth",
+        "evidence_density",
+        "depressed_mood_pres",
+        "anhedonia_interest_pres",
+        "sleep_fatigue_energy_pres",
+        "appetite_weight_pres",
+        "self_worth_guilt_pres",
+        "concentration_psychomotor_pres",
+        "suicide_self_harm_pres",
+        "functioning_impairment_pres",
+        "mental_health_history_pres",
+        "protective_or_absent_symptom_pres"
+      ]
+    },
+    "complex": {
+      "type": "external_oof",
+      "source": "07_strict_joint_models/M3_prob"
+    }
+  },
+  "input_sha256": {
+    "domain_count": "7687c70d3770b7e8902900ec3c117d8a679fc6d718abf1c2a7f8d1361b07ae33",
+    "domain_presence": "89945c35a05def98e41fe8ebfbfb87f4016856333e2e990d869d97579aa5948f",
+    "splits": "ceaddff172bf9582987cf76ff0522dcfdd0fe90c5b3014565bcfaacf003703ae",
+    "frozen_turns": "763cd3857a430f7a8dc6ee997d2820b07787f5e30ddceaee8bf83329fedc1a9a",
+    "strict_oof": "33067cf33b101731e2809a2a94633bcd9f4dda68ff7ec025ac22dc8abd9de471"
+  },
+  "lr_params": {
+    "penalty": "l2",
+    "C": 1.0,
+    "class_weight": "balanced",
+    "solver": "liblinear",
+    "max_iter": 2000,
+    "random_state": 20260705
+  },
+  "human_attribution": "PENDING — coding_sheet_selected.csv to be filled by two independent human reviewers; companion aggregate_coding.py produces Table 2 + Cohen's Kappa afterwards."
+}

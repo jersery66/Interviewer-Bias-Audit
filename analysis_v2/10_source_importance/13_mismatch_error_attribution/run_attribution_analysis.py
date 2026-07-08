@@ -377,7 +377,7 @@ def main():
             picked = ids
         selected_ids.extend(picked)
     sel["selected_for_coding"] = np.where(
-        sel["participant_id"].isin(selected_ids), "是", "否").values
+        sel["participant_id"].isin(selected_ids), "是", "否")
 
     def cn_label(x):
         return "阳性" if x == 1 else "阴性"
