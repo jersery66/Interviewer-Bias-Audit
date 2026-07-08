@@ -1,6 +1,6 @@
 {
   "module": "12_self_report_text_evidence_mismatch",
-  "created": "2026-07-08T04:11:07",
+  "created": "2026-07-08T17:42:03",
   "random_seed": 20260705,
   "decision_threshold": 0.5,
   "phq_positive_cut": 10,

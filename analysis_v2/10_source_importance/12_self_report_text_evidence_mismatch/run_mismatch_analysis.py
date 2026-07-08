@@ -268,7 +268,7 @@ def build_summary(oof, quad_df, err_df, prof_df, rep_df, manifest):
     L.append("PHQ-8 是**自评量表**总分，反映被试对自身抑郁症状的主观报告，"
              "并不等同于临床诊断。本研究从访谈文本中独立抽取了症状证据结构"
              "（症状覆盖广度、症状证据密度、十个症状域计数/是否出现）。"
-             "当被试的 PHQ-8 自评分数与访谈文本中的客观症状证据不一致时，"
+             "当被试的 PHQ-8 自评分数与访谈文本症状证据不一致时，"
              "两条信息源出现**错位（mismatch）**。")
     L.append("")
     L.append("模块 11 的增量效度分析表明，复杂文本模型与十域细粒度表征均未稳定超越"
@@ -278,8 +278,8 @@ def build_summary(oof, quad_df, err_df, prof_df, rep_df, manifest):
     L.append("")
     L.append("由于本研究的基础负荷模型、十域模型均以访谈证据特征（覆盖广度、证据密度、"
              "症状域计数/出现）为输入，它们本质上是在用访谈证据去预测 PHQ-8 自评标签。"
-             "当自评与证据错位时，这类模型很难“纠正”被试的主观报告，其预测误差理应"
-             "集中出现在错位样本。")
+             "当 PHQ-8 自评标签与访谈文本证据不一致时，以访谈证据为输入的模型更容易出现"
+             "与自评标签不一致的预测结果，其预测误差理应集中出现在错位样本。")
     L.append("")
     L.append("**说明**：本分析关注交叉验证预测性能的误差分布，不解释任何单个回归系数；"
              "PHQ-8 为自评得分，结局应理解为“自评抑郁症状严重度/风险”，不能等同于临床诊断。")
@@ -390,16 +390,25 @@ def build_summary(oof, quad_df, err_df, prof_df, rep_df, manifest):
     conc_complex_den = err_df[(err_df["model"] == "complex") & (err_df["evidence_def"] == "evidence_density")
                               & (err_df["threshold_rule"] == "predefined_11plus")
                               & (err_df["group"] == "mismatch_vs_consistent")].iloc[0]
-    L.append("两种证据定义下，各模型的错分率均在错位象限显著高于一致象限，置换检验均显著"
-             "（p≤%.4f）。值得注意的是，复杂联合文本模型在错位样本上的错分率"
+    L.append("在预定义高证据切点下（覆盖广度 ≥%d、证据密度 ≥%d），各模型错分率均在错位象限高于一致象限，"
+             "置换检验均显著（p≤%.4f）。值得注意，复杂模型在中位数覆盖广度切分下该差异不显著，"
+             "故错位误差集中结论主要在预定义高证据分组下更稳定。复杂联合文本模型在错位样本上的错分率"
              "（覆盖广度定义 %.3f、证据密度定义 %.3f）明显低于基础负荷模型"
              "（%.3f、%.3f），说明其借助文本语义在一定程度上缓解了对错位样本的误判；"
              "但复杂模型仍对约三分之一至二分之一的错位样本判错，且模块 11 的正式检验显示"
              "其相对基础负荷模型的 ΔAUC 并未达到统计稳定。换言之，复杂模型能部分缓解、"
              "却不足以稳定消除由自评—访谈错位带来的误差。"
-             % (max(conc_complex_cov["permutation_p"], conc_complex_den["permutation_p"]),
+             % (manifest["coverage_predef_high"], manifest["density_predef_high"],
+                max(conc_complex_cov["permutation_p"], conc_complex_den["permutation_p"]),
                 conc_complex_cov["error_rate_mismatch"], conc_complex_den["error_rate_mismatch"],
                 conc_base_cov["error_rate_mismatch"], conc_base_den["error_rate_mismatch"]))
+    L.append("")
+    L.append("> **分层置换敏感性检验**：上述整体置换将错误标记在整个样本中打乱；"
+             "为检验错位效应是否独立于 PHQ 阳性/阴性类别构成，本研究进一步在 PHQ-阳性与"
+             "PHQ-阴性两类内部各自置换错误标记（保持阳性/阴性人数不变），重新计算错位与一致"
+             "象限的错分率差异。分层置换 p 见 `model_error_by_mismatch_group_stratified.csv`"
+             "（列 `permutation_p_label_stratified`），与整体置换 p（列 `permutation_p_unstratified`）"
+             "并列报告。")
     L.append("")
     L.append("### 3.4 正确 vs 错分样本的特征差异")
     L.append("")
@@ -433,8 +442,11 @@ def build_summary(oof, quad_df, err_df, prof_df, rep_df, manifest):
     L.append("1. **自评与访谈证据存在系统性错位，且并非罕见。** 约两成至三成被试的 PHQ-8 "
              "自评与访谈证据落在不同象限，说明自评量表与文本证据并非简单等价。这种错位是"
              " PHQ-8 作为自评工具的固有特性，而非本研究的新“发现”。")
-    L.append("2. **模型错误确实向错位样本集中。** 所有模型在错位象限的错分率均高于一致象限；"
-             "这与“以访谈证据预测自评标签的模型无法纠正二者错位”的预期一致。")
+    L.append("2. **模型错误向错位样本集中（主要在预定义高证据分组下）。** 在预定义高证据切点下，"
+             "各模型在错位象限的错分率均高于一致象限；但复杂模型在中位数覆盖广度切分下该差异不显著。"
+             "分层置换检验（在 PHQ-阳性/阴性内部分别置换）显示，错位效应基本独立于 PHQ 类别构成"
+             "（见 `model_error_by_mismatch_group_stratified.csv`）。这与“当 PHQ-8 自评标签与访谈文本"
+             "证据不一致时，以访谈证据为输入的模型更容易出现与自评标签不一致的预测结果”的预期一致。")
     L.append("3. **复杂模型能部分缓解错位误差，但未达稳定增量。** 复杂联合文本模型在错位样本"
              "上的错分率（覆盖广度定义 0.333、证据密度定义 0.481）明显低于基础负荷模型"
              "（0.867、0.741），提示文本语义承载了超出结构化证据的信息，可部分抵消自评—访谈"
@@ -559,6 +571,7 @@ def main():
     models = ["base", "count", "pres", "complex"]
     err_rows = []
     conc_rows = []
+    conc_strat_rows = []
     for m in models:
         pred = oof[f"pred_{m}"].values
         lab = oof["label"].values
@@ -601,13 +614,29 @@ def main():
             rng = np.random.RandomState(RANDOM_SEED)
             nm = int(mismatch_mask.sum())
             nc = int(consistent_mask.sum())
-            perm_diffs = []
+            # (a) unstratified permutation: global shuffle of error flag
+            perm_diffs_un = []
             for _ in range(N_PERM_CONC):
                 shuf = rng.permutation(err_flag)
                 rm = shuf[:nm].mean() if nm else np.nan
                 rc = shuf[nm:nm + nc].mean() if nc else np.nan
-                perm_diffs.append(rm - rc)
-            perm_p = float(np.mean(np.abs(perm_diffs) >= abs(obs_diff))) if len(perm_diffs) else np.nan
+                perm_diffs_un.append(rm - rc)
+            perm_p_un = float(np.mean(np.abs(perm_diffs_un) >= abs(obs_diff))) if len(perm_diffs_un) else np.nan
+            # (b) label-stratified permutation: shuffle error flag within each PHQ label
+            #     stratum, keeping the PHQ-positive/negative composition fixed. This tests
+            #     whether the mismatch group still carries elevated errors independently of
+            #     the base error-rate difference between positive and negative labels.
+            perm_diffs_st = []
+            for _ in range(N_PERM_CONC):
+                new_err = err_flag.copy()
+                for s in (0, 1):
+                    idx_s = np.where(lab == s)[0]
+                    if len(idx_s) > 1:
+                        new_err[idx_s] = rng.permutation(err_flag[idx_s])
+                rm = float(new_err[mismatch_mask].mean()) if nm else np.nan
+                rc = float(new_err[consistent_mask].mean()) if nc else np.nan
+                perm_diffs_st.append(rm - rc)
+            perm_p_st = float(np.mean(np.abs(perm_diffs_st) >= abs(obs_diff))) if len(perm_diffs_st) else np.nan
             conc_rows.append({
                 "model": m, "evidence_def": ev_def, "threshold_rule": rule,
                 "group": "mismatch_vs_consistent", "n": nm + nc,
@@ -616,10 +645,24 @@ def main():
                 "error_rate_mismatch": round(rate_mis, 4),
                 "error_rate_consistent": round(rate_con, 4),
                 "error_rate_diff": round(obs_diff, 4),
-                "permutation_p": round(perm_p, 4),
+                "permutation_p": round(perm_p_un, 4),
+            })
+            conc_strat_rows.append({
+                "model": m, "evidence_def": ev_def, "threshold_rule": rule,
+                "group": "mismatch_vs_consistent", "n": nm + nc,
+                "error_rate_mismatch": round(rate_mis, 4),
+                "error_rate_consistent": round(rate_con, 4),
+                "error_rate_diff": round(obs_diff, 4),
+                "permutation_p_unstratified": round(perm_p_un, 4),
+                "permutation_p_label_stratified": round(perm_p_st, 4),
             })
     err_df = pd.DataFrame(err_rows + conc_rows)
     err_df.to_csv(OUTDIR / "model_error_by_mismatch_group.csv", index=False, encoding="utf-8-sig")
+
+    # stratified concentration test table (sensitivity analysis)
+    conc_strat_df = pd.DataFrame(conc_strat_rows)
+    conc_strat_df.to_csv(OUTDIR / "model_error_by_mismatch_group_stratified.csv",
+                         index=False, encoding="utf-8-sig")
 
     # ── Correct vs incorrect profile (Mann-Whitney + FDR) ───────────────────
     print("[PROF] Correct vs incorrect feature profile...")
@@ -737,6 +780,7 @@ def main():
         "mismatch_quadrants_by_coverage.csv",
         "mismatch_quadrants_by_density.csv",
         "model_error_by_mismatch_group.csv",
+        "model_error_by_mismatch_group_stratified.csv",
         "error_profile_correct_vs_incorrect.csv",
         "representative_mismatch_cases.csv",
         "mismatch_analysis_summary.md",
