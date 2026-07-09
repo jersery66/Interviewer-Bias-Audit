@@ -701,13 +701,13 @@ def build_summary(manifest, transfer, quad_df, err_df, auc_daic, cmp, cov_median
     L.append("")
     L.append("为检验主分析发现的可迁移性，本研究进一步使用 E-DAIC 中新增且公开 PHQ-8 标签的参与者作为探索性补充验证样本。由于 E-DAIC 为 DAIC-WOZ 的扩展版本并包含原始 DAIC-WOZ 参与者，本研究未将两者合并，而是排除原始 DAIC-WOZ 参与者、仅保留新增有标签样本（候选 %d 人，纳入 n=%d，排除 %d 人：%s）。该补充分析沿用 DAIC-WOZ 主分析中的十域症状定义、C5 抽取 prompt（v3）、模型参数（gpt-5.5 / temperature=0）与聚合规则生成症状证据特征；但由于 E-DAIC 转录本缺少 speaker 标记，E-DAIC 抽取输入为全对话文本，因此该补充验证并非完全同源输入条件下的严格复现。模型在 DAIC-WOZ 主分析样本（n=142）上训练，并在 E-DAIC 新增样本上直接测试。" % (n_cand, n_edaic, n_excl, excl_reasons))
     L.append("")
-    L.append("> **偏差披露**：E-DAIC 转录本无 speaker 列（DAIC-WOZ 原始转录本含 Ellie/Participant 标签），故对 E-DAIC 喂入全对话文本；C5 抽取 prompt 仅要求提取被试症状证据，访谈员提问不会被误判为症状。这是与 DAIC-WOZ 主分析唯一的方法学差异，已在局限性中说明。")
+    L.append("> **偏差披露**：E-DAIC 转录本无 speaker 列（DAIC-WOZ 原始转录本含 Ellie/Participant 标签），故对 E-DAIC 喂入全对话文本；C5 抽取 prompt 要求仅提取被试症状证据，但由于 E-DAIC 输入为无 speaker 标记的全对话文本，仍可能存在访谈员话语干扰，因此该补充验证仅作探索性分析。")
     L.append("")
     L.append("## 2 结果（可粘贴进论文 3.4）")
     L.append("")
     L.append("E-DAIC 新增有标签样本共纳入 n=%d，其中 PHQ-8 阳性 n=%d。采用 DAIC-WOZ 固定切点定义访谈证据高低（覆盖广度 ≥%d 个症状域 / 证据密度 ≥%d 条）。" % (n_edaic, pos, COVERAGE_PREDEF, DENSITY_PREDEF))
-    cov_mis = int(quad_df[(quad_df["evidence_def"] == "coverage_breadth") & (quad_df["threshold_rule"] == "predefined_5plus")]["n"].sum())
-    den_mis = int(quad_df[(quad_df["evidence_def"] == "evidence_density") & (quad_df["threshold_rule"] == "predefined_11plus")]["n"].sum())
+    cov_mis = int(quad_df[(quad_df["evidence_def"] == "coverage_breadth") & (quad_df["threshold_rule"] == "predefined_5plus") & (quad_df["quadrant"].isin(MISMATCH_QUADRANTS))]["n"].sum())
+    den_mis = int(quad_df[(quad_df["evidence_def"] == "evidence_density") & (quad_df["threshold_rule"] == "predefined_11plus") & (quad_df["quadrant"].isin(MISMATCH_QUADRANTS))]["n"].sum())
     L.append("- 覆盖广度定义下，错位样本占 %d/%d（%.1f%%）；证据密度定义下占 %d/%d（%.1f%%）。" % (
         cov_mis, n_edaic, 100.0 * cov_mis / n_edaic, den_mis, n_edaic, 100.0 * den_mis / n_edaic))
     # 错分方向
