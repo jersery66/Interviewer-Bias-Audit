@@ -271,7 +271,7 @@ def prepare_extraction_jsonl(manifest):
         records.append({
             "task_id": f"{pid}_symptom_evidence_extraction",
             "participant_id": pid,
-            "input_condition": "participant_only",
+            "input_condition": "edaic_full_dialogue_no_speaker",
             "prompt_version": "c5_symptom_evidence_quotes_only_v3",
             "text": text,
         })
@@ -460,6 +460,7 @@ def build_quadrants(transfer):
             sub = g.get_group(q) if q in g.groups else transfer.iloc[0:0]
             n = len(sub)
             rows.append({
+                "evidence_def": ev_def,
                 "threshold_rule": rule,
                 "threshold_value": thr,
                 "quadrant": q,
@@ -472,10 +473,8 @@ def build_quadrants(transfer):
                 "mean_evidence_density": round(float(sub["evidence_density"].mean()), 2) if n else np.nan,
             })
     quad_df = pd.DataFrame(rows)
-    quad_cov = quad_df[quad_df["threshold_rule"].isin(["median", "predefined_5plus"])].copy()
-    quad_cov.insert(0, "evidence_def", "coverage_breadth")
-    quad_den = quad_df[quad_df["threshold_rule"].isin(["median", "predefined_11plus"])].copy()
-    quad_den.insert(0, "evidence_def", "evidence_density")
+    quad_cov = quad_df[quad_df["evidence_def"] == "coverage_breadth"].copy()
+    quad_den = quad_df[quad_df["evidence_def"] == "evidence_density"].copy()
     quad_cov_out = quad_cov[["evidence_def", "threshold_rule", "threshold_value", "quadrant",
                              "quadrant_cn", "n", "pct", "mean_phq8", "phq_positive_rate",
                              "mean_coverage_breadth", "mean_evidence_density"]]
@@ -634,15 +633,16 @@ def build_comparison(transfer, auc_daic, quad_df, err_df):
         rows.append((f"{m} 模型 AUC", round(auc_d, 3),
                      edaic_auc,
                      "是" if (edaic_auc is not None and not (isinstance(edaic_auc, float) and np.isnan(edaic_auc)) and edaic_auc > 0.5) else "否"))
-    for m in ["base", "count", "pres"]:
-        mis_d, con_d = edaic_err_rate(m, "coverage_breadth", "predefined_5plus")
-        rows.append((f"{m} 模型错位错分率",
-                     round(m12_err_rate(m, "coverage_breadth", "predefined_5plus", "mismatch_vs_consistent"), 3),
-                     round(mis_d, 3), direction_for_rates(mis_d, con_d)))
-        rows.append((f"{m} 模型一致错分率",
-                     round(m12_err_rate(m, "coverage_breadth", "predefined_5plus", "overall") if False
-                           else _m12_consistent_rate(m12_err, m), 3),
-                     round(con_d, 3), "—"))
+    for ev_def, rule, tag in [("coverage_breadth", "predefined_5plus", "覆盖广度"),
+                              ("evidence_density", "predefined_11plus", "证据密度")]:
+        for m in ["base", "count", "pres"]:
+            mis_d, con_d = edaic_err_rate(m, ev_def, rule)
+            rows.append((f"{m} 模型错位错分率({tag})",
+                         round(m12_err_rate(m, ev_def, rule, "mismatch_vs_consistent"), 3),
+                         round(mis_d, 3), direction_for_rates(mis_d, con_d)))
+            rows.append((f"{m} 模型一致错分率({tag})",
+                         round(_m12_consistent_rate(m12_err, m, ev_def, rule), 3),
+                         round(con_d, 3), "—"))
     cmp = pd.DataFrame(rows, columns=["指标", "DAIC_WOZ_主分析", "E_DAIC_新增样本", "方向是否一致"])
     cmp.to_csv(SCRIPT_DIR / "daic_vs_edaic_validation_comparison.csv",
                index=False, encoding="utf-8-sig")
@@ -656,9 +656,9 @@ def _m12_pos_rate(m12_err):
     return round((tp + fn) / 142.0, 3) if (tp + fn) > 0 else np.nan
 
 
-def _m12_consistent_rate(m12_err, model):
-    r = m12_err[(m12_err["model"] == model) & (m12_err["evidence_def"] == "coverage_breadth")
-                & (m12_err["threshold_rule"] == "predefined_5plus")
+def _m12_consistent_rate(m12_err, model, ev_def="coverage_breadth", rule="predefined_5plus"):
+    r = m12_err[(m12_err["model"] == model) & (m12_err["evidence_def"] == ev_def)
+                & (m12_err["threshold_rule"] == rule)
                 & (m12_err["group"] == "mismatch_vs_consistent")].iloc[0]
     return float(r["error_rate_consistent"])
 
@@ -677,6 +677,9 @@ def _edaic_auc(transfer, model):
 def build_summary(manifest, transfer, quad_df, err_df, auc_daic, cmp, cov_median, den_median):
     n_edaic = len(transfer)
     pos = int(transfer["label"].sum())
+    n_cand = len(manifest)
+    n_excl = int((manifest["included"] == 0).sum())
+    excl_reasons = "; ".join(sorted({str(x) for x in manifest[manifest["included"] == 0]["exclusion_reason"] if x})) or "无"
     L = []
     L.append("# E-DAIC 新增标注样本的探索性补充验证")
     L.append("")
@@ -696,7 +699,7 @@ def build_summary(manifest, transfer, quad_df, err_df, auc_daic, cmp, cov_median
     L.append("")
     L.append("## 1 方法（可粘贴进论文 2.x）")
     L.append("")
-    L.append("为检验主分析发现的可迁移性，本研究进一步使用 E-DAIC 中新增且公开 PHQ-8 标签的参与者作为探索性补充验证样本。由于 E-DAIC 为 DAIC-WOZ 的扩展版本并包含原始 DAIC-WOZ 参与者，本研究未将两者合并，而是排除原始 DAIC-WOZ 参与者、仅保留新增有标签样本（最终纳入 n=%d，其中 1 人因转录本缺失被排除）。该补充分析沿用 DAIC-WOZ 主分析的症状证据抽取规则（复用原始 C5 抽取管线：prompt v3 / gpt-5.5 / temperature=0）、错位定义与模型训练流程；模型在 DAIC-WOZ 主分析样本（n=142）上训练，并在 E-DAIC 新增样本上直接测试。" % n_edaic)
+    L.append("为检验主分析发现的可迁移性，本研究进一步使用 E-DAIC 中新增且公开 PHQ-8 标签的参与者作为探索性补充验证样本。由于 E-DAIC 为 DAIC-WOZ 的扩展版本并包含原始 DAIC-WOZ 参与者，本研究未将两者合并，而是排除原始 DAIC-WOZ 参与者、仅保留新增有标签样本（候选 %d 人，纳入 n=%d，排除 %d 人：%s）。该补充分析沿用 DAIC-WOZ 主分析中的十域症状定义、C5 抽取 prompt（v3）、模型参数（gpt-5.5 / temperature=0）与聚合规则生成症状证据特征；但由于 E-DAIC 转录本缺少 speaker 标记，E-DAIC 抽取输入为全对话文本，因此该补充验证并非完全同源输入条件下的严格复现。模型在 DAIC-WOZ 主分析样本（n=142）上训练，并在 E-DAIC 新增样本上直接测试。" % (n_cand, n_edaic, n_excl, excl_reasons))
     L.append("")
     L.append("> **偏差披露**：E-DAIC 转录本无 speaker 列（DAIC-WOZ 原始转录本含 Ellie/Participant 标签），故对 E-DAIC 喂入全对话文本；C5 抽取 prompt 仅要求提取被试症状证据，访谈员提问不会被误判为症状。这是与 DAIC-WOZ 主分析唯一的方法学差异，已在局限性中说明。")
     L.append("")
@@ -759,9 +762,8 @@ def write_turns_frozen(manifest):
             rows.append({
                 "participant_id": pid,
                 "turn_id": i,
-                "speaker": "combined",  # E-DAIC 转录本无 speaker 列
-                "text": str(tr.get("Text", "")).strip(),
-                "cleaned_text": str(tr.get("Text", "")).strip(),
+                "speaker": "combined",  # E-DAIC 转录本无 speaker 列，全对话合并
+                "text_char_len": len(str(tr.get("Text", "")).strip()),
                 "phq8_score": r["phq8_score"],
                 "label": r["phq8_label_ge10"],
             })

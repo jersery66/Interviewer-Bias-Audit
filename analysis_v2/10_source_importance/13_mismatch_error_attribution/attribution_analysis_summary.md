@@ -2,7 +2,7 @@
 
 > 模块 13 · DAIC-WOZ PHQ-8 · 分析日期 2026-07-08
 > 定量部分来自冻结输入与冻结 10×5 参与者级交叉验证，可复现。
-> 人工归因（R1–R6）为待完成项，详见 `coding_sheet_selected.csv` 与 `codebook.md`。
+> 人工归因（R1–R6）已完成，详见 `coding_sheet_two_human_raters.csv`、`attribution_table2_family.csv` 与论文 3.3/附录表 14。
 
 ## 1 四组定义与样本量
 
@@ -45,10 +45,11 @@
 | pres | 9.188 | 0.0 |
 | complex | 2.7034 | 0.0238 |
 
-## 4 人工归因（待完成）
+## 4 人工归因（已完成）
 
-- 错位且预测错误的样本池：C 组 6 例、D 组 8 例；建议完整编码 14 例
-- 编码表：完整池 `coding_pool_all.csv`、待编码子集 `coding_sheet_selected.csv`（均仅含 ID 与结构化指标，含十域 count/pres，归因列留空）。
+- 错位且预测错误的样本池：C 组 6 例、D 组 8 例，共 14 例已完成双评审 R1–R6 编码。
+- 定稿编码表：`coding_sheet_two_human_raters.csv`（r1=db归因、r2=抑郁评估证据密度，含 `r1_family`/`r2_family`）。
+- 家族层归因主表：`attribution_table2_family.csv`；细分逐例分布（补充材料）：`attribution_table2_by_attribution.csv`。
+- 两名复核者细分类别一致率 0.643（9/14 一致、5/14 分歧），Cohen's Kappa = 0.530（中等一致）；家族层面 14/14 完全一致。
 - 编码手册：`codebook.md`（R1–R6 + 两轮双复核流程）。
-- 填完 `coding_sheet_selected.csv` 后，运行本模块提供的 `aggregate_coding.py` 生成表 2（错位类型 × 主要归因）并计算 Cohen's Kappa。
-- 本分析为机制性描述，**不作强因果推断**，不对个体作诊断性判断。
+- 本分析为机制性描述，**不作强因果推断**，不对个体作诊断性判断；完整结果见论文 3.3 与附录表 14。
