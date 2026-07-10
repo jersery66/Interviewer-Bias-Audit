@@ -1,0 +1,9 @@
+﻿evidence_def,threshold_rule,threshold_value,quadrant,quadrant_cn,n,pct,mean_phq8,phq_positive_rate,mean_coverage_breadth,mean_evidence_density
+evidence_density,median,10.5,consistent_high,一致高症状（PHQ高+证据高）,4,18.2,16.25,1.0,6.5,21.75
+evidence_density,median,10.5,consistent_low,一致低症状（PHQ低+证据低）,9,40.9,1.44,0.0,3.44,5.89
+evidence_density,median,10.5,self_high_evidence_low,自评高但访谈证据不足,2,9.1,15.5,1.0,3.0,6.0
+evidence_density,median,10.5,self_low_evidence_high,自评低但访谈证据较多,7,31.8,4.29,0.0,6.29,15.71
+evidence_density,predefined_11plus,11.0,consistent_high,一致高症状（PHQ高+证据高）,4,18.2,16.25,1.0,6.5,21.75
+evidence_density,predefined_11plus,11.0,consistent_low,一致低症状（PHQ低+证据低）,9,40.9,1.44,0.0,3.44,5.89
+evidence_density,predefined_11plus,11.0,self_high_evidence_low,自评高但访谈证据不足,2,9.1,15.5,1.0,3.0,6.0
+evidence_density,predefined_11plus,11.0,self_low_evidence_high,自评低但访谈证据较多,7,31.8,4.29,0.0,6.29,15.71
