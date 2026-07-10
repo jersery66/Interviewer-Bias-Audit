@@ -1,43 +1,43 @@
-﻿model,evidence_def,threshold_rule,group,n,n_correct,n_error,n_mismatch,n_consistent,n_error_mismatch,n_error_consistent,error_rate,error_rate_mismatch,error_rate_consistent,error_rate_diff,fisher_p,note
-base,coverage_breadth,predefined_5plus,mismatch_vs_consistent,22,13,9,9.0,13.0,9.0,0.0,0.4091,1.0,0.0,1.0,2.010373527401391e-06,Fisher exact; exploratory; unadjusted for 6 comparisons
-base,coverage_breadth,predefined_5plus,mismatch,9,0,9,,,,,1.0,,,,,descriptive subgroup; no separate significance test
-base,coverage_breadth,predefined_5plus,consistent,13,13,0,,,,,0.0,,,,,descriptive subgroup; no separate significance test
-base,coverage_breadth,predefined_5plus,consistent_high,5,5,0,,,,,0.0,,,,,descriptive subgroup; no separate significance test
-base,coverage_breadth,predefined_5plus,consistent_low,8,8,0,,,,,0.0,,,,,descriptive subgroup; no separate significance test
-base,coverage_breadth,predefined_5plus,self_high_evidence_low,1,0,1,,,,,1.0,,,,,descriptive subgroup; no separate significance test
-base,coverage_breadth,predefined_5plus,self_low_evidence_high,8,0,8,,,,,1.0,,,,,descriptive subgroup; no separate significance test
-base,evidence_density,predefined_11plus,mismatch_vs_consistent,22,13,9,9.0,13.0,8.0,1.0,0.4091,0.8889,0.0769,0.812,0.00023722407623336415,Fisher exact; exploratory; unadjusted for 6 comparisons
-base,evidence_density,predefined_11plus,mismatch,9,1,8,,,,,0.8889,,,,,descriptive subgroup; no separate significance test
-base,evidence_density,predefined_11plus,consistent,13,12,1,,,,,0.0769,,,,,descriptive subgroup; no separate significance test
-base,evidence_density,predefined_11plus,consistent_high,4,4,0,,,,,0.0,,,,,descriptive subgroup; no separate significance test
-base,evidence_density,predefined_11plus,consistent_low,9,8,1,,,,,0.1111,,,,,descriptive subgroup; no separate significance test
-base,evidence_density,predefined_11plus,self_high_evidence_low,2,1,1,,,,,0.5,,,,,descriptive subgroup; no separate significance test
-base,evidence_density,predefined_11plus,self_low_evidence_high,7,0,7,,,,,1.0,,,,,descriptive subgroup; no separate significance test
-count,coverage_breadth,predefined_5plus,mismatch_vs_consistent,22,13,9,9.0,13.0,6.0,3.0,0.4091,0.6667,0.2308,0.4359,0.0789031402034498,Fisher exact; exploratory; unadjusted for 6 comparisons
-count,coverage_breadth,predefined_5plus,mismatch,9,3,6,,,,,0.6667,,,,,descriptive subgroup; no separate significance test
-count,coverage_breadth,predefined_5plus,consistent,13,10,3,,,,,0.2308,,,,,descriptive subgroup; no separate significance test
-count,coverage_breadth,predefined_5plus,consistent_high,5,4,1,,,,,0.2,,,,,descriptive subgroup; no separate significance test
-count,coverage_breadth,predefined_5plus,consistent_low,8,6,2,,,,,0.25,,,,,descriptive subgroup; no separate significance test
-count,coverage_breadth,predefined_5plus,self_high_evidence_low,1,0,1,,,,,1.0,,,,,descriptive subgroup; no separate significance test
-count,coverage_breadth,predefined_5plus,self_low_evidence_high,8,3,5,,,,,0.625,,,,,descriptive subgroup; no separate significance test
-count,evidence_density,predefined_11plus,mismatch_vs_consistent,22,13,9,9.0,13.0,6.0,3.0,0.4091,0.6667,0.2308,0.4359,0.0789031402034498,Fisher exact; exploratory; unadjusted for 6 comparisons
-count,evidence_density,predefined_11plus,mismatch,9,3,6,,,,,0.6667,,,,,descriptive subgroup; no separate significance test
-count,evidence_density,predefined_11plus,consistent,13,10,3,,,,,0.2308,,,,,descriptive subgroup; no separate significance test
-count,evidence_density,predefined_11plus,consistent_high,4,3,1,,,,,0.25,,,,,descriptive subgroup; no separate significance test
-count,evidence_density,predefined_11plus,consistent_low,9,7,2,,,,,0.2222,,,,,descriptive subgroup; no separate significance test
-count,evidence_density,predefined_11plus,self_high_evidence_low,2,1,1,,,,,0.5,,,,,descriptive subgroup; no separate significance test
-count,evidence_density,predefined_11plus,self_low_evidence_high,7,2,5,,,,,0.7143,,,,,descriptive subgroup; no separate significance test
-pres,coverage_breadth,predefined_5plus,mismatch_vs_consistent,22,13,9,9.0,13.0,8.0,1.0,0.4091,0.8889,0.0769,0.812,0.00023722407623336415,Fisher exact; exploratory; unadjusted for 6 comparisons
-pres,coverage_breadth,predefined_5plus,mismatch,9,1,8,,,,,0.8889,,,,,descriptive subgroup; no separate significance test
-pres,coverage_breadth,predefined_5plus,consistent,13,12,1,,,,,0.0769,,,,,descriptive subgroup; no separate significance test
-pres,coverage_breadth,predefined_5plus,consistent_high,5,5,0,,,,,0.0,,,,,descriptive subgroup; no separate significance test
-pres,coverage_breadth,predefined_5plus,consistent_low,8,7,1,,,,,0.125,,,,,descriptive subgroup; no separate significance test
-pres,coverage_breadth,predefined_5plus,self_high_evidence_low,1,0,1,,,,,1.0,,,,,descriptive subgroup; no separate significance test
-pres,coverage_breadth,predefined_5plus,self_low_evidence_high,8,1,7,,,,,0.875,,,,,descriptive subgroup; no separate significance test
-pres,evidence_density,predefined_11plus,mismatch_vs_consistent,22,13,9,9.0,13.0,8.0,1.0,0.4091,0.8889,0.0769,0.812,0.00023722407623336415,Fisher exact; exploratory; unadjusted for 6 comparisons
-pres,evidence_density,predefined_11plus,mismatch,9,1,8,,,,,0.8889,,,,,descriptive subgroup; no separate significance test
-pres,evidence_density,predefined_11plus,consistent,13,12,1,,,,,0.0769,,,,,descriptive subgroup; no separate significance test
-pres,evidence_density,predefined_11plus,consistent_high,4,4,0,,,,,0.0,,,,,descriptive subgroup; no separate significance test
-pres,evidence_density,predefined_11plus,consistent_low,9,8,1,,,,,0.1111,,,,,descriptive subgroup; no separate significance test
-pres,evidence_density,predefined_11plus,self_high_evidence_low,2,1,1,,,,,0.5,,,,,descriptive subgroup; no separate significance test
-pres,evidence_density,predefined_11plus,self_low_evidence_high,7,0,7,,,,,1.0,,,,,descriptive subgroup; no separate significance test
+﻿model,evidence_def,threshold_rule,group,n,n_correct,n_error,n_mismatch,n_consistent,n_error_mismatch,n_error_consistent,error_rate,error_rate_mismatch,error_rate_mismatch_CI95_low,error_rate_mismatch_CI95_high,error_rate_consistent,error_rate_consistent_CI95_low,error_rate_consistent_CI95_high,error_rate_diff,error_rate_CI95_low,error_rate_CI95_high,fisher_p,independent_test,interpretation_scope,note
+base,coverage_breadth,predefined_5plus,mismatch_vs_consistent,22,13,9,9.0,13.0,9.0,0.0,0.4091,1.0,0.6637,1.0,0.0,0.0,0.2471,1.0,0.2071,0.6365,2.010373527401391e-06,0,descriptive_only,descriptive only; definition-feature overlap; Fisher is not an independent mechanism test; unadjusted for 6 comparisons
+base,coverage_breadth,predefined_5plus,mismatch,9,0,9,,,,,1.0,,,,,,,,0.6637,1.0,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+base,coverage_breadth,predefined_5plus,consistent,13,13,0,,,,,0.0,,,,,,,,0.0,0.2471,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+base,coverage_breadth,predefined_5plus,consistent_high,5,5,0,,,,,0.0,,,,,,,,0.0,0.5218,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+base,coverage_breadth,predefined_5plus,consistent_low,8,8,0,,,,,0.0,,,,,,,,0.0,0.3694,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+base,coverage_breadth,predefined_5plus,self_high_evidence_low,1,0,1,,,,,1.0,,,,,,,,0.025,1.0,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+base,coverage_breadth,predefined_5plus,self_low_evidence_high,8,0,8,,,,,1.0,,,,,,,,0.6306,1.0,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+base,evidence_density,predefined_11plus,mismatch_vs_consistent,22,13,9,9.0,13.0,8.0,1.0,0.4091,0.8889,0.5175,0.9972,0.0769,0.0019,0.3603,0.812,0.2071,0.6365,0.00023722407623336415,0,descriptive_only,descriptive only; definition-feature overlap; Fisher is not an independent mechanism test; unadjusted for 6 comparisons
+base,evidence_density,predefined_11plus,mismatch,9,1,8,,,,,0.8889,,,,,,,,0.5175,0.9972,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+base,evidence_density,predefined_11plus,consistent,13,12,1,,,,,0.0769,,,,,,,,0.0019,0.3603,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+base,evidence_density,predefined_11plus,consistent_high,4,4,0,,,,,0.0,,,,,,,,0.0,0.6024,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+base,evidence_density,predefined_11plus,consistent_low,9,8,1,,,,,0.1111,,,,,,,,0.0028,0.4825,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+base,evidence_density,predefined_11plus,self_high_evidence_low,2,1,1,,,,,0.5,,,,,,,,0.0126,0.9874,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+base,evidence_density,predefined_11plus,self_low_evidence_high,7,0,7,,,,,1.0,,,,,,,,0.5904,1.0,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+count,coverage_breadth,predefined_5plus,mismatch_vs_consistent,22,13,9,9.0,13.0,6.0,3.0,0.4091,0.6667,0.2993,0.9251,0.2308,0.0504,0.5381,0.4359,0.2071,0.6365,0.0789031402034498,0,descriptive_only,descriptive only; definition-feature overlap; Fisher is not an independent mechanism test; unadjusted for 6 comparisons
+count,coverage_breadth,predefined_5plus,mismatch,9,3,6,,,,,0.6667,,,,,,,,0.2993,0.9251,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+count,coverage_breadth,predefined_5plus,consistent,13,10,3,,,,,0.2308,,,,,,,,0.0504,0.5381,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+count,coverage_breadth,predefined_5plus,consistent_high,5,4,1,,,,,0.2,,,,,,,,0.0051,0.7164,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+count,coverage_breadth,predefined_5plus,consistent_low,8,6,2,,,,,0.25,,,,,,,,0.0319,0.6509,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+count,coverage_breadth,predefined_5plus,self_high_evidence_low,1,0,1,,,,,1.0,,,,,,,,0.025,1.0,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+count,coverage_breadth,predefined_5plus,self_low_evidence_high,8,3,5,,,,,0.625,,,,,,,,0.2449,0.9148,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+count,evidence_density,predefined_11plus,mismatch_vs_consistent,22,13,9,9.0,13.0,6.0,3.0,0.4091,0.6667,0.2993,0.9251,0.2308,0.0504,0.5381,0.4359,0.2071,0.6365,0.0789031402034498,0,descriptive_only,descriptive only; definition-feature overlap; Fisher is not an independent mechanism test; unadjusted for 6 comparisons
+count,evidence_density,predefined_11plus,mismatch,9,3,6,,,,,0.6667,,,,,,,,0.2993,0.9251,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+count,evidence_density,predefined_11plus,consistent,13,10,3,,,,,0.2308,,,,,,,,0.0504,0.5381,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+count,evidence_density,predefined_11plus,consistent_high,4,3,1,,,,,0.25,,,,,,,,0.0063,0.8059,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+count,evidence_density,predefined_11plus,consistent_low,9,7,2,,,,,0.2222,,,,,,,,0.0281,0.6001,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+count,evidence_density,predefined_11plus,self_high_evidence_low,2,1,1,,,,,0.5,,,,,,,,0.0126,0.9874,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+count,evidence_density,predefined_11plus,self_low_evidence_high,7,2,5,,,,,0.7143,,,,,,,,0.2904,0.9633,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+pres,coverage_breadth,predefined_5plus,mismatch_vs_consistent,22,13,9,9.0,13.0,8.0,1.0,0.4091,0.8889,0.5175,0.9972,0.0769,0.0019,0.3603,0.812,0.2071,0.6365,0.00023722407623336415,0,descriptive_only,descriptive only; definition-feature overlap; Fisher is not an independent mechanism test; unadjusted for 6 comparisons
+pres,coverage_breadth,predefined_5plus,mismatch,9,1,8,,,,,0.8889,,,,,,,,0.5175,0.9972,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+pres,coverage_breadth,predefined_5plus,consistent,13,12,1,,,,,0.0769,,,,,,,,0.0019,0.3603,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+pres,coverage_breadth,predefined_5plus,consistent_high,5,5,0,,,,,0.0,,,,,,,,0.0,0.5218,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+pres,coverage_breadth,predefined_5plus,consistent_low,8,7,1,,,,,0.125,,,,,,,,0.0032,0.5265,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+pres,coverage_breadth,predefined_5plus,self_high_evidence_low,1,0,1,,,,,1.0,,,,,,,,0.025,1.0,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+pres,coverage_breadth,predefined_5plus,self_low_evidence_high,8,1,7,,,,,0.875,,,,,,,,0.4735,0.9968,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+pres,evidence_density,predefined_11plus,mismatch_vs_consistent,22,13,9,9.0,13.0,8.0,1.0,0.4091,0.8889,0.5175,0.9972,0.0769,0.0019,0.3603,0.812,0.2071,0.6365,0.00023722407623336415,0,descriptive_only,descriptive only; definition-feature overlap; Fisher is not an independent mechanism test; unadjusted for 6 comparisons
+pres,evidence_density,predefined_11plus,mismatch,9,1,8,,,,,0.8889,,,,,,,,0.5175,0.9972,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+pres,evidence_density,predefined_11plus,consistent,13,12,1,,,,,0.0769,,,,,,,,0.0019,0.3603,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+pres,evidence_density,predefined_11plus,consistent_high,4,4,0,,,,,0.0,,,,,,,,0.0,0.6024,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+pres,evidence_density,predefined_11plus,consistent_low,9,8,1,,,,,0.1111,,,,,,,,0.0028,0.4825,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+pres,evidence_density,predefined_11plus,self_high_evidence_low,2,1,1,,,,,0.5,,,,,,,,0.0126,0.9874,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test
+pres,evidence_density,predefined_11plus,self_low_evidence_high,7,0,7,,,,,1.0,,,,,,,,0.5904,1.0,,0,descriptive_only,descriptive subgroup; definition-feature overlap; no separate significance test

@@ -1,11 +1,17 @@
 {
   "module": "14_edaic_extension_validation",
-  "created": "2026-07-11T00:35:10",
+  "created": "2026-07-11T01:53:18",
   "random_seed": 20260705,
   "decision_threshold": 0.5,
   "phq_positive_cut": 10,
   "coverage_predef_high": 5,
   "density_predef_high": 11,
+  "auc_ci": {
+    "level": 0.95,
+    "method": "stratified_percentile_bootstrap",
+    "resamples": 10000,
+    "seed_base": 20260705
+  },
   "edaic_candidate_n": 30,
   "edaic_included_n": 22,
   "edaic_excluded_n": 8,
@@ -212,6 +218,14 @@
       "suicide_self_harm_pres"
     ]
   },
+  "interpretation_scope": {
+    "mismatch_prevalence": "descriptive_transferability_check",
+    "transfer_auc": "descriptive_point_estimate_with_ci",
+    "mismatch_error_concentration": "not_an_independent_mechanism_test",
+    "definition_feature_overlap": true,
+    "fisher_p_role": "supplementary_unadjusted_only",
+    "generalization_validated": false
+  },
   "lr_params": {
     "penalty": "l2",
     "C": 1.0,
@@ -287,6 +301,6 @@
       "_c5_edaic_extension_v3_gpt55_chunk_checkpoints/"
     ]
   },
-  "script_sha256": "bf0d5643677cd25b9eaf9f6129461876ef0dad23628c8192010c22719117d41e",
-  "git_commit": "6cb968daa5090e337bd7439e0e54d1210334b233"
+  "script_sha256": "6dcc605c59b7c4f0a84aa41232c1549ccbe90ed4686ed6c262488601d75eb436",
+  "git_commit": "fff56ef703bf58c096b1ce916edfcd4dc1bea5ce"
 }

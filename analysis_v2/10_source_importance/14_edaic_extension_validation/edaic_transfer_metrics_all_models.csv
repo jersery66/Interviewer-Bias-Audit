@@ -1,4 +1,4 @@
-﻿model,n,n_positive,AUC,PR_AUC,Accuracy,Macro_F1,Sensitivity,Specificity,TP,FP,FN,TN,error_rate
-base,22,6,0.6875,0.576,0.5909,0.5832,0.8333,0.5,5,8,1,8,0.4091
-count,22,6,0.5833,0.3804,0.5909,0.5686,0.6667,0.5625,4,7,2,9,0.4091
-pres,22,6,0.5833,0.3435,0.5909,0.5832,0.8333,0.5,5,8,1,8,0.4091
+﻿model,n,n_positive,AUC,AUC_CI95_low,AUC_CI95_high,AUC_CI_method,PR_AUC,Accuracy,Macro_F1,Sensitivity,Specificity,TP,FP,FN,TN,error_rate
+base,22,6,0.6875,0.375,0.9479,stratified percentile bootstrap (10000 resamples),0.576,0.5909,0.5832,0.8333,0.5,5,8,1,8,0.4091
+count,22,6,0.5833,0.2917,0.8542,stratified percentile bootstrap (10000 resamples),0.3804,0.5909,0.5686,0.6667,0.5625,4,7,2,9,0.4091
+pres,22,6,0.5833,0.3125,0.8438,stratified percentile bootstrap (10000 resamples),0.3435,0.5909,0.5832,0.8333,0.5,5,8,1,8,0.4091
