@@ -1,0 +1,12 @@
+# Private/local intermediates: may contain transcript text or exact quotes.
+_c5_*_chunk_checkpoints/
+_debug_api_error_*/
+_failed_*_run_*/
+c5_*_chunks.jsonl
+c5_*_resume_seed.json
+c5_*_resume_seed_spans.csv
+c5_*_spans.csv
+edaic_evidence_extraction_input.jsonl
+
+# Runtime caches.
+__pycache__/

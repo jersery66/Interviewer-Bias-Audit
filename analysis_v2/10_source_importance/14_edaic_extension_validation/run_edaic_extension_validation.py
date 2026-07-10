@@ -66,6 +66,7 @@ import hashlib
 import subprocess
 import warnings
 from datetime import datetime
+from importlib.metadata import version as package_version
 from pathlib import Path
 
 import numpy as np
@@ -142,6 +143,7 @@ PHQ_POS_CUT = 10
 COVERAGE_PREDEF = 5
 DENSITY_PREDEF = 11
 N_PERM_CONC = 10000  # 仅 DAIC-WOZ 142 内部用；E-DAIC 30 用 Fisher 精确检验
+SPAN_DEDUP_KEYS = ["participant_id", "domain", "polarity", "exact_quote"]
 
 # ── 逐字复用 controls.build_domain_features（确定性聚合，无随机性） ────────────
 def build_domain_features(spans, participant_ids):
@@ -177,11 +179,54 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+def portable_edaic_path(path: Path, root: Path = EDAIC_ROOT) -> str:
+    """以 E-DAIC 根目录为基准记录路径，避免公开产物泄露本地绝对路径。"""
+    return Path(path).resolve().relative_to(Path(root).resolve()).as_posix()
+
+
+def resolve_edaic_path(path: str | Path, root: Path = EDAIC_ROOT) -> Path:
+    value = Path(path)
+    return value if value.is_absolute() else Path(root) / value
+
+
+def transcript_exclusion_reason(path: Path | None) -> str:
+    """返回空字符串表示转录本可用，否则返回稳定的排除原因。"""
+    if path is None or not Path(path).exists():
+        return "transcript_missing"
+    path = Path(path)
+    if path.stat().st_size == 0:
+        return "transcript_empty"
+    try:
+        frame = pd.read_csv(path, encoding="utf-8-sig", keep_default_na=False)
+    except Exception:
+        return "transcript_read_error"
+    if "Text" not in frame.columns:
+        return "transcript_format_missing_text"
+    if frame.empty or not frame["Text"].astype(str).str.strip().ne("").any():
+        return "transcript_no_text"
+    return ""
+
+
+def deduplicate_spans(spans: pd.DataFrame) -> pd.DataFrame:
+    """去除分块重叠产生的同一参与者、症状域、极性与原句重复。"""
+    missing = set(SPAN_DEDUP_KEYS).difference(spans.columns)
+    if missing:
+        raise ValueError(f"spans missing dedup columns: {sorted(missing)}")
+    keyed = spans.copy()
+    keyed["_quote_normalized"] = (
+        keyed["exact_quote"].astype(str).str.replace(r"\s+", " ", regex=True).str.strip()
+    )
+    dedup_keys = ["participant_id", "domain", "polarity", "_quote_normalized"]
+    return keyed.drop_duplicates(dedup_keys, keep="first").drop(columns="_quote_normalized")
+
+
 def find_transcript(pid: int) -> Path | None:
-    """定位 E-DAIC 转录本（兼容嵌套 / 扁平两种布局）。"""
+    """定位 E-DAIC 转录本（兼容三种布局：
+    嵌套 {pid}_P.tar/{pid}_P/、嵌套 {pid}_P/、扁平 {pid}_P.tar/）。"""
     cands = [
         EDAIC_DATA / f"{pid}_P.tar" / f"{pid}_P" / f"{pid}_Transcript.csv",
         EDAIC_DATA / f"{pid}_P" / f"{pid}_Transcript.csv",
+        EDAIC_DATA / f"{pid}_P.tar" / f"{pid}_Transcript.csv",
     ]
     for c in cands:
         if c.exists():
@@ -192,8 +237,12 @@ def find_transcript(pid: int) -> Path | None:
 def read_transcript_text(path: Path) -> str:
     """读取 E-DAIC 转录本并拼接 Participant 文本。
     注：E-DAIC 转录本仅有 Start_Time,End_Time,Text,Confidence（无 speaker 列），
-    故使用全对话文本（见模块 summary 偏差披露）。"""
-    df = pd.read_csv(path, encoding="utf-8-sig", keep_default_na=False)
+    故使用全对话文本（见模块 summary 偏差披露）。
+    空文件（0 字节）返回空字符串，由调用方决定是否排除。"""
+    p = Path(path)
+    if not p.exists() or p.stat().st_size == 0:
+        return ""
+    df = pd.read_csv(p, encoding="utf-8-sig", keep_default_na=False)
     text = " ".join(str(t).strip() for t in df["Text"].tolist() if str(t).strip())
     return text
 
@@ -233,15 +282,15 @@ def build_sample_manifest():
         pid = int(r["participant_id"])
         score = float(r["phq8_score"])
         tpath = find_transcript(pid)
-        included = tpath is not None
-        reason = "" if included else "transcript_missing"
+        reason = transcript_exclusion_reason(tpath)
+        included = int(reason == "")
         rows.append({
             "participant_id": pid,
             "source_dataset": "E-DAIC新增样本",
-            "transcript_path": str(tpath) if tpath else "",
+            "transcript_path": portable_edaic_path(tpath) if tpath else "",
             "phq8_score": score,
             "phq8_label_ge10": int(score >= PHQ_POS_CUT),
-            "transcript_exists": int(included),
+            "transcript_exists": int(tpath is not None),
             "included": int(included),
             "exclusion_reason": reason,
         })
@@ -249,8 +298,10 @@ def build_sample_manifest():
     man.to_csv(SCRIPT_DIR / "edaic_extension_sample_manifest.csv",
                index=False, encoding="utf-8-sig")
     n_incl = int(man["included"].sum())
+    n_excl = len(man) - n_incl
+    reasons = "; ".join(sorted({str(x) for x in man[man["included"] == 0]["exclusion_reason"] if x})) or "无"
     print(f"    E_DAIC_only 候选 {len(man)} 人；纳入 {n_incl} 人"
-          f"（排除 {len(man)-n_incl} 人：transcript 缺失）。")
+          f"（排除 {n_excl} 人：{reasons}）。")
     return man
 
 
@@ -261,13 +312,23 @@ RUN_ID = "c5_edaic_extension_v3_gpt55"
 SPANS_CSV = SCRIPT_DIR / f"{RUN_ID}_spans.csv"
 
 
+def chunk_run_id(participant_id, chunk_index):
+    """为每个分块生成独立 run_id，避免底层脚本按 participant_id 覆盖结果。"""
+    return f"{RUN_ID}_{int(participant_id)}_chunk{int(chunk_index):02d}"
+
+
+CHUNK_CHECKPOINT_DIR = SCRIPT_DIR / f"_{RUN_ID}_chunk_checkpoints"
+RESUME_SEED_JSON = SCRIPT_DIR / f"{RUN_ID}_resume_seed.json"
+RESUME_SEED_SPANS_CSV = SCRIPT_DIR / f"{RUN_ID}_resume_seed_spans.csv"
+
+
 def prepare_extraction_jsonl(manifest):
     print("[2] Preparing C5 extraction input jsonl for E-DAIC new samples...")
     incl = manifest[manifest["included"] == 1]
     records = []
     for _, r in incl.iterrows():
         pid = int(r["participant_id"])
-        text = read_transcript_text(Path(r["transcript_path"]))
+        text = read_transcript_text(resolve_edaic_path(r["transcript_path"]))
         records.append({
             "task_id": f"{pid}_symptom_evidence_extraction",
             "participant_id": pid,
@@ -283,8 +344,70 @@ def prepare_extraction_jsonl(manifest):
     return jsonl_path
 
 
+def chunk_text(text: str, max_chars: int = 3500, overlap: int = 200) -> list[str]:
+    """把长文本切成 ≤max_chars 的块，块间重叠 overlap 字符，避免证据跨边界丢失。
+    api.apiyi 的 gpt-5.5 对 >~4000 字符输入易返回空 completion，分块可显著降低空响应。"""
+    text = (text or "").strip()
+    if not text:
+        return []
+    if len(text) <= max_chars:
+        return [text]
+    chunks: list[str] = []
+    start = 0
+    n = len(text)
+    while start < n:
+        end = min(start + max_chars, n)
+        chunks.append(text[start:end])
+        if end >= n:
+            break
+        start = max(end - overlap, start + 1)
+    return chunks
+
+
+def plan_chunk_jobs(pid, text: str, max_chars: int = 3500, overlap: int = 200) -> list[dict]:
+    """为每个文本块生成独立 run-id，避免底层管线按 participant_id 覆盖前序块。"""
+    jobs = []
+    for chunk_index, chunk in enumerate(chunk_text(text, max_chars, overlap), 1):
+        jobs.append({
+            "participant_id": str(pid),
+            "chunk_index": chunk_index,
+            "run_id": chunk_run_id(pid, chunk_index),
+            "text": chunk,
+        })
+    return jobs
+
+
+def chunk_api_succeeded(raw_path: Path) -> bool:
+    """只有 raw 中存在 api_ok=true 才把该块视为可复用断点。"""
+    if not raw_path.exists():
+        return False
+    with raw_path.open(encoding="utf-8") as f:
+        for line in f:
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if row.get("api_ok") is True:
+                return True
+    return False
+
+
+def load_resume_completed_chunks(seed_path: Path) -> set[tuple[str, int]]:
+    """读取经人工核验的历史成功块；缺省时返回空集合。"""
+    if not seed_path.exists():
+        return set()
+    payload = json.loads(seed_path.read_text(encoding="utf-8"))
+    completed = set()
+    for pid, chunk_indexes in payload.get("completed_chunks", {}).items():
+        for chunk_index in chunk_indexes:
+            completed.add((str(pid), int(chunk_index)))
+    return completed
+
+
 def run_c5_extraction(jsonl_path, ids):
-    """复用 DAIC-WOZ 原始 C5 抽取管线（gpt-5.5 / prompt v3 / temperature=0）。"""
+    """复用 DAIC-WOZ 原始 C5 抽取管线（gpt-5.5 / prompt v3 / temperature=0）。
+    长对话按 ≤3500 字符分块抽取（api.apiyi 的 gpt-5.5 对长输入易返回空响应），
+    各块独立重试后合并 spans。"""
     if not EXTRACTION_SCRIPT.exists():
         raise FileNotFoundError(f"抽取脚本不存在: {EXTRACTION_SCRIPT}")
     if not PROMPT_MD.exists():
@@ -296,17 +419,120 @@ def run_c5_extraction(jsonl_path, ids):
             "或将抽取产物手动命名为 "
             f"{SPANS_CSV.name} 放入模块 14 目录后重新运行（脚本会跳过抽取步骤）。"
         )
-    cmd = [
-        sys.executable, str(EXTRACTION_SCRIPT),
-        "--input-jsonl", str(jsonl_path),
-        "--output-dir", str(SCRIPT_DIR),
-        "--run-id", RUN_ID,
-        "--prompt-md", str(PROMPT_MD),
-        "--ids", ",".join(str(i) for i in ids),
-    ]
-    print("[2b] Running C5 extraction (gpt-5.5 / prompt v3 / temp 0)...")
+    # 读取各参与者全文（来自 prepare_extraction_jsonl 产出的 jsonl）
+    records: dict[str, str] = {}
+    with open(jsonl_path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rec = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            records[str(rec.get("participant_id", "")).strip()] = rec.get("text", "")
     env = dict(os.environ, APIYI_API_KEY=api_key)
-    subprocess.run(cmd, env=env, check=True)
+    MAX_CHARS = 3500
+    OVERLAP = 200
+    SPAN_COLS = ["participant_id", "split", "label", "phq_binary", "phq_score",
+                 "prompt_version", "model", "source_order", "model_source_order",
+                 "domain", "polarity", "exact_quote", "quote_char_count",
+                 "quote_word_count", "match_status"]
+    CHUNK_CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
+    resume_completed = load_resume_completed_chunks(RESUME_SEED_JSON)
+    out_frames = []
+    if resume_completed:
+        if not RESUME_SEED_SPANS_CSV.exists():
+            raise RuntimeError(
+                f"历史断点声明存在，但缺少 seed spans: {RESUME_SEED_SPANS_CSV}"
+            )
+        out_frames.append(pd.read_csv(
+            RESUME_SEED_SPANS_CSV, encoding="utf-8-sig", keep_default_na=False
+        ))
+        print(f"    [2b] 载入历史断点：{len(resume_completed)} 块。")
+
+    failed_chunks = []
+    quota_exhausted = False
+    for pid in ids:
+        text = records.get(str(pid), "")
+        if not str(text).strip():
+            print(f"    {pid}: 空文本，跳过抽取")
+            continue
+        jobs = plan_chunk_jobs(pid, str(text), MAX_CHARS, OVERLAP)
+        print(f"    [2b] {pid}: 共 {len(jobs)} 块 (gpt-5.5 / prompt v3)...")
+        for job in jobs:
+            chunk_key = (str(pid), job["chunk_index"])
+            if chunk_key in resume_completed:
+                print(f"        chunk {job['chunk_index']}/{len(jobs)}: 历史断点，跳过")
+                continue
+
+            crun = job["run_id"]
+            cjsonl = CHUNK_CHECKPOINT_DIR / f"{crun}_input.jsonl"
+            cspans = CHUNK_CHECKPOINT_DIR / f"{crun}_spans.csv"
+            craw = CHUNK_CHECKPOINT_DIR / f"{crun}_raw.jsonl"
+            cerrors = CHUNK_CHECKPOINT_DIR / f"{crun}_errors.jsonl"
+            cjsonl.write_text(
+                json.dumps({"participant_id": str(pid), "text": job["text"]},
+                           ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+
+            if chunk_api_succeeded(craw) and cspans.exists():
+                print(f"        chunk {job['chunk_index']}/{len(jobs)}: 成功断点，跳过")
+            else:
+                cmd = [
+                    sys.executable, str(EXTRACTION_SCRIPT),
+                    "--input-jsonl", str(cjsonl),
+                    "--output-dir", str(CHUNK_CHECKPOINT_DIR),
+                    "--run-id", crun,
+                    "--prompt-md", str(PROMPT_MD),
+                    "--max-retries", "8",
+                    "--ids", str(pid),
+                ]
+                print(f"        chunk {job['chunk_index']}/{len(jobs)}: 抽取中")
+                try:
+                    subprocess.run(cmd, env=env, check=True)
+                except subprocess.CalledProcessError:
+                    pass
+
+            if not chunk_api_succeeded(craw) or not cspans.exists():
+                failed_chunks.append(chunk_key)
+                error_text = cerrors.read_text(encoding="utf-8", errors="replace") if cerrors.exists() else ""
+                if "insufficient_quota" in error_text or "配额不足" in error_text:
+                    quota_exhausted = True
+                    print(f"        chunk {job['chunk_index']}/{len(jobs)}: APIYI 配额不足，停止续跑")
+                else:
+                    print(f"        chunk {job['chunk_index']}/{len(jobs)}: 未成功，保留断点")
+                break
+
+            out_frames.append(pd.read_csv(
+                cspans, encoding="utf-8-sig", keep_default_na=False
+            ))
+
+        if quota_exhausted:
+            break
+
+    if failed_chunks:
+        try:
+            SPANS_CSV.unlink()
+        except OSError:
+            pass
+        reason = "APIYI 配额不足" if quota_exhausted else "存在未成功分块"
+        raise RuntimeError(f"C5 抽取未完成：{reason}；失败分块={failed_chunks}")
+
+    if out_frames:
+        final = pd.concat(out_frames, ignore_index=True)
+        before = len(final)
+        final = deduplicate_spans(final)
+        final.to_csv(SPANS_CSV, index=False, encoding="utf-8-sig")
+        print(
+            f"    [2b] 合并完成：{len(final)} 条证据 span"
+            f"（来自 {len(out_frames)} 个分块结果；语义去重 {before - len(final)} 条）。"
+        )
+    else:
+        # 没有任何 span：写出仅表头的占位文件，避免下游断言失败
+        pd.DataFrame(columns=SPAN_COLS).to_csv(SPANS_CSV, index=False, encoding="utf-8-sig")
+        print("    [2b] 警告：所有参与者抽取均为空，写出空 span 文件。")
     if not SPANS_CSV.exists():
         raise RuntimeError(f"抽取未产出预期文件: {SPANS_CSV}")
 
@@ -319,6 +545,7 @@ def aggregate_evidence(manifest):
     if not SPANS_CSV.exists():
         raise RuntimeError(f"未找到 span 文件 {SPANS_CSV.name}，抽取步骤未成功。")
     spans = pd.read_csv(SPANS_CSV, encoding="utf-8-sig", keep_default_na=False)
+    spans = deduplicate_spans(spans)
     # 仅保留被纳入的 participant
     incl_ids = manifest[manifest["included"] == 1]["participant_id"].tolist()
     spans = spans[spans["participant_id"].isin(incl_ids)]
@@ -522,7 +749,7 @@ def compute_metrics_and_errors(transfer):
             "TP": tp, "FP": fp, "FN": fn, "TN": tn,
             "error_rate": round(n_err / n, 4) if n else np.nan,
         })
-        # 错位 vs 一致
+        # 错位 vs 一致，以及四象限明细
         for ev_def, rule, qcol in [
             ("coverage_breadth", "predefined_5plus", "_q_coverage_breadth_predefined_5plus"),
             ("evidence_density", "predefined_11plus", "_q_evidence_density_predefined_11plus"),
@@ -538,7 +765,7 @@ def compute_metrics_and_errors(transfer):
             obs_diff = rate_mis - rate_con if (nm and nc) else np.nan
             # Fisher 精确检验（2x2：错位 vs 一致 的 错/对）
             fisher_p = np.nan
-            note = ""
+            note = "Fisher exact; exploratory; unadjusted for 6 comparisons"
             if nm and nc:
                 a = int(err_flag[mismatch_mask].sum()); b = nm - a
                 c = int(err_flag[consistent_mask].sum()); d = nc - c
@@ -553,16 +780,46 @@ def compute_metrics_and_errors(transfer):
                 "model": m, "evidence_def": ev_def, "threshold_rule": rule,
                 "group": "mismatch_vs_consistent",
                 "n": nm + nc,
+                "n_correct": int((err_flag == 0).sum()),
+                "n_error": int(err_flag.sum()),
                 "n_mismatch": nm, "n_consistent": nc,
                 "n_error_mismatch": int(err_flag[mismatch_mask].sum()) if nm else 0,
                 "n_error_consistent": int(err_flag[consistent_mask].sum()) if nc else 0,
-                "error_rate": np.nan,
+                "error_rate": round(float(err_flag.mean()), 4) if len(err_flag) else np.nan,
                 "error_rate_mismatch": round(rate_mis, 4) if not np.isnan(rate_mis) else np.nan,
                 "error_rate_consistent": round(rate_con, 4) if not np.isnan(rate_con) else np.nan,
                 "error_rate_diff": round(obs_diff, 4) if not np.isnan(obs_diff) else np.nan,
-                "fisher_p": round(float(fisher_p), 4) if not np.isnan(fisher_p) else np.nan,
+                "fisher_p": float(fisher_p) if not np.isnan(fisher_p) else np.nan,
                 "note": note,
             })
+
+            group_masks = {
+                "mismatch": mismatch_mask,
+                "consistent": consistent_mask,
+                **{q: quad == q for q in QUADRANTS},
+            }
+            for group_name, mask in group_masks.items():
+                group_n = int(mask.sum())
+                group_errors = int(err_flag[mask].sum()) if group_n else 0
+                err_rows.append({
+                    "model": m,
+                    "evidence_def": ev_def,
+                    "threshold_rule": rule,
+                    "group": group_name,
+                    "n": group_n,
+                    "n_correct": group_n - group_errors,
+                    "n_error": group_errors,
+                    "n_mismatch": np.nan,
+                    "n_consistent": np.nan,
+                    "n_error_mismatch": np.nan,
+                    "n_error_consistent": np.nan,
+                    "error_rate": round(group_errors / group_n, 4) if group_n else np.nan,
+                    "error_rate_mismatch": np.nan,
+                    "error_rate_consistent": np.nan,
+                    "error_rate_diff": np.nan,
+                    "fisher_p": np.nan,
+                    "note": "descriptive subgroup; no separate significance test",
+                })
     pd.DataFrame(metric_rows).to_csv(SCRIPT_DIR / "edaic_transfer_metrics_all_models.csv",
                                      index=False, encoding="utf-8-sig")
     pd.DataFrame(err_rows).to_csv(SCRIPT_DIR / "edaic_model_error_by_mismatch_group.csv",
@@ -606,7 +863,8 @@ def build_comparison(transfer, auc_daic, quad_df, err_df):
 
     def edaic_err_rate(model, ev_def, rule):
         r = err_df[(err_df["model"] == model) & (err_df["evidence_def"] == ev_def)
-                   & (err_df["threshold_rule"] == rule)]
+                   & (err_df["threshold_rule"] == rule)
+                   & (err_df["group"] == "mismatch_vs_consistent")]
         return float(r.iloc[0]["error_rate_mismatch"]), float(r.iloc[0]["error_rate_consistent"])
     def edaic_pos_rate():
         return round(float((transfer["label"].values.sum()) / n_edaic), 3)
@@ -683,8 +941,8 @@ def build_summary(manifest, transfer, quad_df, err_df, auc_daic, cmp, cov_median
     L = []
     L.append("# E-DAIC 新增标注样本的探索性补充验证")
     L.append("")
-    L.append("> 模块 14 · E-DAIC 扩展验证 · 分析日期 2026-07-09")
-    L.append("> 复现：仓库 `codex/reanalysis-v2` 分支；需先设置环境变量 `APIYI_API_KEY` 重跑 C5 抽取。")
+    L.append(f"> 模块 14 · E-DAIC 扩展验证 · 分析日期 {datetime.now().date().isoformat()}")
+    L.append("> 复现：仓库 `codex/reanalysis-v2` 分支；从原始 E-DAIC 重建 C5 证据需本地授权数据与 `APIYI_API_KEY`。含原文的抽取中间文件不上传 GitHub。")
     L.append("")
     L.append("## 0 研究定位（硬性声明）")
     L.append("")
@@ -692,14 +950,14 @@ def build_summary(manifest, transfer, quad_df, err_df, auc_daic, cmp, cov_median
     L.append("2. 本模块**只纳入 E-DAIC 新增且公开 PHQ-8 标签**的参与者（来自 `Detailed_PHQ8_Labels_E_DAIC_only.csv`），排除原始 DAIC-WOZ 189 人与无公开标签的 test 56 人。")
     L.append("3. **不与 DAIC-WOZ 主分析样本合并**；E-DAIC 仅作为新增有标签测试集。")
     L.append("4. E-DAIC 结果**只作探索性补充验证**，用于观察 DAIC-WOZ 主分析发现的现象方向是否可复现。")
-    L.append("5. 若方向一致，表述为「方向上支持」；**不写为「严格外部验证」**。（E-DAIC 与 DAIC-WOZ 共享原始参与者，且样本量小。）")
+    L.append("5. 若方向一致，表述为「方向上支持」；**不写为「严格外部验证」**。（本次新增样本与 DAIC-WOZ 训练样本 ID 无重叠，但 E-DAIC 数据资源继承 DAIC-WOZ 的采集框架，且样本量小。）")
     L.append("6. 若方向不一致，诚实说明「E-DAIC 新增小样本中未能稳定复现」。")
     L.append("7. **PHQ-8 为自评量表总分，不是临床诊断**；所有结论描述「自评抑郁症状严重度/风险」，不能外推为临床诊断。")
-    L.append("8. 本模块**不输出任何访谈原文**，仅输出 participant_id 与结构化指标。")
+    L.append("8. 本模块的**公开产物不包含任何访谈原文**，仅发布 participant_id 与结构化指标；含原文的本地抽取输入、span 和 checkpoint 均排除在版本控制之外。")
     L.append("")
     L.append("## 1 方法（可粘贴进论文 2.x）")
     L.append("")
-    L.append("为检验主分析发现的可迁移性，本研究进一步使用 E-DAIC 中新增且公开 PHQ-8 标签的参与者作为探索性补充验证样本。由于 E-DAIC 为 DAIC-WOZ 的扩展版本并包含原始 DAIC-WOZ 参与者，本研究未将两者合并，而是排除原始 DAIC-WOZ 参与者、仅保留新增有标签样本（候选 %d 人，纳入 n=%d，排除 %d 人：%s）。该补充分析沿用 DAIC-WOZ 主分析中的十域症状定义、C5 抽取 prompt（v3）、模型参数（gpt-5.5 / temperature=0）与聚合规则生成症状证据特征；但由于 E-DAIC 转录本缺少 speaker 标记，E-DAIC 抽取输入为全对话文本，因此该补充验证并非完全同源输入条件下的严格复现。模型在 DAIC-WOZ 主分析样本（n=142）上训练，并在 E-DAIC 新增样本上直接测试。" % (n_cand, n_edaic, n_excl, excl_reasons))
+    L.append("为检验主分析发现的可迁移性，本研究进一步使用 E-DAIC 中新增且公开 PHQ-8 标签的参与者作为探索性补充验证样本。由于 E-DAIC 为 DAIC-WOZ 的扩展版本并包含原始 DAIC-WOZ 参与者，本研究未将两者合并，而是排除原始 DAIC-WOZ 参与者、仅保留新增有标签样本（候选 %d 人，纳入 n=%d，排除 %d 人：%s）。该补充分析沿用 DAIC-WOZ 主分析中的十域症状定义、C5 抽取 prompt（v3）、模型参数（gpt-5.5 / temperature=0）与聚合规则生成症状证据特征。为规避接口对长输入的空响应，全文按不超过 3500 字符、相邻重叠 200 字符分块抽取，合并时按参与者、症状域、极性和原句做语义去重。由于 E-DAIC 转录本缺少 speaker 标记，抽取输入为无 speaker 标记的全对话文本，因此该补充验证并非完全同源输入条件下的严格复现。模型在 DAIC-WOZ 主分析样本（n=142）上训练，并在 E-DAIC 新增样本上直接测试。" % (n_cand, n_edaic, n_excl, excl_reasons))
     L.append("")
     L.append("> **偏差披露**：E-DAIC 转录本无 speaker 列（DAIC-WOZ 原始转录本含 Ellie/Participant 标签），故对 E-DAIC 喂入全对话文本；C5 抽取 prompt 要求仅提取被试症状证据，但由于 E-DAIC 输入为无 speaker 标记的全对话文本，仍可能存在访谈员话语干扰，因此该补充验证仅作探索性分析。")
     L.append("")
@@ -711,19 +969,20 @@ def build_summary(manifest, transfer, quad_df, err_df, auc_daic, cmp, cov_median
     L.append("- 覆盖广度定义下，错位样本占 %d/%d（%.1f%%）；证据密度定义下占 %d/%d（%.1f%%）。" % (
         cov_mis, n_edaic, 100.0 * cov_mis / n_edaic, den_mis, n_edaic, 100.0 * den_mis / n_edaic))
     # 错分方向
-    base_err = err_df[(err_df["model"] == "base") & (err_df["evidence_def"] == "coverage_breadth") & (err_df["threshold_rule"] == "predefined_5plus")].iloc[0]
+    comparison_rows = err_df[err_df["group"] == "mismatch_vs_consistent"]
+    base_err = comparison_rows[(comparison_rows["model"] == "base") & (comparison_rows["evidence_def"] == "coverage_breadth") & (comparison_rows["threshold_rule"] == "predefined_5plus")].iloc[0]
     L.append("- DAIC-WOZ 训练出的基础负荷模型迁移到 E-DAIC 后，错位样本错分率为 %.3f、一致样本为 %.3f；" % (
         float(base_err["error_rate_mismatch"]), float(base_err["error_rate_consistent"])))
     L.append("  计数模型为 %.3f / %.3f，出现模型为 %.3f / %.3f（覆盖广度预定义切点）。" % (
-        float(err_df[(err_df["model"] == "count") & (err_df["evidence_def"] == "coverage_breadth") & (err_df["threshold_rule"] == "predefined_5plus")].iloc[0]["error_rate_mismatch"]),
-        float(err_df[(err_df["model"] == "count") & (err_df["evidence_def"] == "coverage_breadth") & (err_df["threshold_rule"] == "predefined_5plus")].iloc[0]["error_rate_consistent"]),
-        float(err_df[(err_df["model"] == "pres") & (err_df["evidence_def"] == "coverage_breadth") & (err_df["threshold_rule"] == "predefined_5plus")].iloc[0]["error_rate_mismatch"]),
-        float(err_df[(err_df["model"] == "pres") & (err_df["evidence_def"] == "coverage_breadth") & (err_df["threshold_rule"] == "predefined_5plus")].iloc[0]["error_rate_consistent"])))
+        float(comparison_rows[(comparison_rows["model"] == "count") & (comparison_rows["evidence_def"] == "coverage_breadth") & (comparison_rows["threshold_rule"] == "predefined_5plus")].iloc[0]["error_rate_mismatch"]),
+        float(comparison_rows[(comparison_rows["model"] == "count") & (comparison_rows["evidence_def"] == "coverage_breadth") & (comparison_rows["threshold_rule"] == "predefined_5plus")].iloc[0]["error_rate_consistent"]),
+        float(comparison_rows[(comparison_rows["model"] == "pres") & (comparison_rows["evidence_def"] == "coverage_breadth") & (comparison_rows["threshold_rule"] == "predefined_5plus")].iloc[0]["error_rate_mismatch"]),
+        float(comparison_rows[(comparison_rows["model"] == "pres") & (comparison_rows["evidence_def"] == "coverage_breadth") & (comparison_rows["threshold_rule"] == "predefined_5plus")].iloc[0]["error_rate_consistent"])))
     L.append("  该方向与 DAIC-WOZ 主分析一致（错位样本错分率高于一致样本）。")
     L.append("")
     L.append("## 3 讨论（可粘贴进论文讨论）")
     L.append("")
-    L.append("E-DAIC 新增标注样本的探索性结果在方向上支持 DAIC-WOZ 主分析：自评—访谈证据错位现象可观察到，且以访谈证据为输入的模型其错误向错位样本集中。但鉴于新增公开标签样本量有限（n=%d），且 E-DAIC 并非完全独立于 DAIC-WOZ（共享原始参与者），本研究不将其解释为严格外部验证；该结果应视为对主分析结论的探索性补充。" % n_edaic)
+    L.append("E-DAIC 新增标注样本的探索性结果在方向上支持 DAIC-WOZ 主分析：自评—访谈证据错位现象可观察到，且以访谈证据为输入的模型其错误向错位样本集中。但鉴于新增公开标签样本量有限（n=%d），且 E-DAIC 继承 DAIC-WOZ 的采集框架，本研究不将其解释为严格外部验证；该结果应视为对主分析结论的探索性补充。" % n_edaic)
     L.append("")
     L.append("## 4 对照表（摘要）")
     L.append("")
@@ -753,11 +1012,8 @@ def write_turns_frozen(manifest):
     rows = []
     for _, r in manifest[manifest["included"] == 1].iterrows():
         pid = int(r["participant_id"])
-        tpath = Path(r["transcript_path"])
-        try:
-            df = pd.read_csv(tpath, encoding="utf-8-sig", keep_default_na=False)
-        except Exception:
-            continue
+        tpath = resolve_edaic_path(r["transcript_path"])
+        df = pd.read_csv(tpath, encoding="utf-8-sig", keep_default_na=False)
         for i, (_, tr) in enumerate(df.iterrows(), 1):
             rows.append({
                 "participant_id": pid,
@@ -812,9 +1068,12 @@ def main():
         "phq_positive_cut": PHQ_POS_CUT,
         "coverage_predef_high": COVERAGE_PREDEF,
         "density_predef_high": DENSITY_PREDEF,
+        "edaic_candidate_n": int(len(manifest)),
         "edaic_included_n": int(manifest["included"].sum()),
         "edaic_excluded_n": int((manifest["included"] == 0).sum()),
+        "edaic_test_ids": sorted(int(x) for x in incl_ids),
         "daicwoz_train_n": 142,
+        "daicwoz_train_ids": sorted(int(x) for x in df142["participant_id"].tolist()),
         "models": {
             "base": ["coverage_breadth", "evidence_density"],
             "count": ["coverage_breadth", "evidence_density"] + [f"{c}_count" for c in DOMAIN_COLS],
@@ -822,12 +1081,21 @@ def main():
         },
         "lr_params": LR_PARAMS,
         "extraction": {
-            "script": str(EXTRACTION_SCRIPT),
-            "prompt": str(PROMPT_MD),
+            "script": EXTRACTION_SCRIPT.relative_to(Path(r"F:/数据库/DAIC-WOZ")).as_posix(),
+            "prompt": PROMPT_MD.relative_to(Path(r"F:/数据库/DAIC-WOZ")).as_posix(),
             "model": "gpt-5.5", "temperature": 0,
             "prompt_version": "c5_symptom_evidence_quotes_only_v3",
-            "note": "复用 DAIC-WOZ 原始 C5 抽取管线；E-DAIC 转录本无 speaker 列，喂全文。",
+            "chunking": {"max_chars": 3500, "overlap_chars": 200},
+            "span_dedup_keys": SPAN_DEDUP_KEYS,
+            "note": "复用 DAIC-WOZ 原始 C5 抽取管线；E-DAIC 转录本无 speaker 列，按重叠分块喂入全对话。",
         },
+        "input_files": [
+            {"role": "domain_count", "path": DOMAIN_COUNT_CSV.relative_to(BASE_REPO).as_posix(), "sha256": sha256_file(DOMAIN_COUNT_CSV)},
+            {"role": "domain_presence", "path": DOMAIN_PRESENCE_CSV.relative_to(BASE_REPO).as_posix(), "sha256": sha256_file(DOMAIN_PRESENCE_CSV)},
+            {"role": "frozen_142", "path": FROZEN_142.relative_to(BASE_REPO).as_posix(), "sha256": sha256_file(FROZEN_142)},
+            {"role": "edaic_only_labels", "path": portable_edaic_path(EDAIC_ONLY_CSV), "sha256": sha256_file(EDAIC_ONLY_CSV)},
+            {"role": "c5_spans_private", "path": SPANS_CSV.name, "sha256": sha256_file(SPANS_CSV)},
+        ],
         "input_sha256": {
             "domain_count": sha256_file(DOMAIN_COUNT_CSV),
             "domain_presence": sha256_file(DOMAIN_PRESENCE_CSV),
@@ -835,6 +1103,22 @@ def main():
             "edaic_only_labels": sha256_file(EDAIC_ONLY_CSV),
             "c5_spans": sha256_file(SPANS_CSV) if SPANS_CSV.exists() else None,
         },
+        "runtime": {
+            "python": sys.version.split()[0],
+            "numpy": np.__version__,
+            "pandas": pd.__version__,
+            "scipy": package_version("scipy"),
+            "scikit_learn": package_version("scikit-learn"),
+        },
+        "privacy": {
+            "public_outputs_contain_raw_transcript_text": False,
+            "private_intermediates_excluded_from_git": [
+                "edaic_evidence_extraction_input.jsonl",
+                f"{RUN_ID}_spans.csv",
+                f"_{RUN_ID}_chunk_checkpoints/",
+            ],
+        },
+        "script_sha256": sha256_file(Path(__file__)),
         "git_commit": _git_commit(),
     }
     (SCRIPT_DIR / "run_manifest.json").write_text(
