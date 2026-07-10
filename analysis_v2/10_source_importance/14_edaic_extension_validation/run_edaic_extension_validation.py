@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-E-DAIC 新增标注样本的探索性补充验证 (PHQ-8)
+E-DAIC 新增标注样本的描述性补充分析 (PHQ-8)
 ============================================
 
 定位（务必先读）
@@ -14,10 +14,12 @@ E-DAIC 另新增 86 人（其中仅 30 人有公开 PHQ-8 标签）。本模块�
 `Detailed_PHQ8_Labels_E_DAIC_only.csv`），**排除**原始 DAIC-WOZ 189 人与
 无公开标签的 test 56 人。
 
-目标：探索性检验 DAIC-WOZ 主分析中观察到的两类现象，在 E-DAIC 新增标注样本中
-方向是否一致：
-  1) PHQ-8 自评标签与访谈文本症状证据存在错位（mismatch）；
-  2) 以访谈证据为输入的模型，其错误集中在错位样本。
+目标：
+  1) 描述采用 DAIC-WOZ 固定切点后，E-DAIC 新增可分析样本中的错位比例；
+  2) 描述 DAIC-WOZ 症状证据模型在 E-DAIC 上的迁移性能点估计及不确定性。
+
+错位分组与三个迁移模型共同使用 coverage_breadth / evidence_density 及其域级组成，
+因此错位组与一致组的错分率仅保留为补充描述，不能独立验证错位误差机制。
 
 方法保真度
 ----------
@@ -28,7 +30,8 @@ E-DAIC 另新增 86 人（其中仅 30 人有公开 PHQ-8 标签）。本模块�
   ⚠ 偏差披露：E-DAIC 转录本无 speaker 列（DAIC-WOZ 原始有），故对 E-DAIC 喂
   全文对话文本；抽取 prompt 仅要求提取被试症状证据，Ellie 提问不会被误判为症状。
 - 模型：在 DAIC-WOZ 主分析 142 人上 **fit 一次** scaler + 逻辑回归，直接预测
-  E-DAIC 新增样本（迁移验证）。**不在 E-DAIC 30 人上做交叉验证**（样本太小）。
+  E-DAIC 新增可分析样本。**不在 E-DAIC 小样本上做交叉验证**；AUC 同时报告
+  固定随机种子的分层 bootstrap 95% CI。
 - 错位定义：沿用 DAIC-WOZ 固定预定义切点（覆盖广度 ≥5、证据密度 ≥11）；
   并补充 E-DAIC 样本内中位数切点作敏感性描述（仅补充表，非主结论）。
 
@@ -142,7 +145,8 @@ THRESHOLD = 0.5
 PHQ_POS_CUT = 10
 COVERAGE_PREDEF = 5
 DENSITY_PREDEF = 11
-N_PERM_CONC = 10000  # 仅 DAIC-WOZ 142 内部用；E-DAIC 30 用 Fisher 精确检验
+AUC_BOOTSTRAP_N = 10000
+AUC_CI_LEVEL = 0.95
 SPAN_DEDUP_KEYS = ["participant_id", "domain", "polarity", "exact_quote"]
 
 # ── 逐字复用 controls.build_domain_features（确定性聚合，无随机性） ────────────
@@ -652,7 +656,7 @@ def train_and_transfer(df142, df30):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 步骤 5：四象限（E-DAIC 30，固定切点 + E-DAIC 中位数敏感）
+# 步骤 5：四象限（E-DAIC 可分析样本，固定切点 + 样本内中位数敏感）
 # ═══════════════════════════════════════════════════════════════════════════
 def build_quadrants(transfer):
     print("[5] Building E-DAIC mismatch quadrants...")
@@ -716,10 +720,49 @@ def build_quadrants(transfer):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 步骤 6：迁移预测指标 + 步骤 7：错位错分率（Fisher 精确）
+# 步骤 6：迁移预测指标 + 步骤 7：错位错分率（仅描述性补充）
 # ═══════════════════════════════════════════════════════════════════════════
+def exact_binomial_ci(successes, n, level=AUC_CI_LEVEL):
+    """Clopper-Pearson exact interval for a binomial proportion."""
+    successes = int(successes)
+    n = int(n)
+    if n <= 0 or successes < 0 or successes > n:
+        return np.nan, np.nan
+    alpha = 1.0 - float(level)
+    low = 0.0 if successes == 0 else scipy_stats.beta.ppf(alpha / 2.0, successes, n - successes + 1)
+    high = 1.0 if successes == n else scipy_stats.beta.ppf(1.0 - alpha / 2.0, successes + 1, n - successes)
+    return float(low), float(high)
+
+
+def stratified_bootstrap_auc_ci(labels, probabilities, n_boot=None, seed=RANDOM_SEED,
+                                level=AUC_CI_LEVEL):
+    """Deterministic stratified percentile bootstrap CI for binary ROC AUC."""
+    labels = np.asarray(labels, dtype=int)
+    probabilities = np.asarray(probabilities, dtype=float)
+    positive = probabilities[labels == 1]
+    negative = probabilities[labels == 0]
+    if len(positive) == 0 or len(negative) == 0:
+        return np.nan, np.nan
+    n_boot = AUC_BOOTSTRAP_N if n_boot is None else int(n_boot)
+    if n_boot <= 0:
+        raise ValueError("n_boot must be positive")
+
+    rng = np.random.default_rng(seed)
+    pos_idx = rng.integers(0, len(positive), size=(n_boot, len(positive)))
+    neg_idx = rng.integers(0, len(negative), size=(n_boot, len(negative)))
+    pos_samples = positive[pos_idx][:, :, None]
+    neg_samples = negative[neg_idx][:, None, :]
+    auc_samples = (
+        (pos_samples > neg_samples).mean(axis=(1, 2))
+        + 0.5 * (pos_samples == neg_samples).mean(axis=(1, 2))
+    )
+    alpha = 1.0 - float(level)
+    low, high = np.quantile(auc_samples, [alpha / 2.0, 1.0 - alpha / 2.0])
+    return float(low), float(high)
+
+
 def compute_metrics_and_errors(transfer):
-    print("[6-7] Transfer metrics + mismatch vs consistent error (Fisher)...")
+    print("[6-7] Transfer metrics + descriptive mismatch-group errors...")
     models = ["base", "count", "pres"]
     metric_rows = []
     err_rows = []
@@ -734,6 +777,11 @@ def compute_metrics_and_errors(transfer):
         has_pos = int(lab.sum()) > 0
         has_neg = int((1 - lab).sum()) > 0
         auc = float(roc_auc_score(lab, prob)) if (has_pos and has_neg) else np.nan
+        auc_ci_low, auc_ci_high = stratified_bootstrap_auc_ci(
+            lab,
+            prob,
+            seed=RANDOM_SEED,
+        ) if (has_pos and has_neg) else (np.nan, np.nan)
         try:
             prauc = float(average_precision_score(lab, prob)) if (has_pos and has_neg) else np.nan
         except Exception:
@@ -741,6 +789,9 @@ def compute_metrics_and_errors(transfer):
         metric_rows.append({
             "model": m, "n": n, "n_positive": int(lab.sum()),
             "AUC": round(auc, 4) if not np.isnan(auc) else np.nan,
+            "AUC_CI95_low": round(auc_ci_low, 4) if not np.isnan(auc_ci_low) else np.nan,
+            "AUC_CI95_high": round(auc_ci_high, 4) if not np.isnan(auc_ci_high) else np.nan,
+            "AUC_CI_method": f"stratified percentile bootstrap ({AUC_BOOTSTRAP_N} resamples)",
             "PR_AUC": round(prauc, 4) if not np.isnan(prauc) else np.nan,
             "Accuracy": round(float(accuracy_score(lab, pred)), 4),
             "Macro_F1": round(float(f1_score(lab, pred, average="macro", zero_division=0)), 4),
@@ -763,12 +814,20 @@ def compute_metrics_and_errors(transfer):
             rate_mis = float(err_flag[mismatch_mask].mean()) if nm else np.nan
             rate_con = float(err_flag[consistent_mask].mean()) if nc else np.nan
             obs_diff = rate_mis - rate_con if (nm and nc) else np.nan
+            a = int(err_flag[mismatch_mask].sum()) if nm else 0
+            c = int(err_flag[consistent_mask].sum()) if nc else 0
+            mis_ci_low, mis_ci_high = exact_binomial_ci(a, nm)
+            con_ci_low, con_ci_high = exact_binomial_ci(c, nc)
+            overall_ci_low, overall_ci_high = exact_binomial_ci(int(err_flag.sum()), len(err_flag))
             # Fisher 精确检验（2x2：错位 vs 一致 的 错/对）
             fisher_p = np.nan
-            note = "Fisher exact; exploratory; unadjusted for 6 comparisons"
+            note = (
+                "descriptive only; definition-feature overlap; Fisher is not an "
+                "independent mechanism test; unadjusted for 6 comparisons"
+            )
             if nm and nc:
-                a = int(err_flag[mismatch_mask].sum()); b = nm - a
-                c = int(err_flag[consistent_mask].sum()); d = nc - c
+                b = nm - a
+                d = nc - c
                 if (a + b) > 0 and (c + d) > 0:
                     try:
                         _, fisher_p = scipy_stats.fisher_exact([[a, b], [c, d]])
@@ -787,9 +846,17 @@ def compute_metrics_and_errors(transfer):
                 "n_error_consistent": int(err_flag[consistent_mask].sum()) if nc else 0,
                 "error_rate": round(float(err_flag.mean()), 4) if len(err_flag) else np.nan,
                 "error_rate_mismatch": round(rate_mis, 4) if not np.isnan(rate_mis) else np.nan,
+                "error_rate_mismatch_CI95_low": round(mis_ci_low, 4) if not np.isnan(mis_ci_low) else np.nan,
+                "error_rate_mismatch_CI95_high": round(mis_ci_high, 4) if not np.isnan(mis_ci_high) else np.nan,
                 "error_rate_consistent": round(rate_con, 4) if not np.isnan(rate_con) else np.nan,
+                "error_rate_consistent_CI95_low": round(con_ci_low, 4) if not np.isnan(con_ci_low) else np.nan,
+                "error_rate_consistent_CI95_high": round(con_ci_high, 4) if not np.isnan(con_ci_high) else np.nan,
                 "error_rate_diff": round(obs_diff, 4) if not np.isnan(obs_diff) else np.nan,
+                "error_rate_CI95_low": round(overall_ci_low, 4) if not np.isnan(overall_ci_low) else np.nan,
+                "error_rate_CI95_high": round(overall_ci_high, 4) if not np.isnan(overall_ci_high) else np.nan,
                 "fisher_p": float(fisher_p) if not np.isnan(fisher_p) else np.nan,
+                "independent_test": 0,
+                "interpretation_scope": "descriptive_only",
                 "note": note,
             })
 
@@ -801,6 +868,7 @@ def compute_metrics_and_errors(transfer):
             for group_name, mask in group_masks.items():
                 group_n = int(mask.sum())
                 group_errors = int(err_flag[mask].sum()) if group_n else 0
+                group_ci_low, group_ci_high = exact_binomial_ci(group_errors, group_n)
                 err_rows.append({
                     "model": m,
                     "evidence_def": ev_def,
@@ -814,11 +882,19 @@ def compute_metrics_and_errors(transfer):
                     "n_error_mismatch": np.nan,
                     "n_error_consistent": np.nan,
                     "error_rate": round(group_errors / group_n, 4) if group_n else np.nan,
+                    "error_rate_CI95_low": round(group_ci_low, 4) if not np.isnan(group_ci_low) else np.nan,
+                    "error_rate_CI95_high": round(group_ci_high, 4) if not np.isnan(group_ci_high) else np.nan,
                     "error_rate_mismatch": np.nan,
+                    "error_rate_mismatch_CI95_low": np.nan,
+                    "error_rate_mismatch_CI95_high": np.nan,
                     "error_rate_consistent": np.nan,
+                    "error_rate_consistent_CI95_low": np.nan,
+                    "error_rate_consistent_CI95_high": np.nan,
                     "error_rate_diff": np.nan,
                     "fisher_p": np.nan,
-                    "note": "descriptive subgroup; no separate significance test",
+                    "independent_test": 0,
+                    "interpretation_scope": "descriptive_only",
+                    "note": "descriptive subgroup; definition-feature overlap; no separate significance test",
                 })
     pd.DataFrame(metric_rows).to_csv(SCRIPT_DIR / "edaic_transfer_metrics_all_models.csv",
                                      index=False, encoding="utf-8-sig")
@@ -832,7 +908,13 @@ def compute_metrics_and_errors(transfer):
 # ═══════════════════════════════════════════════════════════════════════════
 # 步骤 8：对照表（DAIC-WOZ 主分析 vs E-DAIC 新增样本）
 # ═══════════════════════════════════════════════════════════════════════════
-def build_comparison(transfer, auc_daic, quad_df, err_df):
+def _format_ci(low, high, digits=3, scale=1.0):
+    if pd.isna(low) or pd.isna(high):
+        return "不可估计"
+    return f"[{float(low) * scale:.{digits}f}, {float(high) * scale:.{digits}f}]"
+
+
+def build_comparison(transfer, auc_daic, quad_df, err_df, metrics=None):
     print("[8] Building DAIC-WOZ vs E-DAIC comparison table...")
     # ---- DAIC-WOZ 列（来自模块 12 现有产出 + 本运行复算的 142 AUC） ----
     m12_quad = pd.read_csv(M12_QUAD_COV, encoding="utf-8-sig")
@@ -861,47 +943,131 @@ def build_comparison(transfer, auc_daic, quad_df, err_df):
     cov_mis_edaic = edaic_mismatch_n("coverage_breadth", "predefined_5plus")
     den_mis_edaic = edaic_mismatch_n("evidence_density", "predefined_11plus")
 
-    def edaic_err_rate(model, ev_def, rule):
+    def edaic_err_row(model, ev_def, rule):
         r = err_df[(err_df["model"] == model) & (err_df["evidence_def"] == ev_def)
                    & (err_df["threshold_rule"] == rule)
                    & (err_df["group"] == "mismatch_vs_consistent")]
-        return float(r.iloc[0]["error_rate_mismatch"]), float(r.iloc[0]["error_rate_consistent"])
-    def edaic_pos_rate():
-        return round(float((transfer["label"].values.sum()) / n_edaic), 3)
+        return r.iloc[0]
 
-    def direction_for_rates(mis_d, con_d):
-        # 方向一致：E-DAIC 错位错分率 > 一致错分率（与 DAIC-WOZ 同方向）
-        return "是" if (mis_d > con_d) else "否"
+    columns = [
+        "指标",
+        "DAIC_WOZ_主分析",
+        "E_DAIC_点估计",
+        "E_DAIC_95CI",
+        "E_DAIC_n",
+        "限制说明",
+    ]
 
-    rows = []
-    rows.append(("样本量", n142, n_edaic, "—"))
-    rows.append(("PHQ 阳性比例",
-                 _m12_pos_rate(m12_err),
-                 edaic_pos_rate(), "—"))
-    rows.append(("覆盖广度错位比例(%)",
-                 round(100.0 * cov_mis_daic / n142, 1),
-                 round(100.0 * cov_mis_edaic / n_edaic, 1),
-                 "是" if cov_mis_edaic > 0 else "否"))
-    rows.append(("证据密度错位比例(%)",
-                 round(100.0 * den_mis_daic / n142, 1),
-                 round(100.0 * den_mis_edaic / n_edaic, 1),
-                 "是" if den_mis_edaic > 0 else "否"))
+    def row(indicator, daic_value, edaic_value, ci, sample_n, limitation):
+        return {
+            "指标": indicator,
+            "DAIC_WOZ_主分析": daic_value,
+            "E_DAIC_点估计": edaic_value,
+            "E_DAIC_95CI": ci,
+            "E_DAIC_n": sample_n,
+            "限制说明": limitation,
+        }
+
+    n_positive = int(transfer["label"].sum())
+    n_negative = n_edaic - n_positive
+    pos_ci = exact_binomial_ci(n_positive, n_edaic)
+    cov_ci = exact_binomial_ci(cov_mis_edaic, n_edaic)
+    den_ci = exact_binomial_ci(den_mis_edaic, n_edaic)
+    rows = [
+        row(
+            "样本量",
+            str(n142),
+            str(n_edaic),
+            "不适用",
+            n_edaic,
+            "仅含 E-DAIC 新增、有公开 PHQ-8 标签且转录本可分析者。",
+        ),
+        row(
+            "PHQ 阳性比例",
+            _m12_pos_rate(m12_err),
+            round(n_positive / n_edaic, 3),
+            _format_ci(*pos_ci),
+            f"{n_edaic} (阳性={n_positive})",
+            "PHQ-8 ≥10 为自评风险阈值，不等同于临床诊断。",
+        ),
+        row(
+            "覆盖广度错位比例(%)",
+            round(100.0 * cov_mis_daic / n142, 1),
+            round(100.0 * cov_mis_edaic / n_edaic, 1),
+            _format_ci(*cov_ci, digits=1, scale=100.0),
+            n_edaic,
+            "固定预设切点的描述性可迁移性检查；不检验模型误差机制。",
+        ),
+        row(
+            "证据密度错位比例(%)",
+            round(100.0 * den_mis_daic / n142, 1),
+            round(100.0 * den_mis_edaic / n_edaic, 1),
+            _format_ci(*den_ci, digits=1, scale=100.0),
+            n_edaic,
+            "固定预设切点的描述性可迁移性检查；不检验模型误差机制。",
+        ),
+    ]
     for m, auc_d in auc_daic.items():
         edaic_auc = _edaic_auc(transfer, m)
-        rows.append((f"{m} 模型 AUC", round(auc_d, 3),
-                     edaic_auc,
-                     "是" if (edaic_auc is not None and not (isinstance(edaic_auc, float) and np.isnan(edaic_auc)) and edaic_auc > 0.5) else "否"))
+        metric_row = None if metrics is None else metrics[metrics["model"] == m]
+        if metric_row is not None and not metric_row.empty:
+            auc_ci_low = float(metric_row.iloc[0]["AUC_CI95_low"])
+            auc_ci_high = float(metric_row.iloc[0]["AUC_CI95_high"])
+        else:
+            auc_ci_low, auc_ci_high = stratified_bootstrap_auc_ci(
+                transfer["label"].values,
+                transfer[f"prob_{m}"].values,
+                seed=RANDOM_SEED,
+            )
+        crosses_half = (
+            not np.isnan(auc_ci_low)
+            and not np.isnan(auc_ci_high)
+            and auc_ci_low <= 0.5 <= auc_ci_high
+        )
+        auc_limitation = (
+            "95% CI 跨过 0.5；小样本点估计仅作描述，不能证明泛化性能。"
+            if crosses_half
+            else "新增样本量小；AUC 点估计仅作描述，不能单独证明泛化性能。"
+        )
+        rows.append(row(
+            f"{m} 模型 AUC",
+            round(auc_d, 3),
+            edaic_auc,
+            _format_ci(auc_ci_low, auc_ci_high),
+            f"{n_edaic} (阳性={n_positive}, 阴性={n_negative})",
+            auc_limitation,
+        ))
     for ev_def, rule, tag in [("coverage_breadth", "predefined_5plus", "覆盖广度"),
                               ("evidence_density", "predefined_11plus", "证据密度")]:
         for m in ["base", "count", "pres"]:
-            mis_d, con_d = edaic_err_rate(m, ev_def, rule)
-            rows.append((f"{m} 模型错位错分率({tag})",
-                         round(m12_err_rate(m, ev_def, rule, "mismatch_vs_consistent"), 3),
-                         round(mis_d, 3), direction_for_rates(mis_d, con_d)))
-            rows.append((f"{m} 模型一致错分率({tag})",
-                         round(_m12_consistent_rate(m12_err, m, ev_def, rule), 3),
-                         round(con_d, 3), "—"))
-    cmp = pd.DataFrame(rows, columns=["指标", "DAIC_WOZ_主分析", "E_DAIC_新增样本", "方向是否一致"])
+            err_row = edaic_err_row(m, ev_def, rule)
+            nm = int(err_row["n_mismatch"])
+            nc = int(err_row["n_consistent"])
+            nerr_m = int(err_row["n_error_mismatch"])
+            nerr_c = int(err_row["n_error_consistent"])
+            mis_d = float(err_row["error_rate_mismatch"])
+            con_d = float(err_row["error_rate_consistent"])
+            overlap_limit = (
+                "定义—特征重叠：错位分组与模型输入共享症状证据变量；"
+                "仅作描述，不能独立验证误差机制。"
+            )
+            rows.append(row(
+                f"{m} 模型错位错分率({tag})",
+                round(m12_err_rate(m, ev_def, rule, "mismatch_vs_consistent"), 3),
+                round(mis_d, 3),
+                _format_ci(*exact_binomial_ci(nerr_m, nm)),
+                nm,
+                overlap_limit,
+            ))
+            rows.append(row(
+                f"{m} 模型一致错分率({tag})",
+                round(_m12_consistent_rate(m12_err, m, ev_def, rule), 3),
+                round(con_d, 3),
+                _format_ci(*exact_binomial_ci(nerr_c, nc)),
+                nc,
+                overlap_limit,
+            ))
+    cmp = pd.DataFrame(rows, columns=columns)
     cmp.to_csv(SCRIPT_DIR / "daic_vs_edaic_validation_comparison.csv",
                index=False, encoding="utf-8-sig")
     return cmp
@@ -939,9 +1105,9 @@ def build_summary(manifest, transfer, quad_df, err_df, auc_daic, cmp, cov_median
     n_excl = int((manifest["included"] == 0).sum())
     excl_reasons = "; ".join(sorted({str(x) for x in manifest[manifest["included"] == 0]["exclusion_reason"] if x})) or "无"
     L = []
-    L.append("# E-DAIC 新增标注样本的探索性补充验证")
+    L.append("# E-DAIC 新增标注样本的描述性补充分析")
     L.append("")
-    L.append(f"> 模块 14 · E-DAIC 扩展验证 · 分析日期 {datetime.now().date().isoformat()}")
+    L.append(f"> 模块 14 · E-DAIC 描述性扩展 · 分析日期 {datetime.now().date().isoformat()}")
     L.append("> 复现：仓库 `codex/reanalysis-v2` 分支；从原始 E-DAIC 重建 C5 证据需本地授权数据与 `APIYI_API_KEY`。含原文的抽取中间文件不上传 GitHub。")
     L.append("")
     L.append("## 0 研究定位（硬性声明）")
@@ -949,56 +1115,76 @@ def build_summary(manifest, transfer, quad_df, err_df, auc_daic, cmp, cov_median
     L.append("1. **E-DAIC 是 DAIC-WOZ 的扩展版本，不是完全独立的外部数据库。** 原始 DAIC-WOZ 的 189 名参与者已被完整并入 E-DAIC；E-DAIC 另新增 86 人，其中仅 30 人有公开 PHQ-8 标签。")
     L.append("2. 本模块**只纳入 E-DAIC 新增且公开 PHQ-8 标签**的参与者（来自 `Detailed_PHQ8_Labels_E_DAIC_only.csv`），排除原始 DAIC-WOZ 189 人与无公开标签的 test 56 人。")
     L.append("3. **不与 DAIC-WOZ 主分析样本合并**；E-DAIC 仅作为新增有标签测试集。")
-    L.append("4. E-DAIC 结果**只作探索性补充验证**，用于观察 DAIC-WOZ 主分析发现的现象方向是否可复现。")
-    L.append("5. 若方向一致，表述为「方向上支持」；**不写为「严格外部验证」**。（本次新增样本与 DAIC-WOZ 训练样本 ID 无重叠，但 E-DAIC 数据资源继承 DAIC-WOZ 的采集框架，且样本量小。）")
-    L.append("6. 若方向不一致，诚实说明「E-DAIC 新增小样本中未能稳定复现」。")
+    L.append("4. E-DAIC 结果仅用于**固定错位定义的描述性可迁移性检查**，以及迁移模型性能点估计的描述性报告。")
+    L.append("5. **错位分组与迁移模型存在定义—特征重叠。** 分组使用 coverage_breadth / evidence_density，三个迁移模型均直接使用这两项变量，count / presence 模型还使用其域级组成，因此错位组错分率不能视为独立的误差机制验证。")
+    L.append("6. 迁移性能须同时报告 95% CI 与样本量；区间跨过 0.5 时，不把 AUC 点估计解释为泛化性能证据。")
     L.append("7. **PHQ-8 为自评量表总分，不是临床诊断**；所有结论描述「自评抑郁症状严重度/风险」，不能外推为临床诊断。")
     L.append("8. 本模块的**公开产物不包含任何访谈原文**，仅发布 participant_id 与结构化指标；含原文的本地抽取输入、span 和 checkpoint 均排除在版本控制之外。")
     L.append("")
     L.append("## 1 方法（可粘贴进论文 2.x）")
     L.append("")
-    L.append("为检验主分析发现的可迁移性，本研究进一步使用 E-DAIC 中新增且公开 PHQ-8 标签的参与者作为探索性补充验证样本。由于 E-DAIC 为 DAIC-WOZ 的扩展版本并包含原始 DAIC-WOZ 参与者，本研究未将两者合并，而是排除原始 DAIC-WOZ 参与者、仅保留新增有标签样本（候选 %d 人，纳入 n=%d，排除 %d 人：%s）。该补充分析沿用 DAIC-WOZ 主分析中的十域症状定义、C5 抽取 prompt（v3）、模型参数（gpt-5.5 / temperature=0）与聚合规则生成症状证据特征。为规避接口对长输入的空响应，全文按不超过 3500 字符、相邻重叠 200 字符分块抽取，合并时按参与者、症状域、极性和原句做语义去重。由于 E-DAIC 转录本缺少 speaker 标记，抽取输入为无 speaker 标记的全对话文本，因此该补充验证并非完全同源输入条件下的严格复现。模型在 DAIC-WOZ 主分析样本（n=142）上训练，并在 E-DAIC 新增样本上直接测试。" % (n_cand, n_edaic, n_excl, excl_reasons))
+    L.append("本研究使用 E-DAIC 中新增且公开 PHQ-8 标签的参与者作为描述性补充样本。由于 E-DAIC 为 DAIC-WOZ 的扩展版本并包含原始 DAIC-WOZ 参与者，本研究未将两者合并，而是排除原始 DAIC-WOZ 参与者、仅保留新增有标签样本（候选 %d 人，纳入 n=%d，排除 %d 人：%s）。该分析沿用 DAIC-WOZ 主分析中的十域症状定义、C5 抽取 prompt（v3）、模型参数（gpt-5.5 / temperature=0）与聚合规则生成症状证据特征。为规避接口对长输入的空响应，全文按不超过 3500 字符、相邻重叠 200 字符分块抽取，合并时按参与者、症状域、极性和原句做语义去重。模型在 DAIC-WOZ 主分析样本（n=142）上训练，并在 E-DAIC 新增样本上直接测试；E-DAIC AUC 的 95%% CI 采用分层百分位 bootstrap（%d 次重采样，固定随机种子）估计。" % (n_cand, n_edaic, n_excl, excl_reasons, AUC_BOOTSTRAP_N))
     L.append("")
     L.append("> **偏差披露**：E-DAIC 转录本无 speaker 列（DAIC-WOZ 原始转录本含 Ellie/Participant 标签），故对 E-DAIC 喂入全对话文本；C5 抽取 prompt 要求仅提取被试症状证据，但由于 E-DAIC 输入为无 speaker 标记的全对话文本，仍可能存在访谈员话语干扰，因此该补充验证仅作探索性分析。")
+    L.append("")
+    L.append("> **结构性非独立披露**：错位高低由 `coverage_breadth ≥5` 或 `evidence_density ≥11` 定义；base 模型使用这两项特征，count / presence 模型进一步使用构成它们的十域计数或出现特征。因而错位分组与模型预测并不独立，组间错分率及 Fisher p 值均不能用于验证「错位导致模型错误集中」这一机制。")
     L.append("")
     L.append("## 2 结果（可粘贴进论文 3.4）")
     L.append("")
     L.append("E-DAIC 新增有标签样本共纳入 n=%d，其中 PHQ-8 阳性 n=%d。采用 DAIC-WOZ 固定切点定义访谈证据高低（覆盖广度 ≥%d 个症状域 / 证据密度 ≥%d 条）。" % (n_edaic, pos, COVERAGE_PREDEF, DENSITY_PREDEF))
     cov_mis = int(quad_df[(quad_df["evidence_def"] == "coverage_breadth") & (quad_df["threshold_rule"] == "predefined_5plus") & (quad_df["quadrant"].isin(MISMATCH_QUADRANTS))]["n"].sum())
     den_mis = int(quad_df[(quad_df["evidence_def"] == "evidence_density") & (quad_df["threshold_rule"] == "predefined_11plus") & (quad_df["quadrant"].isin(MISMATCH_QUADRANTS))]["n"].sum())
-    L.append("- 覆盖广度定义下，错位样本占 %d/%d（%.1f%%）；证据密度定义下占 %d/%d（%.1f%%）。" % (
-        cov_mis, n_edaic, 100.0 * cov_mis / n_edaic, den_mis, n_edaic, 100.0 * den_mis / n_edaic))
-    # 错分方向
+    cov_mis_ci = _format_ci(*exact_binomial_ci(cov_mis, n_edaic), digits=1, scale=100.0)
+    den_mis_ci = _format_ci(*exact_binomial_ci(den_mis, n_edaic), digits=1, scale=100.0)
+    L.append("- 覆盖广度定义下，错位样本占 %d/%d（%.1f%%，95%% CI %s）；证据密度定义下占 %d/%d（%.1f%%，95%% CI %s）。这仅表示固定错位定义在扩展样本中的描述性可迁移性。" % (
+        cov_mis, n_edaic, 100.0 * cov_mis / n_edaic, cov_mis_ci,
+        den_mis, n_edaic, 100.0 * den_mis / n_edaic, den_mis_ci))
+    for model, label in [("base", "base"), ("count", "count"), ("pres", "presence")]:
+        auc_row = cmp[cmp["指标"] == f"{model} 模型 AUC"].iloc[0]
+        L.append("- %s 模型迁移 AUC 为 %.3f（95%% CI %s；n=%d，阳性=%d）。" % (
+            label,
+            float(auc_row["E_DAIC_点估计"]),
+            auc_row["E_DAIC_95CI"],
+            n_edaic,
+            pos,
+        ))
+    L.append("三个 AUC 的 95% CI 均跨过 0.5；这些点估计仅说明本样本中未出现明确的反向排序，不能证明模型泛化性能。")
+    L.append("")
+    L.append("### 2.1 错分率输出的解释边界")
+    L.append("")
     comparison_rows = err_df[err_df["group"] == "mismatch_vs_consistent"]
     base_err = comparison_rows[(comparison_rows["model"] == "base") & (comparison_rows["evidence_def"] == "coverage_breadth") & (comparison_rows["threshold_rule"] == "predefined_5plus")].iloc[0]
-    L.append("- DAIC-WOZ 训练出的基础负荷模型迁移到 E-DAIC 后，错位样本错分率为 %.3f、一致样本为 %.3f；" % (
+    L.append("补充 CSV 保留错位组与一致组的描述性错分率。例如，base 模型在覆盖广度定义下分别为 %.3f 与 %.3f。由于错位分组和模型输入共同使用症状证据变量，这一差异在结构上并非独立检验；即使 Fisher p 值很小，也不能排除定义—特征重叠造成的结果，因此不能视为对错位误差机制的独立验证。" % (
         float(base_err["error_rate_mismatch"]), float(base_err["error_rate_consistent"])))
-    L.append("  计数模型为 %.3f / %.3f，出现模型为 %.3f / %.3f（覆盖广度预定义切点）。" % (
-        float(comparison_rows[(comparison_rows["model"] == "count") & (comparison_rows["evidence_def"] == "coverage_breadth") & (comparison_rows["threshold_rule"] == "predefined_5plus")].iloc[0]["error_rate_mismatch"]),
-        float(comparison_rows[(comparison_rows["model"] == "count") & (comparison_rows["evidence_def"] == "coverage_breadth") & (comparison_rows["threshold_rule"] == "predefined_5plus")].iloc[0]["error_rate_consistent"]),
-        float(comparison_rows[(comparison_rows["model"] == "pres") & (comparison_rows["evidence_def"] == "coverage_breadth") & (comparison_rows["threshold_rule"] == "predefined_5plus")].iloc[0]["error_rate_mismatch"]),
-        float(comparison_rows[(comparison_rows["model"] == "pres") & (comparison_rows["evidence_def"] == "coverage_breadth") & (comparison_rows["threshold_rule"] == "predefined_5plus")].iloc[0]["error_rate_consistent"])))
-    L.append("  该方向与 DAIC-WOZ 主分析一致（错位样本错分率高于一致样本）。")
     L.append("")
     L.append("## 3 讨论（可粘贴进论文讨论）")
     L.append("")
-    L.append("E-DAIC 新增标注样本的探索性结果在方向上支持 DAIC-WOZ 主分析：自评—访谈证据错位现象可观察到，且以访谈证据为输入的模型其错误向错位样本集中。但鉴于新增公开标签样本量有限（n=%d），且 E-DAIC 继承 DAIC-WOZ 的采集框架，本研究不将其解释为严格外部验证；该结果应视为对主分析结论的探索性补充。" % n_edaic)
+    L.append("在 E-DAIC 新增可分析样本中，采用 DAIC-WOZ 预设切点后仍观察到一定比例的 PHQ-8 自评标签—访谈文本症状证据不一致。由于错位分组与迁移模型共同使用症状覆盖广度、证据密度及其域级组成特征，错位组中的较高错分率在一定程度上受定义—特征重叠影响，不能视为对错位误差机制的独立验证。迁移性能点估计及其宽置信区间仅作描述性报告。")
+    L.append("")
+    L.append("因此，模块 14 只提供错位现象在 E-DAIC 新增小样本中的描述性复现，不验证模型泛化性能，也不验证错位与模型错误之间的关系。论文核心证据仍来自 DAIC-WOZ 主分析；本模块不进入标题或摘要核心结果，宜放在结果末尾一小段或补充材料。")
     L.append("")
     L.append("## 4 对照表（摘要）")
     L.append("")
-    L.append("| 指标 | DAIC-WOZ 主分析 | E-DAIC 新增样本 | 方向一致 |")
-    L.append("|------|-----------:|----------:|------|")
+    L.append("| 指标 | DAIC-WOZ 主分析 | E-DAIC 点估计 | E-DAIC 95% CI | E-DAIC n | 限制说明 |")
+    L.append("|------|------------------:|----------------:|---------------|-----------:|----------|")
     for _, r in cmp.iterrows():
-        L.append("| %s | %s | %s | %s |" % (r["指标"], r["DAIC_WOZ_主分析"], r["E_DAIC_新增样本"], r["方向是否一致"]))
+        L.append("| %s | %s | %s | %s | %s | %s |" % (
+            r["指标"],
+            r["DAIC_WOZ_主分析"],
+            r["E_DAIC_点估计"],
+            r["E_DAIC_95CI"],
+            r["E_DAIC_n"],
+            r["限制说明"],
+        ))
     L.append("")
     L.append("## 5 输出文件")
     L.append("")
     L.append("- `edaic_extension_sample_manifest.csv`：30 候选→纳入清单与排除原因。")
     L.append("- `edaic_evidence_features.csv`：10 域 count/presence + coverage/evidence。")
     L.append("- `edaic_mismatch_quadrants_by_coverage.csv` / `_density.csv`：四象限。")
-    L.append("- `edaic_transfer_predictions.csv` / `edaic_transfer_metrics_all_models.csv`：迁移预测与指标。")
-    L.append("- `edaic_model_error_by_mismatch_group.csv`：错位 vs 一致错分率 + Fisher。")
-    L.append("- `daic_vs_edaic_validation_comparison.csv`：主分析 vs 扩展验证对照。")
+    L.append("- `edaic_transfer_predictions.csv` / `edaic_transfer_metrics_all_models.csv`：迁移预测、AUC 点估计与 bootstrap 95% CI。")
+    L.append("- `edaic_model_error_by_mismatch_group.csv`：描述性错分率与精确二项区间；Fisher p 仅作为未经校正的补充输出，不用于机制验证。")
+    L.append("- `daic_vs_edaic_validation_comparison.csv`：点估计、95% CI、样本量与限制并列报告，不含二元“方向一致”判断。")
     L.append("- `run_manifest.json` / `output_manifest_sha256.csv`：参数与可复现性清单。")
     L.append("")
     return "\n".join(L)
@@ -1052,7 +1238,7 @@ def main():
     transfer, auc_daic, _ = train_and_transfer(df142, feat30)
     transfer, quad_df, cov_median, den_median = build_quadrants(transfer)
     metrics, err_df = compute_metrics_and_errors(transfer)
-    cmp = build_comparison(transfer, auc_daic, quad_df, err_df)
+    cmp = build_comparison(transfer, auc_daic, quad_df, err_df, metrics=metrics)
 
     summary = build_summary(manifest, transfer, quad_df, err_df, auc_daic, cmp,
                              cov_median, den_median)
@@ -1068,6 +1254,12 @@ def main():
         "phq_positive_cut": PHQ_POS_CUT,
         "coverage_predef_high": COVERAGE_PREDEF,
         "density_predef_high": DENSITY_PREDEF,
+        "auc_ci": {
+            "level": AUC_CI_LEVEL,
+            "method": "stratified_percentile_bootstrap",
+            "resamples": AUC_BOOTSTRAP_N,
+            "seed_base": RANDOM_SEED,
+        },
         "edaic_candidate_n": int(len(manifest)),
         "edaic_included_n": int(manifest["included"].sum()),
         "edaic_excluded_n": int((manifest["included"] == 0).sum()),
@@ -1078,6 +1270,14 @@ def main():
             "base": ["coverage_breadth", "evidence_density"],
             "count": ["coverage_breadth", "evidence_density"] + [f"{c}_count" for c in DOMAIN_COLS],
             "pres": ["coverage_breadth", "evidence_density"] + [f"{c}_pres" for c in DOMAIN_COLS],
+        },
+        "interpretation_scope": {
+            "mismatch_prevalence": "descriptive_transferability_check",
+            "transfer_auc": "descriptive_point_estimate_with_ci",
+            "mismatch_error_concentration": "not_an_independent_mechanism_test",
+            "definition_feature_overlap": True,
+            "fisher_p_role": "supplementary_unadjusted_only",
+            "generalization_validated": False,
         },
         "lr_params": LR_PARAMS,
         "extraction": {
