@@ -1,0 +1,10 @@
+﻿family,condition,label,auc,ci_lower,ci_upper
+structural,S_length,Length only,0.5694150810429881,0.46827033218785796,0.6692305810342337
+structural,S_interaction,Interaction structure,0.572938689217759,0.4693363904671645,0.6752396528704939
+structural,S_protocol,Protocol structure,0.6753582334977684,0.5726182745825603,0.7730963725777829
+structural,S_all,All structural features,0.728917077754287,0.6336044064364876,0.8210302473262031
+template,T_template,Template interviewer text,0.7764857881136951,0.6868465691226731,0.8574797586846576
+template,T_nontemplate,Non-template interviewer text,0.7838853652807141,0.7017167661457107,0.85694738078459
+template,T_nontemplate_lengthmatched,Non-template text matched to template length,0.6354240075170308,0.5361663702435061,0.7325592043615299
+token_matched,participant_matched,"Participant text, source-token matched",0.6508433168898285,0.5135012919896641,0.7801327225745829
+token_matched,interviewer_matched,"Interviewer text, source-token matched",0.8084472633309843,0.7258574113225276,0.8820765797509984

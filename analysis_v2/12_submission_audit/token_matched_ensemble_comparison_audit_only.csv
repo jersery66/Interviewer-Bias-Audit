@@ -1,0 +1,2 @@
+﻿comparison,model_a,model_b,delta_auc,ci_lower,ci_upper,p_value,n_bootstrap_valid,n_permutations
+interviewer_matched vs participant_matched,interviewer_matched,participant_matched,0.08456659619450313,-0.004956479874558503,0.17463258829330247,0.10918908109189081,5000,10000

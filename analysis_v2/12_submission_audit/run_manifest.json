@@ -1,0 +1,112 @@
+{
+  "status": "complete",
+  "analysis": "submission audit with locked main split and reviewer-required controls",
+  "started_at_utc": "2026-07-11T10:39:57.512513+00:00",
+  "completed_at_utc": "2026-07-11T10:41:43.527045+00:00",
+  "git_commit": "a154d00a2d792b597dbac61b716a25a124d2e01b",
+  "main_cv": {
+    "locked_repeat": 1,
+    "folds": 5,
+    "participant_predictions_per_condition": 142,
+    "repeated_10x5_role": "supplementary_split_stability_only"
+  },
+  "token_matching": {
+    "draws": 50,
+    "method": "per-participant contiguous window to min(participant_tokens, interviewer_tokens)",
+    "label_used_for_sampling": false
+  },
+  "inference": {
+    "bootstrap_resamples": 5000,
+    "paired_permutations": 10000,
+    "resampling_unit": "participant",
+    "core_comparison_count": 5
+  },
+  "c5": {
+    "candidate_span_n": 1143,
+    "final_span_n": 1137,
+    "participant_n_with_evidence": 141,
+    "participant_n_total": 142,
+    "unchanged_source_matched_n": 1102,
+    "manually_corrected_to_source_n": 35,
+    "excluded_duplicate_n": 5,
+    "excluded_invalid_n": 1,
+    "manual_audit_row_n": 41,
+    "final_source_match_n": 1137,
+    "unique_location_n": 1136,
+    "multiple_exact_location_n": 1,
+    "not_found_after_review_n": 0,
+    "frozen_condition_rows_match_reviewed_source": true,
+    "manual_review_label_columns_present": [
+      "paper_label_phq8_ge10",
+      "paper_phq8_score"
+    ],
+    "manual_review_blinding_status": "not_demonstrated_labels_present_in_audit_table",
+    "documented_reviewer_identity_columns": [],
+    "interrater_reliability_status": "not_available",
+    "public_quote_text_included": false
+  },
+  "interpretation_guardrails": {
+    "source_performance": "predictive_sufficiency_not_independent_contribution",
+    "interviewer_signal": "source_dependent_signal_not_causal_bias_or_leakage",
+    "c5": "clinically_guided_derived_representation",
+    "phq8": "self_report_label_not_clinical_diagnosis",
+    "edaic": "descriptive_supplement_not_external_validation"
+  },
+  "seed": 20260705,
+  "runtime": {
+    "python": "3.12.3 | packaged by Anaconda, Inc. | (main, May  6 2024, 19:42:21) [MSC v.1916 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "numpy": "2.2.6",
+    "pandas": "2.3.3",
+    "scikit_learn": "1.9.0",
+    "matplotlib": "3.10.0",
+    "tifffile": "2025.2.18"
+  },
+  "inputs": [
+    {
+      "name": "repeated_5fold_splits_10x5.csv",
+      "bytes": 183940,
+      "sha256": "ceaddff172bf9582987cf76ff0522dcfdd0fe90c5b3014565bcfaacf003703ae"
+    },
+    {
+      "name": "c4_turns_official142_frozen.csv",
+      "bytes": 7105573,
+      "sha256": "763cd3857a430f7a8dc6ee997d2820b07787f5e30ddceaee8bf83329fedc1a9a"
+    },
+    {
+      "name": "c2_participant_speech.csv",
+      "bytes": 1043637,
+      "sha256": "c520c713922e671431b40382238d64d0b07779ad5e77d905c9224a6f66b4ec9b"
+    },
+    {
+      "name": "c3_interviewer_speech.csv",
+      "bytes": 395653,
+      "sha256": "cf1278335dd4e7ee27dbff13bb792a7c1875341dd9412900c0f72a69f06c5e48"
+    },
+    {
+      "name": "c5_quotes_only_v3_gpt55_reviewed_spans_official142.csv",
+      "bytes": 475710,
+      "sha256": "794d7b43ebd95d57ac4a90a4217953a9bea27e98ff91b13c31b0a06f9aa48c7e"
+    },
+    {
+      "name": "c5_quotes_only_v3_gpt55_reviewed_manual_review_application_audit_official142.csv",
+      "bytes": 17888,
+      "sha256": "a7fd3dc62245a675aa457d0750556845af630bf3db316ba25489edb38963311e"
+    },
+    {
+      "name": "c5_quotes_only_v3_gpt55_reviewed_condition_rows_official142.csv",
+      "bytes": 161141,
+      "sha256": "25ba214e32ec0d3bdb9dc26fd588d86a44ed20ca468604a60b7b4200f58adada"
+    },
+    {
+      "name": "c5_reviewed_symptom_evidence.csv",
+      "bytes": 144984,
+      "sha256": "519d08c3063f847a9cb05723652f336831b6589c95c08a0da2781a09eab510a8"
+    },
+    {
+      "name": "model_fold_oof_predictions.csv",
+      "bytes": 182063,
+      "sha256": "bc75f5b42f22125866e1b74cc36ba59e83a1cd6dfe1e595b95dcb239c397bea3"
+    }
+  ]
+}

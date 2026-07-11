@@ -1,0 +1,2 @@
+﻿comparison,mean_delta_auc,sd_delta_auc,draw_delta_q025,draw_delta_q975,participant_random_draw_ci_low,participant_random_draw_ci_high,bootstrap_resamples,interpretation_scope
+interviewer_matched vs participant_matched,0.15760394644115572,0.04615311166366908,0.08105473338031476,0.23147169368099602,0.022545219638242856,0.2938747944561897,5000,text_quantity_control_not_semantic_mechanism
