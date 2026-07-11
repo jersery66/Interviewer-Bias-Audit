@@ -31,6 +31,15 @@ from reanalysis_v2.source_importance_strict import (  # noqa: E402
     run_repeated_cv,
     summarize_model_metrics,
 )
+from reanalysis_v2.post_audit_sensitivity import (  # noqa: E402
+    build_cross_fitted_null_predictions,
+    build_retained_alignment_frames,
+    run_retained_alignment_sensitivity,
+    run_symmetric_half_min_control,
+    run_symmetric_position_control,
+    summarize_brier_skill,
+    summarize_token_budget_audit,
+)
 from reanalysis_v2.submission_audit import (  # noqa: E402
     LOCKED_REPEAT,
     TOKEN_MATCH_DRAWS,
@@ -167,6 +176,7 @@ def build_control_figure_data(
     template_metrics: pd.DataFrame,
     template_ci: pd.DataFrame,
     token_metrics: pd.DataFrame,
+    symmetric_token_metrics: pd.DataFrame,
 ) -> pd.DataFrame:
     rows: list[dict[str, float | str]] = []
     labels = {
@@ -179,6 +189,8 @@ def build_control_figure_data(
         "T_nontemplate_lengthmatched": "Non-template text matched to template length",
         "participant_matched": "Participant text, source-token matched",
         "interviewer_matched": "Interviewer text, source-token matched",
+        "symmetric_participant_matched": "Participant text, symmetric half-min budget",
+        "symmetric_interviewer_matched": "Interviewer text, symmetric half-min budget",
     }
     for family, metrics, intervals in (
         ("structural", structural_metrics, structural_ci),
@@ -202,6 +214,18 @@ def build_control_figure_data(
                 "family": "token_matched",
                 "condition": row.condition,
                 "label": labels[row.condition],
+                "auc": float(row.mean_auc),
+                "ci_lower": float(row.participant_random_draw_ci_low),
+                "ci_upper": float(row.participant_random_draw_ci_high),
+            }
+        )
+    for row in symmetric_token_metrics.itertuples(index=False):
+        condition = f"symmetric_{row.condition}"
+        rows.append(
+            {
+                "family": "symmetric_half_min",
+                "condition": condition,
+                "label": labels[condition],
                 "auc": float(row.mean_auc),
                 "ci_lower": float(row.participant_random_draw_ci_low),
                 "ci_upper": float(row.participant_random_draw_ci_high),
@@ -413,8 +437,9 @@ def render_structure_control_figure(data: pd.DataFrame, output_stem: Path) -> No
         "structural": "#3B6FB6",
         "template": "#C04B3F",
         "token_matched": "#2D8A57",
+        "symmetric_half_min": "#7A5AA6",
     }
-    fig, ax = plt.subplots(figsize=(9.6, 6.0), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(9.6, 6.8), constrained_layout=True)
     for index, row in ordered.iterrows():
         ax.errorbar(
             row["auc"],
@@ -437,6 +462,7 @@ def render_structure_control_figure(data: pd.DataFrame, output_stem: Path) -> No
                 ("structural", "Structural variables"),
                 ("template", "Template controls"),
                 ("token_matched", "Cross-source token matching"),
+                ("symmetric_half_min", "Symmetric half-min budget"),
             )
         ],
         loc="upper right",
@@ -537,33 +563,70 @@ def write_c5_summary(summary: dict[str, object], path: Path) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def write_model_configuration(path: Path) -> None:
+    text = """# Model configuration for the analysis-locked audit
+
+| Component | Frozen configuration |
+|---|---|
+| Split | Repeat 1 of the existing 10 x 5 participant-level split file; five outer folds; one cross-fitted test prediction per participant |
+| Fold fitting | Vocabulary, TF-IDF weights, numeric scaling, calibration, and threshold selection fit without outer-test participants |
+| TF-IDF | lowercase=True; strip_accents=unicode; word ngrams=(1, 2); min_df=2; max_features=50,000; sublinear_tf=True |
+| Classifier | LogisticRegression; C=1.0; class_weight=balanced; solver=liblinear; max_iter=2,000 |
+| Numeric features | StandardScaler fit on each outer-training fold |
+| Random seed | Base seed 20260705; fold/model offsets recorded in source code and run manifest |
+| Calibration | Platt and isotonic calibrators fit from inner cross-fitted training predictions, then applied to the outer test fold |
+| Default operation | Probability 0.50 is a default operating point, not a clinical or preregistered cutoff |
+| Alternative thresholds | Selected only from inner training predictions for max Macro-F1, max Youden J, and sensitivity subject to specificity >=0.80 |
+| Uncertainty | 5,000 participant bootstrap replicates; paired tests use 10,000 within-participant swaps |
+| Multiplicity | Original five analysis-locked comparisons retain their own BH family; post-audit positional and C5 sensitivity families are adjusted separately |
+
+The analysis-locked split was fixed before the post-audit sensitivity run to prevent further split selection. This is not formal preregistration.
+"""
+    path.write_text(text, encoding="utf-8")
+
+
 def write_submission_summary(
     source_metrics: pd.DataFrame,
+    brier_metrics: pd.DataFrame,
+    brier_fold_metrics: pd.DataFrame,
     structural_metrics: pd.DataFrame,
     token_metrics: pd.DataFrame,
     token_comparison: pd.DataFrame,
+    token_asymmetry: pd.DataFrame,
+    symmetric_metrics: pd.DataFrame,
+    symmetric_comparison: pd.DataFrame,
+    symmetric_budget: pd.DataFrame,
+    position_metrics: pd.DataFrame,
     comparisons: pd.DataFrame,
     c5: dict[str, object],
+    c5_alignment_audit: pd.DataFrame,
+    c5_alignment_metrics: pd.DataFrame,
+    c5_alignment_differences: pd.DataFrame,
+    c5_probability_change: pd.DataFrame,
     path: Path,
 ) -> None:
     source_lookup = source_metrics.set_index("condition")
     structural_lookup = structural_metrics.set_index("model")
     token_lookup = token_metrics.set_index("condition")
+    symmetric_lookup = symmetric_metrics.set_index("condition")
+    brier_lookup = brier_metrics.set_index(["condition", "probability_variant"])
+    direct_rate = int(c5["unchanged_source_matched_n"]) / int(c5["candidate_span_n"])
+    corrected_participants = int(c5_alignment_audit["corrected_span_count"].gt(0).sum())
+    changed_participants = int(c5_alignment_audit["representation_changed"].sum())
+    token_delta = int(c5_alignment_audit["token_count_delta"].sum())
+    c5_metric_lookup = c5_alignment_metrics.set_index("model")
+    probability_change = c5_probability_change.iloc[0]
     lines = [
-        "# Submission audit: locked main analysis and required controls",
+        "# Submission audit: analysis-locked main analysis and post-audit sensitivity checks",
         "",
-        "## Locked claim",
+        "## Timeline and claim boundary",
         "",
-        "This study audits the sources of PHQ-8 label-predictive signals in semi-structured interviews and tests whether full-transcript performance can be attributed directly to participant language alone.",
+        "- Main estimates use frozen repeat 1 of the existing participant-level five-fold split; every participant contributes one cross-fitted prediction.",
+        "- Repeat 1 was locked before the post-audit sensitivity run to prevent further split selection. This is not formal preregistration and is not described as prospectively prespecified.",
+        "- The existing 10 x 5 repeated cross-validation remains a split-stability supplement.",
+        "- Single-source performance measures predictive sufficiency, not independent contribution, causal bias, or leakage.",
         "",
-        "## Main analysis contract",
-        "",
-        "- Main estimates use frozen repeat 1 of the prespecified participant-level 5-fold split; every participant contributes one cross-fitted prediction.",
-        "- The existing 10 x 5 repeated cross-validation is retained only as a split-stability supplement.",
-        "- TF-IDF fitting, scaling, calibration, and threshold selection remain inside training data. The 0.5 threshold is called a prespecified/default operating threshold, not a clinical cutoff.",
-        "- Paired uncertainty resamples participants, not folds or repeated OOF rows.",
-        "",
-        "## Locked-split source results",
+        "## Analysis-locked source results",
         "",
     ]
     for condition in (
@@ -574,12 +637,37 @@ def write_submission_summary(
     ):
         row = source_lookup.loc[condition]
         lines.append(
-            f"- {condition}: AUC {row.roc_auc:.3f} (95% CI {row.auc_ci_low:.3f}-{row.auc_ci_high:.3f}), Brier {row.raw_brier:.3f}; nested-threshold sensitivity/specificity {row.sensitivity_nested:.3f}/{row.specificity_nested:.3f}."
+            f"- {condition}: AUC {row.roc_auc:.3f} (95% CI {row.auc_ci_low:.3f}-{row.auc_ci_high:.3f}), raw Brier {row.raw_brier:.3f}; nested-threshold sensitivity/specificity {row.sensitivity_nested:.3f}/{row.specificity_nested:.3f}."
         )
     lines.extend(
         [
             "",
-            "Single-source performance measures predictive sufficiency, not independent contribution or causal bias. Conditional increments are reported separately in the paired-comparison table.",
+            "## Brier no-skill baselines",
+            "",
+            "The formal no-skill comparator assigns each outer-test participant the positive prevalence from that outer-training fold. The fixed 43/142 cohort prevalence is descriptive only. Raw, Platt, and isotonic values use the same outer cross-fitted predictions; no calibrator is refit on pooled OOF predictions.",
+            "",
+            "| Condition | Variant | Brier | Train-fold null | BSS | 95% BSS CI | Descriptive cohort-null BSS |",
+            "|---|---|---:|---:|---:|---:|---:|",
+        ]
+    )
+    for condition in (
+        "participant_speech",
+        "interviewer_speech",
+        "full_transcript",
+        "participant_symptom_evidence",
+    ):
+        for variant in ("raw", "platt", "isotonic"):
+            row = brier_lookup.loc[(condition, variant)]
+            lines.append(
+                f"| {condition} | {variant} | {row.model_brier:.3f} | {row.trainfold_null_brier:.3f} | {row.bss_trainfold:.3f} | {row.bss_trainfold_ci_low:.3f} to {row.bss_trainfold_ci_high:.3f} | {row.bss_cohort_descriptive:.3f} |"
+            )
+    isotonic_fold = brier_fold_metrics.loc[
+        brier_fold_metrics["probability_variant"].eq("isotonic"), "model_brier"
+    ]
+    lines.extend(
+        [
+            "",
+            f"Isotonic fold-level Brier values are retained as a stability audit (range {isotonic_fold.min():.3f}-{isotonic_fold.max():.3f}); no calibration method is declared best from one aggregate estimate.",
             "",
             "## Structural and text-quantity controls",
             "",
@@ -587,41 +675,100 @@ def write_submission_summary(
     )
     for model in ("S_length", "S_interaction", "S_protocol", "S_all"):
         row = structural_lookup.loc[model]
-        lines.append(f"- {model}: AUC {row.roc_auc:.3f}.")
+        lines.append(
+            f"- {model}: AUC {row.roc_auc:.3f} (95% CI {row.ci_lower:.3f}-{row.ci_upper:.3f})."
+        )
+    lines.append(
+        "Interaction-only uncertainty includes 0.5; protocol-only and all-structure estimates are reported separately and are not collapsed into a claim that all structure families clearly predict above chance."
+    )
     for model in ("participant_matched", "interviewer_matched"):
         row = token_lookup.loc[model]
         lines.append(
-            f"- {model}, mean across 50 deterministic contiguous-window draws: AUC {row.mean_auc:.3f} (participant + random-draw 95% CI {row.participant_random_draw_ci_low:.3f}-{row.participant_random_draw_ci_high:.3f})."
+            f"- Longer-source-to-shorter-source-length {model}: mean AUC {row.mean_auc:.3f} (participant + random-window 95% CI {row.participant_random_draw_ci_low:.3f}-{row.participant_random_draw_ci_high:.3f})."
         )
-    token_delta = token_comparison.iloc[0]
+    asym_p = token_asymmetry.set_index("source").loc["participant"]
+    asym_i = token_asymmetry.set_index("source").loc["interviewer"]
     lines.append(
-        f"- Matched-text mean Delta AUC (interviewer minus participant): {token_delta.mean_delta_auc:.3f} (participant + random-draw 95% CI {token_delta.participant_random_draw_ci_low:.3f}-{token_delta.participant_random_draw_ci_high:.3f})."
+        f"- Existing control asymmetry: participant/interviewer truncated n={int(asym_p.truncated_n)}/{int(asym_i.truncated_n)}; mean retained fraction among non-empty texts={asym_p.mean_retained_fraction_nonempty:.3f}/{asym_i.mean_retained_fraction_nonempty:.3f}."
+    )
+    for model in ("participant_matched", "interviewer_matched"):
+        row = symmetric_lookup.loc[model]
+        lines.append(
+            f"- Symmetric half-min {model}: mean AUC {row.mean_auc:.3f} (participant + random-window 95% CI {row.participant_random_draw_ci_low:.3f}-{row.participant_random_draw_ci_high:.3f})."
+        )
+    symmetric_delta = symmetric_comparison.iloc[0]
+    budget_target = symmetric_budget.set_index("source").loc["shared_target"]
+    lines.append(
+        f"- Symmetric half-min interviewer-minus-participant mean Delta AUC {symmetric_delta.mean_delta_auc:.3f} (joint 95% CI {symmetric_delta.participant_random_draw_ci_low:.3f}-{symmetric_delta.participant_random_draw_ci_high:.3f}); median shared target={budget_target.target_token_median:.0f}, zero targets={int(budget_target.zero_target_n)}, targets below 10={int(budget_target.target_below_10_n)}."
     )
     lines.extend(
         [
             "",
-            "These controls determine whether process structure and text quantity can account for source-level performance. They do not isolate a single generative mechanism because protocol branching, participant responses, and interviewer adaptation remain coupled.",
+            "Deterministic early, middle, and late windows use the identical half-min budget for both sources:",
             "",
-            "## Prespecified paired comparisons",
-            "",
-            "| Comparison | Scope | Delta AUC | 95% CI | q |",
+            "| Position | Source | AUC | PR-AUC | Brier |",
             "|---|---|---:|---:|---:|",
+        ]
+    )
+    for row in position_metrics.itertuples(index=False):
+        lines.append(
+            f"| {row.position} | {row.model} | {row.roc_auc:.3f} | {row.pr_auc:.3f} | {row.brier:.3f} |"
+        )
+    lines.extend(
+        [
+            "",
+            "The two token controls answer different questions. At most, they show whether text quantity differences fully account for the observed source pattern under the tested whitespace-token budgets; they do not identify semantics or a causal mechanism.",
+            "",
+            "## Original analysis-locked paired comparisons",
+            "",
+            "Bootstrap confidence intervals and paired permutation p-values are different calculations. The five comparisons retain their original BH family.",
+            "",
+            "| Comparison | Scope | Delta AUC | Participant-bootstrap 95% CI | Raw p | BH q |",
+            "|---|---|---:|---:|---:|---:|",
         ]
     )
     for row in comparisons.itertuples(index=False):
         lines.append(
-            f"| {row.comparison} | {row.interpretation_scope} | {row.delta_auc:.3f} | {row.ci_lower:.3f} to {row.ci_upper:.3f} | {row.q_value:.3f} |"
+            f"| {row.comparison} | {row.interpretation_scope} | {row.delta_auc:.4f} | {row.ci_lower:.4f} to {row.ci_upper:.4f} | {row.p_value:.4f} | {row.q_value:.4f} |"
         )
     lines.extend(
         [
             "",
-            "## C5 boundary",
+            "## C5 retained-span source-alignment sensitivity",
             "",
-            f"All {c5['final_source_match_n']}/{c5['final_span_n']} retained C5 spans match participant source text after review, including {c5['manually_corrected_to_source_n']} corrected spans. However, outcome blinding cannot be demonstrated and inter-rater reliability is unavailable. C5 is therefore reported as a clinically guided derived representation, not as an unprocessed natural signal or evidence of pathological understanding.",
+            f"Among {c5['candidate_span_n']} candidates, {c5['unchanged_source_matched_n']} were direct source matches ({100 * direct_rate:.1f}%), {c5['manually_corrected_to_source_n']} were source-alignment revisions, and {int(c5['excluded_duplicate_n']) + int(c5['excluded_invalid_n'])} were excluded. All {c5['final_source_match_n']}/{c5['final_span_n']} retained spans are traceable after review. The final traceability rate is not extraction accuracy.",
+            f"The retained-span sensitivity holds span inclusion, source order, domain, and polarity fixed and changes quote text only. The {c5['manually_corrected_to_source_n']} revisions involve {corrected_participants} participants; {changed_participants} participant representations change and total whitespace-token count changes by {token_delta:+d}. It cannot reconstruct the six excluded candidates or a complete pre-review representation.",
+            "",
+            "| Representation | AUC | PR-AUC | Brier |",
+            "|---|---:|---:|---:|",
+        ]
+    )
+    for model in ("original_retained", "aligned_retained"):
+        row = c5_metric_lookup.loc[model]
+        lines.append(
+            f"| {model} | {row.roc_auc:.3f} | {row.pr_auc:.3f} | {row.brier:.3f} |"
+        )
+    lines.extend(
+        [
+            "",
+            "| Metric | Aligned minus original | Participant-bootstrap 95% CI | Raw p | BH q |",
+            "|---|---:|---:|---:|---:|",
+        ]
+    )
+    for row in c5_alignment_differences.itertuples(index=False):
+        lines.append(
+            f"| {row.metric} | {row.aligned_minus_original:.4f} | {row.ci_lower:.4f} to {row.ci_upper:.4f} | {row.p_value:.4f} | {row.q_value:.4f} |"
+        )
+    lines.extend(
+        [
+            "",
+            f"Absolute participant probability change: median {probability_change.absolute_change_median:.4f}, 95th percentile {probability_change.absolute_change_q95:.4f}, maximum {probability_change.absolute_change_max:.4f}; n>=0.01: {int(probability_change.absolute_change_ge_0_01_n)}, n>=0.05: {int(probability_change.absolute_change_ge_0_05_n)}.",
+            "",
+            "The available review table contains PHQ-8 fields and lacks rater identities or independent double review. Outcome blinding and inter-rater reliability cannot be claimed.",
             "",
             "## E-DAIC boundary",
             "",
-            "Module 14 remains a small descriptive supplement only. It is excluded from the title, abstract, core claims, and main figures; it does not establish generalizability or an error mechanism.",
+            "Module 14 remains a small descriptive supplement only. It does not establish generalizability or an independent error mechanism.",
         ]
     )
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -650,6 +797,16 @@ def main() -> int:
     )
     _write_csv(source_predictions, output / "locked_source_predictions.csv")
     _write_csv(source_metrics, output / "locked_source_metrics.csv")
+    null_predictions = build_cross_fitted_null_predictions(source_predictions)
+    brier_metrics, brier_fold_metrics = summarize_brier_skill(
+        source_predictions,
+        null_predictions,
+        n_bootstrap=args.bootstrap,
+        seed=args.seed,
+    )
+    _write_csv(null_predictions, output / "locked_null_brier_predictions.csv")
+    _write_csv(brier_metrics, output / "locked_brier_skill_metrics.csv")
+    _write_csv(brier_fold_metrics, output / "locked_brier_fold_metrics.csv")
     render_source_signal_figure(figures / "figure_1_source_signal_paths")
     render_locked_source_performance_figure(
         source_metrics,
@@ -727,6 +884,55 @@ def main() -> int:
         output / "token_matched_ensemble_comparison_audit_only.csv",
     )
     _write_csv(token_length_audit, output / "token_matching_length_audit.csv")
+    token_asymmetry = summarize_token_budget_audit(
+        token_length_audit,
+        control="longer_source_to_shorter_source_length",
+    )
+    _write_csv(token_asymmetry, output / "token_matching_asymmetry_summary.csv")
+
+    (
+        symmetric_predictions,
+        symmetric_draw_metrics,
+        symmetric_metrics,
+        symmetric_comparison,
+        symmetric_length_audit,
+    ) = run_symmetric_half_min_control(
+        participant_text,
+        interviewer_text,
+        splits,
+        n_draws=args.token_draws,
+        n_bootstrap=args.bootstrap,
+        seed=args.seed,
+    )
+    symmetric_budget = summarize_token_budget_audit(
+        symmetric_length_audit,
+        control="symmetric_half_min",
+    )
+    _write_csv(symmetric_length_audit, output / "symmetric_half_min_length_audit.csv")
+    _write_csv(symmetric_budget, output / "symmetric_half_min_audit_summary.csv")
+    _write_csv(symmetric_predictions, output / "symmetric_half_min_draw_predictions.csv")
+    _write_csv(symmetric_draw_metrics, output / "symmetric_half_min_draw_metrics.csv")
+    _write_csv(symmetric_metrics, output / "symmetric_half_min_metrics.csv")
+    _write_csv(symmetric_comparison, output / "symmetric_half_min_paired_comparison.csv")
+
+    (
+        position_predictions,
+        position_metrics,
+        position_comparisons,
+        position_audit,
+    ) = run_symmetric_position_control(
+        participant_text,
+        interviewer_text,
+        splits,
+        n_bootstrap=args.bootstrap,
+        n_permutations=args.permutations,
+        seed=args.seed,
+    )
+    if not position_audit.equals(symmetric_length_audit):
+        raise AssertionError("Random and positional symmetric token budgets differ")
+    _write_csv(position_predictions, output / "symmetric_position_predictions.csv")
+    _write_csv(position_metrics, output / "symmetric_position_metrics.csv")
+    _write_csv(position_comparisons, output / "symmetric_position_paired_comparisons.csv")
 
     template_oof, template_metrics, template_ci = run_template_controls(
         analysis_root,
@@ -754,6 +960,7 @@ def main() -> int:
         template_metrics,
         template_ci,
         token_metrics,
+        symmetric_metrics,
     )
     _write_csv(control_figure, output / "structure_control_figure_data.csv")
     render_structure_control_figure(
@@ -779,14 +986,55 @@ def main() -> int:
     )
     write_c5_summary(c5, output / "c5_traceability_summary.md")
 
+    original_retained, aligned_retained, c5_alignment_audit = build_retained_alignment_frames(
+        spans,
+        frozen_c5,
+    )
+    (
+        c5_alignment_predictions,
+        c5_alignment_metrics,
+        c5_alignment_differences,
+        c5_probability_change,
+    ) = run_retained_alignment_sensitivity(
+        original_retained,
+        aligned_retained,
+        splits,
+        n_bootstrap=args.bootstrap,
+        n_permutations=args.permutations,
+        seed=args.seed,
+    )
+    _write_csv(c5_alignment_audit, output / "c5_retained_alignment_audit.csv")
+    _write_csv(c5_alignment_predictions, output / "c5_retained_alignment_predictions.csv")
+    _write_csv(c5_alignment_metrics, output / "c5_retained_alignment_metrics.csv")
+    _write_csv(
+        c5_alignment_differences,
+        output / "c5_retained_alignment_paired_differences.csv",
+    )
+    _write_csv(
+        c5_probability_change,
+        output / "c5_retained_alignment_probability_change_summary.csv",
+    )
+
     structural_public = _merge_metrics_ci(structural_metrics, structural_ci)
+    write_model_configuration(output / "model_configuration.md")
     write_submission_summary(
         source_metrics,
+        brier_metrics,
+        brier_fold_metrics,
         structural_public,
         token_metrics,
         token_comparison,
+        token_asymmetry,
+        symmetric_metrics,
+        symmetric_comparison,
+        symmetric_budget,
+        position_metrics,
         comparisons,
         c5,
+        c5_alignment_audit,
+        c5_alignment_metrics,
+        c5_alignment_differences,
+        c5_probability_change,
         output / "submission_audit_summary.md",
     )
 
@@ -800,6 +1048,7 @@ def main() -> int:
         condition_path,
         analysis_root / "01_inputs" / "c5_reviewed_symptom_evidence.csv",
         analysis_root / "10_source_importance" / "07_strict_joint_models" / "model_fold_oof_predictions.csv",
+        output / "post_submission_audit_sensitivity_plan.md",
     ]
     manifest = {
         "status": "complete",
@@ -815,7 +1064,10 @@ def main() -> int:
         },
         "token_matching": {
             "draws": args.token_draws,
-            "method": "per-participant contiguous window to min(participant_tokens, interviewer_tokens)",
+            "existing_method": "longer source contiguous window to min(participant_tokens, interviewer_tokens)",
+            "symmetric_method": "both sources contiguous windows to floor(0.5 * min(participant_tokens, interviewer_tokens))",
+            "symmetric_positions": ["early", "middle", "late"],
+            "zero_target_policy": "retain participant with both source texts empty",
             "label_used_for_sampling": False,
         },
         "inference": {
@@ -823,10 +1075,12 @@ def main() -> int:
             "paired_permutations": args.permutations,
             "resampling_unit": "participant",
             "core_comparison_count": 5,
+            "post_audit_sensitivity_status": "not_preregistered_separate_families",
         },
         "c5": {
             **c5,
             "public_quote_text_included": False,
+            "alignment_sensitivity_scope": "same_1137_retained_spans_quote_text_only",
         },
         "interpretation_guardrails": {
             "source_performance": "predictive_sufficiency_not_independent_contribution",
@@ -834,6 +1088,12 @@ def main() -> int:
             "c5": "clinically_guided_derived_representation",
             "phq8": "self_report_label_not_clinical_diagnosis",
             "edaic": "descriptive_supplement_not_external_validation",
+            "ci": "code_tests_and_derived_integrity_not_full_restricted_data_reproduction",
+        },
+        "post_audit_plan": {
+            "file": "post_submission_audit_sensitivity_plan.md",
+            "sha256": sha256(output / "post_submission_audit_sensitivity_plan.md"),
+            "status": "frozen_before_sensitivity_results",
         },
         "seed": args.seed,
         "runtime": {
