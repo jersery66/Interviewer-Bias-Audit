@@ -8,6 +8,8 @@ from pathlib import Path
 import pandas as pd
 
 from reanalysis_v2.reporting import (
+    _inventory_audit,
+    _strict_audit,
     frozen_text_hash_match,
     c5_plot_y_layout,
     build_final_package,
@@ -71,6 +73,49 @@ def test_verify_inventory_detects_ok_missing_and_hash_mismatch(tmp_path: Path) -
         "bad.txt": "HASH_MISMATCH",
         "missing.txt": "MISSING",
     }
+
+
+def test_verify_inventory_accepts_git_crlf_checkout_for_text_artifact(tmp_path: Path) -> None:
+    artifact = tmp_path / "frozen.csv"
+    lf_bytes = b"participant_id,value\n302,1\n"
+    artifact.write_bytes(lf_bytes.replace(b"\n", b"\r\n"))
+    manifest = tmp_path / "output_manifest_sha256.csv"
+    pd.DataFrame(
+        [
+            {
+                "relative_path": artifact.name,
+                "bytes": len(lf_bytes),
+                "sha256": hashlib.sha256(lf_bytes).hexdigest(),
+            }
+        ]
+    ).to_csv(manifest, index=False)
+
+    result = verify_inventory(manifest)
+
+    assert result.loc[0, "status"] == "PASS"
+
+
+def test_distributed_inventory_audit_excludes_regenerable_embedding_caches() -> None:
+    analysis_root = Path(__file__).resolve().parents[1] / "analysis_v2"
+
+    audit = _inventory_audit(analysis_root)
+
+    assert not audit["relative_path"].str.contains("embedding_cache/", regex=False).any()
+    assert audit["status"].eq("PASS").all()
+
+
+def test_strict_audit_accepts_relocated_frozen_turn_source() -> None:
+    analysis_root = Path(__file__).resolve().parents[1] / "analysis_v2"
+
+    audit = _strict_audit(analysis_root).set_index("check")
+
+    assert audit.loc["c4:run_used_frozen_turn_source", "status"] == "PASS"
+
+
+def test_reporting_uses_headless_matplotlib_backend() -> None:
+    import matplotlib as mpl
+
+    assert mpl.get_backend().lower() == "agg"
 
 
 def test_filter_significant_uses_bh_q_and_keeps_direction() -> None:

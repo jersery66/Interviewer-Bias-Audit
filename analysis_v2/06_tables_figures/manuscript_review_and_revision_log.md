@@ -1,5 +1,22 @@
 # Manuscript review and revision log
 
+## 2026-07-11 submission-audit revision
+
+The previous strict-joint-model draft fixed leakage and participant-level inference but still treated repeated 10 x 5 estimates as the main narrative, omitted explicit structure and cross-source text-quantity controls, and did not integrate calibration, nested thresholds, or C5 review limitations into the paper. It has been superseded by `manuscript_submission_zh.md`.
+
+| Priority | Reviewer risk | Resolution |
+|---|---|---|
+| P0 | Source performance could be miswritten as interviewer bias or leakage | Locked the paper to source-dependent predictive signals; causal bias and leakage claims are prohibited |
+| P0 | Single-source AUC could be misread as independent contribution | Separated predictive sufficiency from M5-M3 and M4-M3 conditional increments |
+| P0 | Repeated CV could invite pseudo-replication | Main analysis now uses frozen repeat 1 only; every participant has one cross-fitted prediction |
+| P0 | Structural explanations were not directly controlled | Added length, interaction, protocol, and combined structural baselines |
+| P0 | Source text quantity differed | Added 50 per-participant matched-whitespace-token draws with participant + random-draw uncertainty |
+| P0 | Fixed 0.50 sensitivity was overinterpretable | Integrated Brier, calibration intercept/slope, calibration curves, and nested training-fold thresholds |
+| P0 | C5 source integrity and blinding were underreported | Verified 1137/1137 final spans; disclosed 35 corrections, visible PHQ columns, and unavailable inter-rater reliability |
+| P1 | Too many analyses competed for the main story | Locked three RQs and four main figures; domain LOO, repeated CV, mismatch errors, and E-DAIC moved to supplements |
+| P1 | E-DAIC could be mistaken for external validation | Removed from title, abstract, core results, and main figures |
+| P1 | Clinical wording exceeded the target | Standardized on PHQ-8 label prediction and prohibited diagnosis/deployment claims |
+
 ## Overall verdict
 
 The previous draft was not publication-safe. Its headline AUC values came from the superseded two-level OOF-probability stacking analysis, several conclusions relied on unadjusted or fold-level uncertainty, figures were not embedded into the article, and the reference/availability/ethics sections were incomplete. The manuscript has been rebuilt around the strict raw-source joint analysis.

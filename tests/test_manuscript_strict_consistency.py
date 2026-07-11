@@ -1,44 +1,46 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pandas as pd
+from PIL import Image
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-MANUSCRIPT = REPO_ROOT / "analysis_v2" / "06_tables_figures" / "manuscript_draft_zh.md"
-STRICT_DIR = REPO_ROOT / "analysis_v2" / "10_source_importance" / "07_strict_joint_models"
+MANUSCRIPT = REPO_ROOT / "analysis_v2" / "06_tables_figures" / "manuscript_submission_zh.md"
+SUBMISSION_DIR = REPO_ROOT / "analysis_v2" / "12_submission_audit"
 
 
 def test_manuscript_uses_strict_results_and_embeds_all_figures() -> None:
     text = MANUSCRIPT.read_text(encoding="utf-8")
-    metrics = pd.read_csv(STRICT_DIR / "model_metrics.csv")
+    metrics = pd.read_csv(SUBMISSION_DIR / "locked_source_metrics.csv", encoding="utf-8-sig")
 
     assert text.startswith("# ")
-    assert "10 × 5" in text
+    assert "锁定预设重复划分中的第 1 次五折" in text
+    assert "每名被试仅产生一次 cross-fitted 预测" in text
     assert "5000" in text
     assert "10,000" in text
     assert "Benjamini–Hochberg" in text
-    assert "均未通过 FDR 校正" in text
-    assert "*q* = 0.0039" in text
+    assert "10×5 重复交叉验证仅用于补充" in text
 
     for row in metrics.itertuples(index=False):
-        assert f"{row.roc_auc:.4f}" in text
+        assert f"{row.roc_auc:.3f}" in text
 
     for figure_number, stem in (
-        (1, "source_decomposition_framework"),
-        (2, "incremental_model_auc"),
-        (3, "permutation_importance"),
-        (4, "domain_leave_one_out"),
+        (1, "source_signal_paths"),
+        (2, "locked_source_performance"),
+        (3, "calibration_threshold_locked"),
+        (4, "structure_controls_locked"),
     ):
         assert f"![图 {figure_number}]" in text
-        assert f"figures/figure_{figure_number}_{stem}.png" in text
+        assert f"../12_submission_audit/figures/figure_{figure_number}_{stem}.png" in text
 
 
 def test_manuscript_removes_superseded_claims_and_has_paper_sections() -> None:
     text = MANUSCRIPT.read_text(encoding="utf-8")
 
-    for stale_value in ("0.6956", "0.8252", "0.1294", "0.1810", "0.1272"):
+    for stale_value in ("0.6956", "0.8252", "0.1294", "0.1810", "0.1272", "0.0039"):
         assert stale_value not in text
 
     for section in (
@@ -55,6 +57,74 @@ def test_manuscript_removes_superseded_claims_and_has_paper_sections() -> None:
     ):
         assert section in text
 
-    assert "条件性关联" in text
-    assert "外部独立测试集" in text
-    assert "固定的重复 OOF 预测" in text
+    assert "条件关联" in text
+    assert "独立外部测试集" in text
+    assert "来源单独可预测不等于其对联合模型具有独立贡献" in text
+    assert "不证明访谈者造成因果偏差或标签泄漏" in text
+    assert "不是精神科诊断" in text
+
+
+def test_claim_matrix_and_submission_readme_lock_interpretation_boundaries() -> None:
+    readme = (REPO_ROOT / "analysis_v2" / "README.md").read_text(encoding="utf-8")
+    matrix = (SUBMISSION_DIR / "claim_evidence_matrix.md").read_text(encoding="utf-8")
+
+    assert "Single-source performance measures predictive sufficiency" in readme
+    assert "interviewer bias as an identified causal effect" in readme
+    assert "M5-M3 Delta AUC 0.003" in matrix
+    assert "Outcome blinding cannot be demonstrated" in matrix
+    assert "External validation" in matrix
+
+
+def test_submission_abstract_and_claims_do_not_overreach() -> None:
+    text = MANUSCRIPT.read_text(encoding="utf-8")
+    abstract = text.split("## 1 引言", maxsplit=1)[0]
+
+    assert "E-DAIC" not in abstract
+    assert text.count("![图 ") == 4
+    for unsupported in (
+        "访谈者偏差导致",
+        "证明了访谈者偏差",
+        "模型具有临床筛查",
+        "C5 证明",
+        "外部验证结果表明",
+        "泛化性能得到验证",
+    ):
+        assert unsupported not in text
+
+
+def test_submission_numbers_match_control_outputs() -> None:
+    text = MANUSCRIPT.read_text(encoding="utf-8")
+    structural = pd.read_csv(
+        SUBMISSION_DIR / "structural_baseline_metrics.csv", encoding="utf-8-sig"
+    )
+    token = pd.read_csv(SUBMISSION_DIR / "token_matched_metrics.csv", encoding="utf-8-sig")
+    comparisons = pd.read_csv(
+        SUBMISSION_DIR / "locked_core_paired_comparisons.csv", encoding="utf-8-sig"
+    )
+    c5 = pd.read_json(SUBMISSION_DIR / "c5_traceability_summary.json", typ="series")
+
+    for row in structural.itertuples(index=False):
+        assert f"{row.roc_auc:.3f}" in text
+    for row in token.itertuples(index=False):
+        assert f"{row.mean_auc:.3f}" in text
+    for row in comparisons.itertuples(index=False):
+        assert f"{row.delta_auc:.3f}" in text
+        assert f"q={row.q_value:.3f}" in text
+    assert str(int(c5["final_span_n"])) in text
+    assert str(int(c5["manually_corrected_to_source_n"])) in text
+
+
+def test_submission_tiffs_are_losslessly_compressed_for_github() -> None:
+    tiffs = sorted((SUBMISSION_DIR / "figures").glob("figure_*.tiff"))
+
+    assert len(tiffs) == 4
+    for path in tiffs:
+        with Image.open(path) as image:
+            assert image.tag_v2.get(259) in {5, 8}
+        assert path.stat().st_size < 100 * 1024 * 1024
+
+
+def test_submission_manifest_records_tiff_dependency() -> None:
+    manifest = json.loads((SUBMISSION_DIR / "run_manifest.json").read_text(encoding="utf-8"))
+
+    assert manifest["runtime"]["tifffile"]

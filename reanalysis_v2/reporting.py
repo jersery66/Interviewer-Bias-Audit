@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Iterable
 
 import matplotlib as mpl
+mpl.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -33,6 +34,10 @@ REPRESENTATION_COLORS = {
     "model_1_all_mpnet_base_v2": "#4C78A8",
     "model_2_bge_large_en_v1_5": "#E59F3A",
 }
+
+TEXT_ARTIFACT_SUFFIXES = frozenset(
+    {".csv", ".json", ".md", ".svg", ".tsv", ".txt", ".yaml", ".yml"}
+)
 
 
 def sha256_file(path: Path) -> str:
@@ -69,9 +74,21 @@ def verify_inventory(inventory_path: Path) -> pd.DataFrame:
             actual_bytes = -1
             status = "MISSING"
         else:
-            actual_hash = sha256_file(path)
-            actual_bytes = path.stat().st_size
-            if actual_hash != expected_hash:
+            raw = path.read_bytes()
+            actual_hash = hashlib.sha256(raw).hexdigest()
+            actual_bytes = len(raw)
+            canonical_lf = raw.replace(b"\r\n", b"\n")
+            canonical_lf_hash = hashlib.sha256(canonical_lf).hexdigest()
+            canonical_checkout_match = (
+                path.suffix.lower() in TEXT_ARTIFACT_SUFFIXES
+                and canonical_lf_hash == expected_hash
+                and len(canonical_lf) == expected_bytes
+            )
+            if actual_hash == expected_hash and actual_bytes == expected_bytes:
+                status = "PASS"
+            elif canonical_checkout_match:
+                status = "PASS"
+            elif actual_hash != expected_hash:
                 status = "HASH_MISMATCH"
             elif actual_bytes != expected_bytes:
                 status = "SIZE_MISMATCH"
@@ -382,7 +399,10 @@ def _inventory_audit(analysis_root: Path) -> pd.DataFrame:
         analysis_root / "04_c5_controls" / "output_manifest_sha256.csv",
         analysis_root / "05_c4_controls" / "output_manifest_sha256.csv",
     ]
-    return pd.concat([verify_inventory(path) for path in manifests], ignore_index=True)
+    audited = pd.concat([verify_inventory(path) for path in manifests], ignore_index=True)
+    # Embedding caches are reproducible, gitignored intermediates; frozen metrics and OOF outputs remain audited.
+    normalized_paths = "/" + audited["relative_path"].str.replace("\\", "/", regex=False).str.lstrip("/")
+    return audited.loc[~normalized_paths.str.contains("/embedding_cache/", regex=False)].reset_index(drop=True)
 
 
 def _strict_audit(analysis_root: Path) -> pd.DataFrame:
@@ -496,12 +516,13 @@ def _strict_audit(analysis_root: Path) -> pd.DataFrame:
 
     c4_run_manifest = json.loads((analysis_root / "05_c4_controls" / "run_manifest.json").read_text(encoding="utf-8"))
     recorded_turns = c4_run_manifest["turns_source"]
+    recorded_turns_name = str(recorded_turns["path"]).replace("\\", "/").rsplit("/", 1)[-1]
     record(
         "c4:run_used_frozen_turn_source",
-        Path(recorded_turns["path"]).resolve() == c4_turns_path.resolve()
+        recorded_turns_name == c4_turns_path.name
         and recorded_turns["sha256"] == c4_turns_entry["sha256"],
-        f"{recorded_turns['path']} | {recorded_turns['sha256']}",
-        f"{c4_turns_path} | {c4_turns_entry['sha256']}",
+        f"{recorded_turns_name} | {recorded_turns['sha256']}",
+        f"{c4_turns_path.name} | {c4_turns_entry['sha256']}",
     )
 
     tfidf_tests = pd.read_csv(analysis_root / "02_tfidf_main" / "paired_tests" / "primary_input_source_paired_tests_fdr.csv")
