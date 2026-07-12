@@ -31,6 +31,23 @@ jobs:
           name: pytest-results-${{ github.run_id }}
           path: pytest-results.xml
           if-no-files-found: ignore
+      - name: Annotate pytest failures
+        if: always()
+        run: |
+          python - <<'PY'
+          import os
+          import xml.etree.ElementTree as ET
+
+          path = "pytest-results.xml"
+          if not os.path.exists(path):
+              raise SystemExit(0)
+          root = ET.parse(path).getroot()
+          for case in root.findall(".//testcase"):
+              failure = case.find("failure") or case.find("error")
+              if failure is not None:
+                  message = (failure.get("message") or failure.text or "").splitlines()[0]
+                  print(f"::error title=pytest failure::{case.get('classname')}.{case.get('name')}: {message}")
+          PY
       - name: Verify frozen derived-result integrity
         run: python scripts/verify_submission_artifacts.py
       - name: State the reproduction boundary
