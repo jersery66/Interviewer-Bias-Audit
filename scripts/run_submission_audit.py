@@ -734,7 +734,7 @@ def write_submission_summary(
             + "; ".join(position_lines)
             + ".",
             "",
-            "The two token controls answer different questions. The original longer-to-shorter control was strongly asymmetric. Under a common half-min information budget, the source contrast attenuated and its joint interval included zero; its magnitude and direction also varied by window position. The evidence therefore does not rule out text-budget or position effects and does not identify semantics or a causal mechanism.",
+            "The two token controls answer different questions. The original longer-to-shorter control was strongly asymmetric. Under a common half-min information budget, the source contrast attenuated and its window-inclusive joint interval included zero. The fixed-draw paired-swap p/q is a separate post-audit test and does not replace that interval; the magnitude and direction also varied by window position. The evidence therefore does not rule out text-budget or position effects and does not identify semantics or a causal mechanism.",
             "",
             "## Original analysis-locked paired comparisons",
             "",

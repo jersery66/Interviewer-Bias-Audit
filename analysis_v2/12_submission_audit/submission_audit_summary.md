@@ -47,7 +47,7 @@ Interaction-only uncertainty includes 0.5; protocol-only and all-structure estim
 - Existing control asymmetry: participant/interviewer truncated n=132/10; mean retained fraction among non-empty texts=0.459/0.987.
 - Symmetric half-min participant_matched: mean AUC 0.588 (participant + random-window 95% CI 0.440-0.737).
 - Symmetric half-min interviewer_matched: mean AUC 0.706 (participant + random-window 95% CI 0.563-0.824).
-- Symmetric half-min interviewer-minus-participant mean Delta AUC 0.117 (joint 95% CI -0.069-0.295); median shared target=250, zero targets=2, targets below 10=2.
+- Symmetric half-min interviewer-minus-participant mean Delta AUC 0.1174 (joint 95% CI -0.0691-0.2953; raw p=0.0039, BH q=0.0039); median shared target=250, zero targets=2, targets below 10=2.
 
 Deterministic early, middle, and late windows use the identical half-min budget for both sources:
 
@@ -60,7 +60,9 @@ Deterministic early, middle, and late windows use the identical half-min budget 
 | late | participant_matched | 0.726 | 0.572 | 0.228 |
 | late | interviewer_matched | 0.818 | 0.649 | 0.187 |
 
-The two token controls answer different questions. At most, they show whether text quantity differences fully account for the observed source pattern under the tested whitespace-token budgets; they do not identify semantics or a causal mechanism.
+Position-paired interviewer-minus-participant Delta AUCs were early 0.2638 (95% CI 0.1440-0.3794; raw p=0.0001, BH q=0.0003); middle -0.0244 (95% CI -0.1259-0.0756; raw p=0.6693, BH q=0.6693); late 0.0928 (95% CI -0.0246-0.2100; raw p=0.1196, BH q=0.1794).
+
+The two token controls answer different questions. The original longer-to-shorter control was strongly asymmetric. Under a common half-min information budget, the source contrast attenuated and its window-inclusive joint interval included zero. The fixed-draw paired-swap p/q is a separate post-audit test and does not replace that interval; the magnitude and direction also varied by window position. The evidence therefore does not rule out text-budget or position effects and does not identify semantics or a causal mechanism.
 
 ## Original analysis-locked paired comparisons
 

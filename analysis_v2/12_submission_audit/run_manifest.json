@@ -1,9 +1,9 @@
 {
   "status": "complete",
   "analysis": "submission audit with locked main split and reviewer-required controls",
-  "started_at_utc": "2026-07-11T13:29:26.461261+00:00",
-  "completed_at_utc": "2026-07-11T13:32:49.900222+00:00",
-  "git_commit": "f74e5500e6f25b723c708fd7c35e14919c2c581a",
+  "started_at_utc": "2026-07-12T07:23:23.096698+00:00",
+  "completed_at_utc": "2026-07-12T07:26:41.045343+00:00",
+  "git_commit": "b796406fa5fcfe1672dc407bb14e0f94c1cceb49",
   "main_cv": {
     "locked_repeat": 1,
     "folds": 5,
@@ -20,14 +20,17 @@
       "late"
     ],
     "zero_target_policy": "retain participant with both source texts empty",
-    "label_used_for_sampling": false
+    "label_used_for_sampling": false,
+    "half_min_permutation_pairing": "one participant swap vector held constant across all draws",
+    "half_min_permutation_seed": 20765706
   },
   "inference": {
     "bootstrap_resamples": 5000,
     "paired_permutations": 10000,
     "resampling_unit": "participant",
     "core_comparison_count": 5,
-    "post_audit_sensitivity_status": "not_preregistered_separate_families"
+    "post_audit_sensitivity_status": "not_preregistered_separate_families",
+    "symmetric_half_min_comparison_family": "one_comparison_bh_family"
   },
   "c5": {
     "candidate_span_n": 1143,
@@ -64,8 +67,16 @@
   },
   "post_audit_plan": {
     "file": "post_submission_audit_sensitivity_plan.md",
-    "sha256": "498b2a6ed0b0f0734039b0324b9005f0bbae0e53ab1867058cae7518b91548af",
-    "status": "frozen_before_sensitivity_results"
+    "sha256": "bffd9d10fb29b96fb6853aefb097d7db935b98869c968c693ec190a76bcccaab",
+    "status": "original_plan_frozen_before_sensitivity_results",
+    "closeout_amendment_status": "frozen_before_closeout_inference_rerun"
+  },
+  "recomputation_verification": {
+    "file": "recomputation_verification.json",
+    "status": "PASS",
+    "file_count": 43,
+    "run1": "2026-07-12T07:13:25Z-b796406",
+    "run2": "2026-07-12T07:17:06.964647Z-b796406"
   },
   "seed": 20260705,
   "runtime": {
@@ -125,8 +136,8 @@
     },
     {
       "name": "post_submission_audit_sensitivity_plan.md",
-      "bytes": 14194,
-      "sha256": "498b2a6ed0b0f0734039b0324b9005f0bbae0e53ab1867058cae7518b91548af"
+      "bytes": 16015,
+      "sha256": "bffd9d10fb29b96fb6853aefb097d7db935b98869c968c693ec190a76bcccaab"
     }
   ]
 }

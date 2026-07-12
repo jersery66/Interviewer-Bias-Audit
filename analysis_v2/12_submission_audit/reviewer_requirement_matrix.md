@@ -6,7 +6,7 @@
 | Separate source sufficiency from independent contribution | Complete | Single-source results and M5-M3/M4-M3 conditional increments reported separately |
 | Add pure structural baseline | Complete | Length, interaction, protocol, and combined structural models in locked five-fold CV |
 | Audit the original equal-text-quantity control | Complete with corrected boundary | Original control truncated participant/interviewer text for 132/10 participants; it is retained as a longer-to-shorter-source analysis, not a symmetric budget test |
-| Add a symmetric text-budget control | Complete | Both sources use `floor(0.5 x min(lengths))`; 50 paired draws plus deterministic early/middle/late windows; participant and window uncertainty included |
+| Add a symmetric text-budget control | Complete with dual uncertainty reporting | Both sources use `floor(0.5 x min(lengths))`; 50 paired draws plus deterministic early/middle/late windows; participant/window joint interval and fixed-draw paired-swap p/q are reported separately |
 | Separate template and non-template interviewer content | Complete with boundary | Template, non-template, and template-length-matched non-template conditions; non-template is not called purely adaptive |
 | Report calibration against a no-skill baseline | Complete | Outer-training-fold prevalence is the formal null; cohort prevalence is descriptive; BSS reported for raw, Platt, and isotonic on the same cross-fitted participants |
 | Select thresholds inside training folds | Complete | Existing nested thresholds reused; outer-test predictions are untouched during selection |

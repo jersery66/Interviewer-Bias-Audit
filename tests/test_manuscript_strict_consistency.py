@@ -42,7 +42,7 @@ def test_manuscript_uses_strict_results_and_embeds_all_figures() -> None:
 def test_manuscript_removes_superseded_claims_and_has_paper_sections() -> None:
     text = MANUSCRIPT.read_text(encoding="utf-8")
 
-    for stale_value in ("0.6956", "0.8252", "0.1294", "0.1810", "0.1272", "0.0039"):
+    for stale_value in ("0.6956", "0.8252", "0.1294", "0.1810", "0.1272"):
         assert stale_value not in text
 
     for section in (
@@ -125,7 +125,7 @@ def test_post_audit_results_and_interpretive_downgrades_are_integrated() -> None
         "Brier skill score",
         "−0.092",
         "对称半最小预算",
-        "−0.069–0.295",
+        "−0.0691–0.2953",
         "位置敏感",
         "来源对齐修订敏感性分析",
         "1102/1143",

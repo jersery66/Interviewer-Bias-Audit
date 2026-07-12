@@ -16,6 +16,10 @@ The analysis rules were frozen in `post_submission_audit_sensitivity_plan.md` be
 | Novelty claim rested on a short selective table | Added a dated targeted-search log and limited the claim to representative retained studies; no “first” or field-wide rarity claim |
 | Passing CI could be mistaken for raw-data reproduction | Separated code/test reproducibility, frozen-result integrity, and restricted full data-to-result reproduction |
 
+## 2026-07-12 closeout amendment
+
+The completion audit found that the symmetric half-min output had a window-inclusive joint interval but no raw p/q field. Before the closeout rerun, a post hoc amendment fixed the reporting contract without changing the half-min budget, draws, model, or joint interval: one participant-level source swap vector is held constant across all 50 draws, with 10,000 permutations and a separate one-comparison BH family. The manuscript reports both quantities and gives priority to the interval that includes window randomness. The same rerun also records newline-normalized public hashes and will be accompanied by an explicit two-run recomputation comparison.
+
 ## 2026-07-11 submission-audit revision
 
 The previous strict-joint-model draft fixed leakage and participant-level inference but still treated repeated 10 x 5 estimates as the main narrative, omitted explicit structure and cross-source text-quantity controls, and did not integrate calibration, nested thresholds, or C5 review limitations into the paper. It has been superseded by `manuscript_submission_zh.md`.
