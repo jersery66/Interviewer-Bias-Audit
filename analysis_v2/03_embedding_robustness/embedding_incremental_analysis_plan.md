@@ -1,6 +1,6 @@
 # Embedding incremental analysis plan
 
-**Status:** post-submission locked supplementary conditional-increment analysis
+**Status:** post hoc, analysis-locked supplementary conditional-increment analysis
 **Lock date:** 2026-07-12
 **Preregistration status:** this plan was added after the existing analyses and is **not** a preregistration or an original pre-specified analysis.  The definitions below are frozen before running this supplementary analysis.  Results must not be used to change the cohort, feature list, model levels, embedding representation, split file, or hypothesis families.
 
@@ -22,12 +22,12 @@ The reportable terms are **conditional increment**, **residual increment**, **in
 
 Frozen input SHA-256 values at lock time:
 
-| Input | SHA-256 |
-|---|---|
-| structural baseline features | `70c439c4a78ab7bea2b1106f59d06214ae0fa9bf09540bd24c859350cc2fce4a` |
-| ten-domain count input | `7687c70d3770b7e8902900ec3c117d8a679fc6d718abf1c2a7f8d1361b07ae33` |
-| structural feature dictionary | `fe3c56b0ebd51118bffee4ef2091c5088fad0d60a3537ac67c3242f52f97f821` |
-| repeated 5-fold membership | `ceaddff172bf9582987cf76ff0522dcfdd0fe90c5b3014565bcfaacf003703ae` |
+| Input | Raw SHA-256 | LF-normalized SHA-256 |
+|---|---|---|
+| structural baseline features | `70c439c4a78ab7bea2b1106f59d06214ae0fa9bf09540bd24c859350cc2fce4a` | `843871828087b6044b2400d588587a61c252720a15867d8c3cc7d34edf3b90b1` |
+| ten-domain count input | `7687c70d3770b7e8902900ec3c117d8a679fc6d718abf1c2a7f8d1361b07ae33` | `1fad85d77a8329992553a420898f7b0c3908b90dbd777da4ebd77bc6e869c134` |
+| structural feature dictionary | `fe3c56b0ebd51118bffee4ef2091c5088fad0d60a3537ac67c3242f52f97f821` | `fe3c56b0ebd51118bffee4ef2091c5088fad0d60a3537ac67c3242f52f97f821` |
+| repeated 5-fold membership | `ceaddff172bf9582987cf76ff0522dcfdd0fe90c5b3014565bcfaacf003703ae` | `e4202fcd4d492a37fa68c579767ea940ca0629b4230374b06ddc8778e32045b3` |
 
 The split hash above is the byte hash of the current Windows checkout (CRLF).  Its LF-normalized Git-content hash is `e4202fcd4d492a37fa68c579767ea940ca0629b4230374b06ddc8778e32045b3`; both hashes identify the same committed membership rows.  The runner uses the current membership rows and records the local byte hash in its manifest.
 
@@ -42,7 +42,7 @@ The runner consumes existing `.npz` cache files and fails if a required cache is
 
 Both representations use the previously frozen 200-word chunks, 50-word overlap, normalized chunk mean, and document L2 normalization.  Only participant-speech and interviewer-speech embeddings enter the primary incremental models.  Full-transcript and symptom-evidence embeddings are not part of this core question.
 
-The two existing embedding manifests have SHA-256 values `0c5c025e9f3bc926646dea389edbd217b44e3e082310ec1d0f06cc30b43cdedd` and `7a98e4941323fe14503fa7b194d456d746414883446204e8daad0908d50b729c`, respectively.  The cache SHA-256 values are read and re-checked from those manifests at runtime; cache files are restricted/local inputs and are not required to be committed to the public repository.
+The two existing embedding manifests have raw SHA-256 values `0c5c025e9f3bc926646dea389edbd217b44e3e082310ec1d0f06cc30b43cdedd` and `7a98e4941323fe14503fa7b194d456d746414883446204e8daad0908d50b729c`; their LF-normalized values are `e3cf5a7806717d8044fb99fc2d8f26bdd489cd731bc2330bc780906bbd5eb313` and `7a885a81538a983d1ca82e91e554ac55608ac8cc98be609b9994fa161ad1cf8c`.  The runner rejects any manifest outside these locked variants and also checks model revision, dimension, chunk length, overlap, pooling, empty-document policy, and CV settings.  Cache SHA-256 values are read and re-checked from the locked manifests at runtime; cache files are restricted/local inputs and are not required to be committed to the public repository.
 
 ## 4. Frozen feature inventory
 
@@ -50,15 +50,15 @@ The two existing embedding manifests have SHA-256 values `0c5c025e9f3bc926646dea
 
 | Column | Definition | Type | Missing handling | Standardization |
 |---|---|---|---|---|
-| `protocol_structure__interviewer_question_count` | interviewer turns with a frozen prompt annotation | numeric count | reject missing/non-finite | fit `StandardScaler` on each outer training fold |
-| `protocol_structure__clinical_question_count` | turns meeting the frozen explicit-clinical-prompt rule | numeric count | reject missing/non-finite | outer-training fit only |
-| `protocol_structure__unique_protocol_prompt_count` | distinct nonmissing frozen prompt IDs | numeric count | reject missing/non-finite | outer-training fit only |
-| `protocol_structure__clinical_prompt_coverage_count` | distinct normalized explicit-clinical-prompt strings | numeric count | reject missing/non-finite | outer-training fit only |
-| `protocol_structure__non_explicit_interviewer_turn_count` | interviewer turns not meeting the explicit-clinical-prompt rule | numeric count | reject missing/non-finite | outer-training fit only |
+| `protocol_structure__interviewer_question_count` | interviewer turns with a frozen prompt annotation | numeric count | reject missing/non-finite | late: second-layer in-fold standardization; early: numeric transformer fit on training rows only |
+| `protocol_structure__clinical_question_count` | turns meeting the frozen explicit-clinical-prompt rule | numeric count | reject missing/non-finite | same as above |
+| `protocol_structure__unique_protocol_prompt_count` | distinct nonmissing frozen prompt IDs | numeric count | reject missing/non-finite | same as above |
+| `protocol_structure__clinical_prompt_coverage_count` | distinct normalized explicit-clinical-prompt strings | numeric count | reject missing/non-finite | same as above |
+| `protocol_structure__non_explicit_interviewer_turn_count` | interviewer turns not meeting the explicit-clinical-prompt rule | numeric count | reject missing/non-finite | same as above |
 
 ### Symptom domains (`D`, primary)
 
-`anhedonia_interest`, `appetite_weight`, `concentration_psychomotor`, `depressed_mood`, `functioning_impairment`, `mental_health_history`, `protective_or_absent_symptom`, `self_worth_guilt`, `sleep_fatigue_energy`, and `suicide_self_harm` are the ten frozen domain counts.  They are numeric counts, missing/non-finite values are rejected, and each outer training fold supplies the `StandardScaler` parameters used for its corresponding test fold.
+`anhedonia_interest`, `appetite_weight`, `concentration_psychomotor`, `depressed_mood`, `functioning_impairment`, `mental_health_history`, `protective_or_absent_symptom`, `self_worth_guilt`, `sleep_fatigue_energy`, and `suicide_self_harm` are the ten frozen domain counts.  They are numeric counts, missing/non-finite values are rejected, and their scaling is fitted only inside the corresponding training fit: as part of the late-fusion second-layer all-feature scaler, or as the early-concatenation numeric transformer.
 
 ## 5. Model matrix
 
@@ -71,7 +71,7 @@ For each embedding representation, the main analysis runs these four paired leve
 | L3 | `P+D` | `P+D+I` | residual increment after symptom-domain information |
 | L4 | `P+R+D` | `P+R+D+I` | final residual increment after both controls |
 
-Here `P` and `I` are participant/interviewer source representations.  In the primary late-fusion analysis they are first-layer outer-training cross-fitted logits; in the early-concatenation sensitivity analysis they are the frozen normalized embedding vectors themselves.  `R` and `D` are always standardized inside the outer training fold.  All eight models use the same participant-level outer split.
+Here `P` and `I` are participant/interviewer source representations.  In the primary late-fusion analysis they are first-layer outer-training cross-fitted logits; in the early-concatenation sensitivity analysis they are the frozen normalized embedding vectors themselves.  Source models use L2 logistic regression directly on the frozen embeddings, with no `StandardScaler`.  Late-fusion second-layer models standardize all of their input columns inside each training fit.  Early-concatenation models pass embedding columns through unchanged and standardize only `R`/`D` columns inside a `ColumnTransformer` fitted on the relevant training rows.  All eight models use the same participant-level outer split.
 
 ## 6. Cross-fitting and tuning
 
@@ -79,8 +79,8 @@ Here `P` and `I` are participant/interviewer source representations.  In the pri
 - Stability: the same implementation may run repeats 1--10 of the committed 10x5 membership.  These repeats summarize stability and are not treated as independent samples or t-test units.
 - Inner selection: three stratified folds and the frozen C grid `[0.01, 0.1, 1.0, 10.0]`; highest mean inner ROC AUC wins, ties choose the smaller C.
 - Late fusion first layer: for every outer fold and source, the outer-training rows are split into inner folds.  Each inner-validation logit is produced by a source model fitted on the complementary meta-training rows; that source model's C is selected only within a further three-fold split of its meta-training rows.  A source model selected on all outer-training rows then produces outer-test logits.
-- Late fusion second layer: base and augmented logistic models are fitted on the source cross-fitted logits plus the relevant standardized `R`/`D` columns.  C is selected by three-fold validation within outer training rows only; the fitted outer-training model predicts the outer test rows.
-- Early concatenation: participant/interviewer embeddings are concatenated with the relevant outer-training-standardized `R`/`D` columns and fitted with the same nested outer/inner boundaries and L2 logistic regression.  Embedding vectors are not re-standardized.
+- Late fusion second layer: base and augmented logistic models are fitted on the source cross-fitted logits plus the raw relevant `R`/`D` columns; the second-layer pipeline standardizes all of its input columns inside each inner/outer training fit.  C is selected by three-fold validation within outer training rows only; the fitted outer-training model predicts the outer test rows.
+- Early concatenation: participant/interviewer embeddings are concatenated with raw `R`/`D` columns.  A `ColumnTransformer` passes embedding columns through and standardizes only numeric `R`/`D` columns inside each inner/outer training fit.  Embedding vectors are not re-standardized.
 - The outer test fold is invisible to feature transformation, source-model tuning, second-layer tuning, calibration, and threshold selection.
 
 ## 7. Metrics and effect directions
@@ -106,19 +106,25 @@ Positive deltas mean improvement from adding interviewer language:
 
 For each embedding and fusion method, attenuation is calculated as `delta_L1 - delta_L2` (protocol), `delta_L1 - delta_L3` (domain), and `delta_L1 - delta_L4` (protocol plus domain), for AUC and the three support metrics.  These are descriptive overlap/attenuation quantities, not mediation or causal proportions.  An attenuation proportion is not reported by default; if later requested it is interpretable only when the L1 AUC increment is positive and not near zero.
 
+## 9a. Locked classifier parameters
+
+Every logistic regression uses L2 penalty, `class_weight="balanced"`, `solver="liblinear"`, `fit_intercept=True`, and `max_iter=2000`.  Source models omit scaling and operate directly on frozen normalized embeddings.  Late-fusion second-layer models standardize all input columns inside the training pipeline.  Early-concatenation models use embedding passthrough plus numeric-only `StandardScaler` inside the training pipeline.  These choices are fixed before formal execution.
+
 ## 10. Locked output files
 
-All files are written under `analysis_v2/03_embedding_robustness/embedding_incremental/`:
+Formal files are written under `analysis_v2/03_embedding_robustness/embedding_incremental/run_<id>/`; smoke files are written under the separate `embedding_incremental_smoke/run_<id>/` tree:
 
 - `embedding_incremental_oof_predictions.csv`: participant ID, label, outer fold, embedding, fusion, level, paired base/augmented probabilities.
 - `embedding_incremental_model_metrics.csv`: model-level AUC, PR-AUC, Brier, log loss, sensitivity, specificity.
-- `embedding_incremental_deltas.csv`: paired deltas, AUC/support CIs, raw p, `bh_q`, `bh_q_all_late`, and FDR-family labels.
+- `embedding_incremental_deltas.csv`: paired deltas, AUC/support CIs, raw p, `bh_q_primary_l4` (only two late-fusion L4 rows), `bh_q_all_late` (all eight late-fusion rows), and FDR-family labels; early-concatenation q columns are empty.
 - `embedding_incremental_attenuation.csv`: attenuation type, metric, estimate, and participant-bootstrap CI.
 - `embedding_incremental_repeat_stability.csv`: one row per embedding/fusion/repeat/level with base, augmented, and delta metrics; no repeat-level significance tests.
 - `embedding_incremental_tuning.csv`: auditable inner-fold C choices.
-- `run_manifest.json`: input paths/hashes, embedding cache hashes, split hash, seeds, grids, model matrix, and output inventory.
+- `run_manifest.json`: mode/status, code commit, plan and input hashes, embedding cache hashes, split hash, seeds, grids, classifier parameters, model matrix, and per-output SHA-256 values.
 
 ## 11. Completion and rerun requirements
+
+Formal mode is the only mode that can produce `status="complete"`: it requires n=142, 43/99 labels, repeat 1 as the main estimate, ten stability repeats, three inner folds, the locked C grid, 5,000 bootstrap resamples, 10,000 permutations, the locked seed, both embeddings, both fusion methods, and all L1--L4 levels.  Smoke mode writes only to `embedding_incremental_smoke/run_<id>/` and uses `status="smoke_test"`; it cannot overwrite formal outputs or be read by manuscript scripts.  Formal runs write immutable `run_1/` or `run_2/` directories.  `rerun_verification.json` compares per-file hashes and only an all-matching verification may promote a run to `final/`.
 
 The supplementary analysis is complete only when both embeddings, both fusion methods, L1--L4, strict cross-fitting, the locked input hashes, paired CIs, independent FDR, and stability output are present.  A second full run must produce identical result-file hashes.  Any missing restricted cache is a data-availability boundary, not permission to re-encode text or change the representation.
 
