@@ -6,6 +6,8 @@ This study audits the sources of PHQ-8 label-predictive signals in semi-structur
 
 The reader-facing Chinese manuscript is [`06_tables_figures/main_text/manuscript_restructured_zh.md`](06_tables_figures/main_text/manuscript_restructured_zh.md). The earlier [`06_tables_figures/manuscript_submission_zh.md`](06_tables_figures/manuscript_submission_zh.md) is retained as the technical audit底稿; other manuscript files are retained for audit history and are not submission-authoritative.
 
+The data-only snapshot is [`12_submission_audit/frozen_data_summary.md`](12_submission_audit/frozen_data_summary.md).
+
 ## Reader-facing narrative
 
 The clean manuscript uses one narrative: participant language, interviewer language and the complete transcript all contain label-related information; interviewer language has limited detectable conditional increment after joint controls; and source contrasts remain sensitive to protocol structure, text budget and window position. Calibration and retained-span source alignment are supporting analyses that bound interpretation rather than competing main stories.
