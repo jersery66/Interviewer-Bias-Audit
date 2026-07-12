@@ -8,3 +8,5 @@ template,T_nontemplate,Non-template interviewer text,0.7838853652807141,0.701716
 template,T_nontemplate_lengthmatched,Non-template text matched to template length,0.6354240075170308,0.5361663702435061,0.7325592043615299
 token_matched,participant_matched,"Participant text, source-token matched",0.6508433168898285,0.5135012919896641,0.7801327225745829
 token_matched,interviewer_matched,"Interviewer text, source-token matched",0.8084472633309843,0.7258574113225276,0.8820765797509984
+symmetric_half_min,symmetric_participant_matched,"Participant text, symmetric half-min budget",0.5882781301385952,0.44021611463471927,0.7366807610993655
+symmetric_half_min,symmetric_interviewer_matched,"Interviewer text, symmetric half-min budget",0.7056988489546628,0.5633074935400517,0.8238313366220341

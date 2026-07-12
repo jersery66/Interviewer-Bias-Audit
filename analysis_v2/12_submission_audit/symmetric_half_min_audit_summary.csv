@@ -1,0 +1,4 @@
+﻿control,source,n,original_token_q1,original_token_median,original_token_q3,truncated_n,mean_retained_fraction_nonempty,retained_fraction_q1_nonempty,retained_fraction_median_nonempty,retained_fraction_q3_nonempty,zero_source_n,target_token_min,target_token_q1,target_token_median,target_token_q3,target_token_max,zero_target_n,target_below_10_n
+symmetric_half_min,participant,142,850.0,1243.5,1744.5,142,0.22920401960551162,0.13062509560353608,0.19894031935581058,0.29525944687842276,0,0.0,224.5,250.0,266.5,372.0,2,2
+symmetric_half_min,interviewer,142,453.75,503.5,540.75,140,0.4930453247313009,0.4989572163256374,0.4990925111583247,0.5,2,0.0,224.5,250.0,266.5,372.0,2,2
+symmetric_half_min,shared_target,142,,,,0,,,,,0,0.0,224.5,250.0,266.5,372.0,2,2

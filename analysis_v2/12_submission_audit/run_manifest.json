@@ -1,9 +1,9 @@
 {
   "status": "complete",
   "analysis": "submission audit with locked main split and reviewer-required controls",
-  "started_at_utc": "2026-07-11T10:39:57.512513+00:00",
-  "completed_at_utc": "2026-07-11T10:41:43.527045+00:00",
-  "git_commit": "a154d00a2d792b597dbac61b716a25a124d2e01b",
+  "started_at_utc": "2026-07-11T13:29:26.461261+00:00",
+  "completed_at_utc": "2026-07-11T13:32:49.900222+00:00",
+  "git_commit": "f74e5500e6f25b723c708fd7c35e14919c2c581a",
   "main_cv": {
     "locked_repeat": 1,
     "folds": 5,
@@ -12,14 +12,22 @@
   },
   "token_matching": {
     "draws": 50,
-    "method": "per-participant contiguous window to min(participant_tokens, interviewer_tokens)",
+    "existing_method": "longer source contiguous window to min(participant_tokens, interviewer_tokens)",
+    "symmetric_method": "both sources contiguous windows to floor(0.5 * min(participant_tokens, interviewer_tokens))",
+    "symmetric_positions": [
+      "early",
+      "middle",
+      "late"
+    ],
+    "zero_target_policy": "retain participant with both source texts empty",
     "label_used_for_sampling": false
   },
   "inference": {
     "bootstrap_resamples": 5000,
     "paired_permutations": 10000,
     "resampling_unit": "participant",
-    "core_comparison_count": 5
+    "core_comparison_count": 5,
+    "post_audit_sensitivity_status": "not_preregistered_separate_families"
   },
   "c5": {
     "candidate_span_n": 1143,
@@ -43,14 +51,21 @@
     "manual_review_blinding_status": "not_demonstrated_labels_present_in_audit_table",
     "documented_reviewer_identity_columns": [],
     "interrater_reliability_status": "not_available",
-    "public_quote_text_included": false
+    "public_quote_text_included": false,
+    "alignment_sensitivity_scope": "same_1137_retained_spans_quote_text_only"
   },
   "interpretation_guardrails": {
     "source_performance": "predictive_sufficiency_not_independent_contribution",
     "interviewer_signal": "source_dependent_signal_not_causal_bias_or_leakage",
     "c5": "clinically_guided_derived_representation",
     "phq8": "self_report_label_not_clinical_diagnosis",
-    "edaic": "descriptive_supplement_not_external_validation"
+    "edaic": "descriptive_supplement_not_external_validation",
+    "ci": "code_tests_and_derived_integrity_not_full_restricted_data_reproduction"
+  },
+  "post_audit_plan": {
+    "file": "post_submission_audit_sensitivity_plan.md",
+    "sha256": "498b2a6ed0b0f0734039b0324b9005f0bbae0e53ab1867058cae7518b91548af",
+    "status": "frozen_before_sensitivity_results"
   },
   "seed": 20260705,
   "runtime": {
@@ -107,6 +122,11 @@
       "name": "model_fold_oof_predictions.csv",
       "bytes": 182063,
       "sha256": "bc75f5b42f22125866e1b74cc36ba59e83a1cd6dfe1e595b95dcb239c397bea3"
+    },
+    {
+      "name": "post_submission_audit_sensitivity_plan.md",
+      "bytes": 14194,
+      "sha256": "498b2a6ed0b0f0734039b0324b9005f0bbae0e53ab1867058cae7518b91548af"
     }
   ]
 }

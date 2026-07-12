@@ -1,0 +1,4 @@
+﻿control,source,n,original_token_q1,original_token_median,original_token_q3,truncated_n,mean_retained_fraction_nonempty,retained_fraction_q1_nonempty,retained_fraction_median_nonempty,retained_fraction_q3_nonempty,zero_source_n,target_token_min,target_token_q1,target_token_median,target_token_q3,target_token_max,zero_target_n,target_below_10_n
+longer_source_to_shorter_source_length,participant,142,850.0,1243.5,1744.5,132,0.45899598475296327,0.26142372064430286,0.39827777929938923,0.5905188937568455,0,0.0,449.0,501.0,533.25,745.0,2,2
+longer_source_to_shorter_source_length,interviewer,142,453.75,503.5,540.75,10,0.9872670687446702,1.0,1.0,1.0,2,0.0,449.0,501.0,533.25,745.0,2,2
+longer_source_to_shorter_source_length,shared_target,142,,,,0,,,,,0,0.0,449.0,501.0,533.25,745.0,2,2
