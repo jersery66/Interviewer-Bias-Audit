@@ -87,6 +87,16 @@
 | participant_symptom_evidence | 4 | 0.4940 | 0.5000 |
 | participant_symptom_evidence | 5 | 0.5335 | 0.5517 |
 
+### 2.3 阈值汇总
+
+| condition | max Macro-F1 threshold | max Macro-F1 | sensitivity | specificity | max Youden-J threshold | max Youden-J | sensitivity | specificity |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| full_transcript | 0.50 | 0.6526 | 0.4419 | 0.8485 | 0.45 | 0.3897 | 0.8140 | 0.5758 |
+| participant_speech | 0.45 | 0.4913 | 0.9070 | 0.3131 | 0.45 | 0.2201 | 0.9070 | 0.3131 |
+| interviewer_speech | 0.55 | 0.7428 | 0.6047 | 0.8687 | 0.50 | 0.4856 | 0.6977 | 0.7879 |
+| non_explicit_interviewer_speech | 0.50 | 0.7072 | 0.6279 | 0.7980 | 0.50 | 0.4259 | 0.6279 | 0.7980 |
+| participant_symptom_evidence | 0.50 | 0.6742 | 0.5116 | 0.8283 | 0.50 | 0.3399 | 0.5116 | 0.8283 |
+
 ### 2.2 Brier fold range
 
 | condition | probability_variant | fold_n | model Brier min | model Brier max | BSS min | BSS max |
