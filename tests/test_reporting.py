@@ -96,6 +96,27 @@ def test_verify_inventory_accepts_git_crlf_checkout_for_text_artifact(tmp_path: 
     assert result.loc[0, "status"] == "PASS"
 
 
+def test_verify_inventory_accepts_git_lf_checkout_for_crlf_manifest(tmp_path: Path) -> None:
+    artifact = tmp_path / "frozen.csv"
+    lf_bytes = b"participant_id,value\n302,1\n"
+    crlf_bytes = lf_bytes.replace(b"\n", b"\r\n")
+    artifact.write_bytes(lf_bytes)
+    manifest = tmp_path / "output_manifest_sha256.csv"
+    pd.DataFrame(
+        [
+            {
+                "relative_path": artifact.name,
+                "bytes": len(crlf_bytes),
+                "sha256": hashlib.sha256(crlf_bytes).hexdigest(),
+            }
+        ]
+    ).to_csv(manifest, index=False)
+
+    result = verify_inventory(manifest)
+
+    assert result.loc[0, "status"] == "PASS"
+
+
 def test_distributed_inventory_audit_excludes_regenerable_embedding_caches() -> None:
     analysis_root = Path(__file__).resolve().parents[1] / "analysis_v2"
 

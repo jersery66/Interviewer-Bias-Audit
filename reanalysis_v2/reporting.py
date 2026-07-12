@@ -103,10 +103,17 @@ def verify_inventory(inventory_path: Path) -> pd.DataFrame:
             actual_bytes = len(raw)
             canonical_lf = raw.replace(b"\r\n", b"\n")
             canonical_lf_hash = hashlib.sha256(canonical_lf).hexdigest()
+            canonical_crlf = canonical_lf.replace(b"\n", b"\r\n")
+            canonical_crlf_hash = hashlib.sha256(canonical_crlf).hexdigest()
+            text_artifact = path.suffix.lower() in TEXT_ARTIFACT_SUFFIXES
             canonical_checkout_match = (
-                path.suffix.lower() in TEXT_ARTIFACT_SUFFIXES
-                and canonical_lf_hash == expected_hash
-                and len(canonical_lf) == expected_bytes
+                text_artifact
+                and expected_hash in {canonical_lf_hash, canonical_crlf_hash}
+                and expected_bytes in {
+                    len(raw),
+                    len(canonical_lf),
+                    len(canonical_crlf),
+                }
             )
             if actual_hash == expected_hash and actual_bytes == expected_bytes:
                 status = "PASS"
