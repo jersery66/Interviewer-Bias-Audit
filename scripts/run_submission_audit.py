@@ -597,6 +597,7 @@ def write_submission_summary(
     symmetric_comparison: pd.DataFrame,
     symmetric_budget: pd.DataFrame,
     position_metrics: pd.DataFrame,
+    position_comparisons: pd.DataFrame,
     comparisons: pd.DataFrame,
     c5: dict[str, object],
     c5_alignment_audit: pd.DataFrame,
@@ -714,10 +715,19 @@ def write_submission_summary(
         lines.append(
             f"| {row.position} | {row.model} | {row.roc_auc:.3f} | {row.pr_auc:.3f} | {row.brier:.3f} |"
         )
+    position_lines = []
+    for row in position_comparisons.itertuples(index=False):
+        position_lines.append(
+            f"{row.position} {row.delta_auc:.4f} (95% CI {row.ci_lower:.4f}-{row.ci_upper:.4f}; raw p={row.p_value:.4f}, BH q={row.q_value:.4f})"
+        )
     lines.extend(
         [
             "",
-            "The two token controls answer different questions. At most, they show whether text quantity differences fully account for the observed source pattern under the tested whitespace-token budgets; they do not identify semantics or a causal mechanism.",
+            "Position-paired interviewer-minus-participant Delta AUCs were "
+            + "; ".join(position_lines)
+            + ".",
+            "",
+            "The two token controls answer different questions. The original longer-to-shorter control was strongly asymmetric. Under a common half-min information budget, the source contrast attenuated and its joint interval included zero; its magnitude and direction also varied by window position. The evidence therefore does not rule out text-budget or position effects and does not identify semantics or a causal mechanism.",
             "",
             "## Original analysis-locked paired comparisons",
             "",
@@ -1029,6 +1039,7 @@ def main() -> int:
         symmetric_comparison,
         symmetric_budget,
         position_metrics,
+        position_comparisons,
         comparisons,
         c5,
         c5_alignment_audit,

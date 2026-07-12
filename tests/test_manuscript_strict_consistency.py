@@ -17,7 +17,9 @@ def test_manuscript_uses_strict_results_and_embeds_all_figures() -> None:
     metrics = pd.read_csv(SUBMISSION_DIR / "locked_source_metrics.csv", encoding="utf-8-sig")
 
     assert text.startswith("# ")
-    assert "锁定预设重复划分中的第 1 次五折" in text
+    assert "分析锁定划分" in text
+    assert "不构成正式预注册" in text
+    assert "预设重复划分" not in text
     assert "每名被试仅产生一次 cross-fitted 预测" in text
     assert "5000" in text
     assert "10,000" in text
@@ -108,10 +110,54 @@ def test_submission_numbers_match_control_outputs() -> None:
     for row in token.itertuples(index=False):
         assert f"{row.mean_auc:.3f}" in text
     for row in comparisons.itertuples(index=False):
-        assert f"{row.delta_auc:.3f}" in text
-        assert f"q={row.q_value:.3f}" in text
+        assert f"{row.delta_auc:.4f}" in text
+        assert f"q={row.q_value:.4f}" in text
     assert str(int(c5["final_span_n"])) in text
     assert str(int(c5["manually_corrected_to_source_n"])) in text
+
+
+def test_post_audit_results_and_interpretive_downgrades_are_integrated() -> None:
+    text = MANUSCRIPT.read_text(encoding="utf-8")
+    matrix = (SUBMISSION_DIR / "claim_evidence_matrix.md").read_text(encoding="utf-8")
+
+    for required in (
+        "外层训练折基率",
+        "Brier skill score",
+        "−0.092",
+        "对称半最小预算",
+        "−0.069–0.295",
+        "位置敏感",
+        "来源对齐修订敏感性分析",
+        "1102/1143",
+        "96.4%",
+        "−0.0042",
+    ):
+        assert required in text
+
+    for overclaim in (
+        "纯长度不足以解释访谈者侧表现",
+        "协议和互动结构具有明显预测信号",
+        "最终 1137 条证据均可回溯到被试原文，其中 35 条经人工纠正",
+    ):
+        assert overclaim not in text
+
+    assert "symmetric half-min Delta AUC 0.117" in matrix
+    assert "1137/1137 is post-review traceability, not extraction accuracy" in matrix
+
+
+def test_related_work_claim_is_tied_to_a_targeted_search_log() -> None:
+    text = MANUSCRIPT.read_text(encoding="utf-8")
+    search_log = (SUBMISSION_DIR / "targeted_literature_search_log.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "在本次定向检索纳入的代表性研究中" in text
+    assert "首次" not in text
+    assert "数据库与来源" in search_log
+    assert "检索截止日期" in search_log
+    assert "纳入标准" in search_log
+    assert "排除标准" in search_log
+    assert "非系统综述" in search_log
 
 
 def test_submission_tiffs_are_losslessly_compressed_for_github() -> None:

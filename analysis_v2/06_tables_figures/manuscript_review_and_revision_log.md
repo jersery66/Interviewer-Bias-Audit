@@ -1,5 +1,21 @@
 # Manuscript review and revision log
 
+## 2026-07-12 post-audit sensitivity integration
+
+The analysis rules were frozen in `post_submission_audit_sensitivity_plan.md` before results were generated. This revision does not claim preregistration and does not replace the original five-comparison family.
+
+| Reviewer risk | Resolution |
+|---|---|
+| “Prespecified” could overstate the timeline | Replaced with analysis-locked terminology and stated that the lock prevents further split selection but is not formal preregistration |
+| Brier scores lacked a no-skill comparator | Added outer-training-fold prevalence as the formal null, descriptive cohort prevalence, and BSS for raw/Platt/isotonic predictions |
+| Equal-token control was asymmetric | Quantified truncation (132 participant versus 10 interviewer), retained the original question, and added 50 paired half-min draws plus early/middle/late windows |
+| Text quantity was written as excluded | Downgraded the claim: under a symmetric budget the source contrast attenuated and its joint interval crossed zero; position results varied |
+| Interaction structure was overgeneralized | Separated interaction-only uncertainty from protocol and all-structure results |
+| C5 1137/1137 could be mistaken for extraction accuracy | Reported 1102/1143 direct matches, 35 alignment revisions, six exclusions, and 1137/1137 final post-review traceability |
+| C5 “before/after” wording could overstate recoverable scope | Named the analysis retained-span source-alignment sensitivity and fixed inclusion, order, domain, and polarity |
+| Novelty claim rested on a short selective table | Added a dated targeted-search log and limited the claim to representative retained studies; no “first” or field-wide rarity claim |
+| Passing CI could be mistaken for raw-data reproduction | Separated code/test reproducibility, frozen-result integrity, and restricted full data-to-result reproduction |
+
 ## 2026-07-11 submission-audit revision
 
 The previous strict-joint-model draft fixed leakage and participant-level inference but still treated repeated 10 x 5 estimates as the main narrative, omitted explicit structure and cross-source text-quantity controls, and did not integrate calibration, nested thresholds, or C5 review limitations into the paper. It has been superseded by `manuscript_submission_zh.md`.
