@@ -2,17 +2,22 @@ from __future__ import annotations
 
 from pathlib import Path
 import subprocess
+import sys
+
 
 
 def test_build_source_importance_figures_from_strict_outputs(tmp_path: Path) -> None:
     repo_root = Path(__file__).resolve().parents[1]
     analysis_root = repo_root / "analysis_v2"
-    python_exe = Path(r"E:\python3.12.8\python.exe")
+    python_exe = Path(sys.executable)
+    if sys.platform == "win32" and python_exe.parent.name.lower() == "anaconda":
+        sibling = python_exe.parent.parent / "python3.12.8" / "python.exe"
+        if sibling.is_file():
+            python_exe = sibling
     code = (
         "from reanalysis_v2.source_importance_figures import build_source_importance_figures; "
         f"build_source_importance_figures(r'{analysis_root}', r'{tmp_path}')"
     )
-
     result = subprocess.run(
         [str(python_exe), "-c", code],
         cwd=repo_root,
