@@ -60,6 +60,30 @@ def frozen_text_hash_match(path: Path, expected_sha256: str) -> tuple[bool, dict
     return expected_sha256 in observed.values(), observed
 
 
+def optional_upstream_hash_status(
+    path: Path,
+    expected_sha256: str,
+    *,
+    frozen_copy_verified: bool,
+) -> dict[str, object]:
+    """Audit an external provenance source without making public clones depend on it."""
+    path = Path(path)
+    if path.exists():
+        matched, hashes = frozen_text_hash_match(path, expected_sha256)
+        return {
+            "passed": matched,
+            "availability": "available",
+            "observed": json.dumps(hashes, sort_keys=True),
+        }
+    return {
+        "passed": bool(frozen_copy_verified),
+        "availability": "unavailable",
+        "observed": "external upstream unavailable; frozen copy verified"
+        if frozen_copy_verified
+        else "external upstream unavailable; frozen copy not verified",
+    }
+
+
 def verify_inventory(inventory_path: Path) -> pd.DataFrame:
     inventory_path = Path(inventory_path)
     inventory = pd.read_csv(inventory_path)
@@ -439,7 +463,15 @@ def _strict_audit(analysis_root: Path) -> pd.DataFrame:
     c4_turns_entry = freeze["control_inputs"]["c4_turns"]
     c4_turns_path = analysis_root / c4_turns_entry["path"]
     c4_turns = pd.read_csv(c4_turns_path, keep_default_na=False)
-    record_frozen_hash("c4:frozen_turn_source_hash", c4_turns_path, c4_turns_entry["sha256"])
+    c4_frozen_hash_match, c4_frozen_hashes = frozen_text_hash_match(
+        c4_turns_path, c4_turns_entry["sha256"]
+    )
+    record(
+        "c4:frozen_turn_source_hash",
+        c4_frozen_hash_match,
+        json.dumps(c4_frozen_hashes, sort_keys=True),
+        c4_turns_entry["sha256"],
+    )
     record(
         "c4:frozen_turn_source_rows",
         len(c4_turns) == int(c4_turns_entry["rows"]),
@@ -453,19 +485,17 @@ def _strict_audit(analysis_root: Path) -> pd.DataFrame:
         142,
     )
     upstream_turns = Path(c4_turns_entry["source_path"])
-    if upstream_turns.exists():
-        record_frozen_hash(
-            "c4:verified_turn_upstream_hash",
-            upstream_turns,
-            c4_turns_entry["source_sha256"],
-        )
-    else:
-        record(
-            "c4:verified_turn_upstream_hash",
-            False,
-            "missing",
-            c4_turns_entry["source_sha256"],
-        )
+    upstream_status = optional_upstream_hash_status(
+        upstream_turns,
+        c4_turns_entry["source_sha256"],
+        frozen_copy_verified=c4_frozen_hash_match,
+    )
+    record(
+        "c4:verified_turn_upstream_hash",
+        bool(upstream_status["passed"]),
+        upstream_status["observed"],
+        c4_turns_entry["source_sha256"],
+    )
     c4_alignment_path = analysis_root / c4_turns_entry["alignment_audit_path"]
     c4_alignment = pd.read_csv(c4_alignment_path)
     record_frozen_hash(

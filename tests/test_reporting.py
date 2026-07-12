@@ -15,6 +15,7 @@ from reanalysis_v2.reporting import (
     build_final_package,
     filter_significant,
     verify_inventory,
+    optional_upstream_hash_status,
 )
 
 
@@ -110,6 +111,18 @@ def test_strict_audit_accepts_relocated_frozen_turn_source() -> None:
     audit = _strict_audit(analysis_root).set_index("check")
 
     assert audit.loc["c4:run_used_frozen_turn_source", "status"] == "PASS"
+
+
+def test_missing_external_upstream_is_not_a_public_integrity_failure(tmp_path: Path) -> None:
+    status = optional_upstream_hash_status(
+        tmp_path / "restricted-upstream.csv",
+        "expected-private-hash",
+        frozen_copy_verified=True,
+    )
+
+    assert status["passed"] is True
+    assert status["availability"] == "unavailable"
+    assert "frozen copy verified" in status["observed"]
 
 
 def test_reporting_uses_headless_matplotlib_backend() -> None:

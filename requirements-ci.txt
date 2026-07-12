@@ -1,0 +1,9 @@
+numpy>=2.2,<3
+pandas>=2.3,<3
+scipy>=1.14,<2
+scikit-learn>=1.6,<2
+matplotlib>=3.9,<4
+statsmodels>=0.14,<1
+Pillow>=11,<13
+tifffile>=2025.2
+pytest>=8,<10
