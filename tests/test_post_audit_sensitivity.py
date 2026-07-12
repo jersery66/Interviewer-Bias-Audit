@@ -317,6 +317,7 @@ def test_symmetric_half_min_runner_pairs_every_participant_within_each_draw() ->
         splits,
         n_draws=2,
         n_bootstrap=20,
+        n_permutations=19,
         seed=71,
     )
 
@@ -325,6 +326,7 @@ def test_symmetric_half_min_runner_pairs_every_participant_within_each_draw() ->
     assert len(draw_metrics) == 4
     assert set(metrics["condition"]) == {"participant_matched", "interviewer_matched"}
     assert comparison.loc[0, "bootstrap_resamples"] == 20
+    assert comparison.loc[0, "n_permutations"] == 19
     assert audit["target_token_count"].eq(7).all()
 
 

@@ -230,3 +230,48 @@ def test_token_draw_summary_uses_mean_draw_performance_not_probability_ensemble(
     assert summary["n_draws"].eq(2).all()
     assert comparison.loc[0, "mean_delta_auc"] == 0.0
     assert "participant_random_draw_ci_low" in comparison.columns
+
+
+def test_token_draw_summary_reports_participant_paired_permutation_p_and_q() -> None:
+    labels = np.array([0, 0, 0, 1, 1, 1])
+    rows = []
+    metrics = []
+    for draw in (1, 2):
+        participant_probability = np.array([0.10, 0.55, 0.60, 0.40, 0.45, 0.90])
+        interviewer_probability = np.array([0.05, 0.10, 0.20, 0.80, 0.90, 0.95])
+        for participant_id, label in enumerate(labels):
+            rows.append(
+                {
+                    "draw": draw,
+                    "participant_id": participant_id,
+                    "label": label,
+                    "participant_matched_prob": participant_probability[participant_id],
+                    "interviewer_matched_prob": interviewer_probability[participant_id],
+                }
+            )
+        for condition, auc in (("participant_matched", 5 / 9), ("interviewer_matched", 1.0)):
+            metrics.append(
+                {
+                    "draw": draw,
+                    "condition": condition,
+                    "roc_auc": auc,
+                    "pr_auc": 0.5,
+                    "brier": 0.2,
+                }
+            )
+
+    _, comparison = summarize_token_matched_draws(
+        pd.DataFrame(rows),
+        pd.DataFrame(metrics),
+        n_bootstrap=20,
+        n_permutations=199,
+        seed=31,
+        permutation_seed=47,
+    )
+
+    assert comparison.loc[0, "n_permutations"] == 199
+    assert 0.0 < comparison.loc[0, "p_value"] <= 1.0
+    assert comparison.loc[0, "q_value"] == comparison.loc[0, "p_value"]
+    assert comparison.loc[0, "permutation_pairing"] == (
+        "one participant swap vector held constant across all draws"
+    )

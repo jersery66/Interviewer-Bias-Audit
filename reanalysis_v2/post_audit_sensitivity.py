@@ -656,6 +656,7 @@ def run_symmetric_half_min_control(
     *,
     n_draws: int = 50,
     n_bootstrap: int = 5000,
+    n_permutations: int = 10_000,
     seed: int = BASE_SEED,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     if n_draws <= 0:
@@ -703,6 +704,7 @@ def run_symmetric_half_min_control(
         predictions,
         draw_metrics,
         n_bootstrap=n_bootstrap,
+        n_permutations=n_permutations,
         seed=seed,
     )
     comparison["interpretation_scope"] = "symmetric_half_min_information_budget"

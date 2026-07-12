@@ -10,6 +10,11 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 AUDIT_DIR = ROOT / "analysis_v2" / "12_submission_audit"
+TEXT_SUFFIXES = {".csv", ".json", ".md", ".svg", ".tsv", ".txt", ".yaml", ".yml"}
+ACCEPTED_PLAN_STATUSES = {
+    "frozen_before_sensitivity_results",
+    "original_plan_frozen_before_sensitivity_results",
+}
 
 
 def sha256(path: Path) -> str:
@@ -20,6 +25,22 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def hash_candidates(path: Path) -> set[str]:
+    raw = path.read_bytes()
+    candidates = {hashlib.sha256(raw).hexdigest()}
+    if path.suffix.lower() in TEXT_SUFFIXES:
+        candidates.add(hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest())
+    return candidates
+
+
+def plan_status_is_acceptable(status: str) -> bool:
+    if status in ACCEPTED_PLAN_STATUSES:
+        return True
+    return status.startswith("original_plan_frozen_before_sensitivity_results;") and (
+        "closeout_amendment_frozen_before_closeout_inference_rerun" in status
+    )
+
+
 def verify() -> list[str]:
     errors: list[str] = []
     inventory_path = AUDIT_DIR / "output_manifest_sha256.csv"
@@ -28,14 +49,14 @@ def verify() -> list[str]:
         path = AUDIT_DIR / str(row.file)
         if not path.is_file():
             errors.append(f"missing: {row.file}")
-        elif sha256(path) != str(row.sha256):
+        elif str(row.sha256) not in hash_candidates(path):
             errors.append(f"hash mismatch: {row.file}")
 
     run_manifest = json.loads((AUDIT_DIR / "run_manifest.json").read_text(encoding="utf-8"))
     plan = AUDIT_DIR / run_manifest["post_audit_plan"]["file"]
-    if sha256(plan) != run_manifest["post_audit_plan"]["sha256"]:
+    if str(run_manifest["post_audit_plan"]["sha256"]) not in hash_candidates(plan):
         errors.append("post-audit plan hash mismatch")
-    if run_manifest["post_audit_plan"]["status"] != "frozen_before_sensitivity_results":
+    if not plan_status_is_acceptable(str(run_manifest["post_audit_plan"]["status"])):
         errors.append("post-audit plan was not recorded as frozen before results")
     if run_manifest["interpretation_guardrails"]["ci"] != (
         "code_tests_and_derived_integrity_not_full_restricted_data_reproduction"

@@ -65,6 +65,13 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def public_artifact_sha256(path: Path) -> str:
+    raw = path.read_bytes()
+    if path.suffix.lower() in {".csv", ".json", ".md", ".svg", ".tsv", ".txt", ".yaml", ".yml"}:
+        raw = raw.replace(b"\r\n", b"\n")
+    return hashlib.sha256(raw).hexdigest()
+
+
 def save_figure_bundle(fig: plt.Figure, output_stem: Path) -> None:
     fig.savefig(output_stem.with_suffix(".png"), dpi=600)
     fig.savefig(output_stem.with_suffix(".svg"))
@@ -700,7 +707,7 @@ def write_submission_summary(
     symmetric_delta = symmetric_comparison.iloc[0]
     budget_target = symmetric_budget.set_index("source").loc["shared_target"]
     lines.append(
-        f"- Symmetric half-min interviewer-minus-participant mean Delta AUC {symmetric_delta.mean_delta_auc:.3f} (joint 95% CI {symmetric_delta.participant_random_draw_ci_low:.3f}-{symmetric_delta.participant_random_draw_ci_high:.3f}); median shared target={budget_target.target_token_median:.0f}, zero targets={int(budget_target.zero_target_n)}, targets below 10={int(budget_target.target_below_10_n)}."
+        f"- Symmetric half-min interviewer-minus-participant mean Delta AUC {symmetric_delta.mean_delta_auc:.4f} (joint 95% CI {symmetric_delta.participant_random_draw_ci_low:.4f}-{symmetric_delta.participant_random_draw_ci_high:.4f}; raw p={symmetric_delta.p_value:.4f}, BH q={symmetric_delta.q_value:.4f}); median shared target={budget_target.target_token_median:.0f}, zero targets={int(budget_target.zero_target_n)}, targets below 10={int(budget_target.target_below_10_n)}."
     )
     lines.extend(
         [
@@ -884,6 +891,7 @@ def main() -> int:
         token_predictions,
         token_draw_metrics,
         n_bootstrap=args.bootstrap,
+        n_permutations=args.permutations,
         seed=args.seed,
     )
     _write_csv(token_metrics, output / "token_matched_metrics.csv")
@@ -912,6 +920,7 @@ def main() -> int:
         splits,
         n_draws=args.token_draws,
         n_bootstrap=args.bootstrap,
+        n_permutations=args.permutations,
         seed=args.seed,
     )
     symmetric_budget = summarize_token_budget_audit(
@@ -1080,6 +1089,8 @@ def main() -> int:
             "symmetric_positions": ["early", "middle", "late"],
             "zero_target_policy": "retain participant with both source texts empty",
             "label_used_for_sampling": False,
+            "half_min_permutation_pairing": "one participant swap vector held constant across all draws",
+            "half_min_permutation_seed": args.seed + 505_001,
         },
         "inference": {
             "bootstrap_resamples": args.bootstrap,
@@ -1087,6 +1098,7 @@ def main() -> int:
             "resampling_unit": "participant",
             "core_comparison_count": 5,
             "post_audit_sensitivity_status": "not_preregistered_separate_families",
+            "symmetric_half_min_comparison_family": "one_comparison_bh_family",
         },
         "c5": {
             **c5,
@@ -1104,7 +1116,8 @@ def main() -> int:
         "post_audit_plan": {
             "file": "post_submission_audit_sensitivity_plan.md",
             "sha256": sha256(output / "post_submission_audit_sensitivity_plan.md"),
-            "status": "frozen_before_sensitivity_results",
+            "status": "original_plan_frozen_before_sensitivity_results",
+            "closeout_amendment_status": "frozen_before_closeout_inference_rerun",
         },
         "seed": args.seed,
         "runtime": {
@@ -1135,7 +1148,7 @@ def main() -> int:
         [
             {
                 "file": path.relative_to(output).as_posix(),
-                "sha256": sha256(path),
+                "sha256": public_artifact_sha256(path),
             }
             for path in public_files
         ]

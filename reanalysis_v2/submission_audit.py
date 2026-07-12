@@ -489,7 +489,9 @@ def summarize_token_matched_draws(
     draw_metrics: pd.DataFrame,
     *,
     n_bootstrap: int = 5000,
+    n_permutations: int = 10_000,
     seed: int = BASE_SEED,
+    permutation_seed: int | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     required_predictions = {
         "draw",
@@ -505,6 +507,10 @@ def summarize_token_matched_draws(
         raise ValueError(f"Missing token metric columns: {sorted(missing)}")
     if n_bootstrap <= 0:
         raise ValueError("n_bootstrap must be positive")
+    if n_permutations <= 0:
+        raise ValueError("n_permutations must be positive")
+    if permutation_seed is None:
+        permutation_seed = seed + 505_001
 
     draws = sorted(predictions["draw"].unique())
     participant_ids = sorted(predictions["participant_id"].unique())
@@ -586,11 +592,59 @@ def summarize_token_matched_draws(
         index="draw", columns="condition", values="roc_auc"
     )
     draw_delta = draw_delta["interviewer_matched"] - draw_delta["participant_matched"]
+    observed_delta = float(draw_delta.mean())
+
+    positive = positive_indices
+    negative = negative_indices
+    pair_count = len(positive) * len(negative)
+    d00 = np.zeros((len(positive), len(negative)), dtype=float)
+    d10 = np.zeros_like(d00)
+    participant_matrix = matrices["participant_matched"]
+    interviewer_matrix = matrices["interviewer_matched"]
+    for draw_index in range(len(draws)):
+        p_pos = participant_matrix[draw_index, positive][:, None]
+        p_neg = participant_matrix[draw_index, negative][None, :]
+        i_pos = interviewer_matrix[draw_index, positive][:, None]
+        i_neg = interviewer_matrix[draw_index, negative][None, :]
+
+        def pair_score(pos: np.ndarray, neg: np.ndarray) -> np.ndarray:
+            return (pos > neg).astype(float) + 0.5 * (pos == neg)
+
+        d00 += pair_score(i_pos, i_neg) - pair_score(p_pos, p_neg)
+        d10 += pair_score(p_pos, i_neg) - pair_score(i_pos, p_neg)
+    d00 /= len(draws)
+    d10 /= len(draws)
+    direct_observed_delta = float(d00.sum() / pair_count)
+    if not np.isclose(observed_delta, direct_observed_delta, atol=1e-12):
+        raise ValueError("Draw metrics do not match paired draw predictions")
+
+    positive_coefficients = (-d00 + d10).sum(axis=1) / pair_count
+    negative_coefficients = (-d00 - d10).sum(axis=0) / pair_count
+    swap_coefficients = np.concatenate([positive_coefficients, negative_coefficients])
+    permutation_rng = np.random.default_rng(permutation_seed)
+    extreme = 0
+    completed = 0
+    batch_size = 512
+    while completed < n_permutations:
+        current_batch = min(batch_size, n_permutations - completed)
+        swaps = permutation_rng.integers(
+            0,
+            2,
+            size=(current_batch, len(swap_coefficients)),
+            dtype=np.int8,
+        )
+        permuted_delta = direct_observed_delta + swaps @ swap_coefficients
+        extreme += int(
+            np.count_nonzero(np.abs(permuted_delta) >= abs(observed_delta) - 1e-15)
+        )
+        completed += current_batch
+    p_value = float((extreme + 1) / (n_permutations + 1))
     comparison = pd.DataFrame(
         [
             {
                 "comparison": "interviewer_matched vs participant_matched",
-                "mean_delta_auc": float(draw_delta.mean()),
+                "comparison_family": "symmetric_half_min_source_auc",
+                "mean_delta_auc": observed_delta,
                 "sd_delta_auc": float(draw_delta.std(ddof=1)),
                 "draw_delta_q025": float(draw_delta.quantile(0.025)),
                 "draw_delta_q975": float(draw_delta.quantile(0.975)),
@@ -601,6 +655,14 @@ def summarize_token_matched_draws(
                     np.quantile(bootstrap_delta, 0.975)
                 ),
                 "bootstrap_resamples": n_bootstrap,
+                "p_value": p_value,
+                "n_permutations": int(n_permutations),
+                "permutation_seed": int(permutation_seed),
+                "permutation_pairing": (
+                    "one participant swap vector held constant across all draws"
+                ),
+                "q_value": p_value,
+                "significance": significance_marker(p_value),
                 "interpretation_scope": "text_quantity_control_not_semantic_mechanism",
             }
         ]
