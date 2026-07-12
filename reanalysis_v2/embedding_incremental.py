@@ -11,6 +11,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import shutil
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from collections.abc import Mapping, Sequence
@@ -24,11 +27,14 @@ from sklearn.metrics import (
     log_loss,
     roc_auc_score,
 )
+from sklearn.compose import ColumnTransformer
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-from .inference import apply_bh_by_family, paired_permutation_test
+from .inference import apply_bh_by_family, benjamini_hochberg, paired_permutation_test
 from .io import atomic_write_csv, atomic_write_json, sha256_file
-from .modeling import make_dense_classifier, make_inner_splits, tune_dense_c
+from .modeling import make_inner_splits
 from .splits import split_indices
 
 
@@ -62,6 +68,69 @@ MODEL_SPECS = {
 }
 FUSION_METHODS = ("late_fusion", "early_concat")
 SOURCE_CONDITIONS = ("participant_speech", "interviewer_speech")
+LOCKED_INPUT_HASHES = {
+    "structural": {
+        "raw": "70c439c4a78ab7bea2b1106f59d06214ae0fa9bf09540bd24c859350cc2fce4a",
+        "lf": "843871828087b6044b2400d588587a61c252720a15867d8c3cc7d34edf3b90b1",
+    },
+    "domains": {
+        "raw": "7687c70d3770b7e8902900ec3c117d8a679fc6d718abf1c2a7f8d1361b07ae33",
+        "lf": "1fad85d77a8329992553a420898f7b0c3908b90dbd777da4ebd77bc6e869c134",
+    },
+    "feature_dictionary": {
+        "raw": "fe3c56b0ebd51118bffee4ef2091c5088fad0d60a3537ac67c3242f52f97f821",
+        "lf": "fe3c56b0ebd51118bffee4ef2091c5088fad0d60a3537ac67c3242f52f97f821",
+    },
+    "splits": {
+        "raw": "ceaddff172bf9582987cf76ff0522dcfdd0fe90c5b3014565bcfaacf003703ae",
+        "lf": "e4202fcd4d492a37fa68c579767ea940ca0629b4230374b06ddc8778e32045b3",
+    },
+    "plan": {
+        "raw": "6eeb59774fec44f6c926485e97f19d81ef6600bd6d10694091121458500848f2",
+        "lf": "6eeb59774fec44f6c926485e97f19d81ef6600bd6d10694091121458500848f2",
+    },
+}
+LOCKED_EMBEDDING_MANIFESTS = {
+    "model_1_all_mpnet_base_v2": {
+        "manifest": {
+            "raw": "0c5c025e9f3bc926646dea389edbd217b44e3e082310ec1d0f06cc30b43cdedd",
+            "lf": "e3cf5a7806717d8044fb99fc2d8f26bdd489cd731bc2330bc780906bbd5eb313",
+        },
+        "model_name": "sentence-transformers/all-mpnet-base-v2",
+        "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+        "embedding_dim": 768,
+        "chunk_words": 200,
+        "overlap": 50,
+        "pooling": "unweighted mean of normalized chunk embeddings, then document L2 normalization",
+        "empty_document_policy": "all-zero vector",
+    },
+    "model_2_bge_large_en_v1_5": {
+        "manifest": {
+            "raw": "7a98e4941323fe14503fa7b194d456d746414883446204e8daad0908d50b729c",
+            "lf": "7a885a81538a983d1ca82e91e554ac55608ac8cc98be609b9994fa161ad1cf8c",
+        },
+        "model_name": "BAAI/bge-large-en-v1.5",
+        "revision": "d4aa6901d3a41ba39fb536a557fa166f842b0e09",
+        "embedding_dim": 1024,
+        "chunk_words": 200,
+        "overlap": 50,
+        "pooling": "unweighted mean of normalized chunk embeddings, then document L2 normalization",
+        "empty_document_policy": "all-zero vector",
+    },
+}
+FORMAL_CONFIG = {
+    "expected_n": 142,
+    "expected_positive": 43,
+    "expected_negative": 99,
+    "expected_repeats": 10,
+    "main_repeat": 1,
+    "inner_folds": 3,
+    "stability_repeats": 10,
+    "c_grid": (0.01, 0.1, 1.0, 10.0),
+    "n_bootstrap": 5000,
+    "n_permutations": 10000,
+    "base_seed": BASE_SEED,
+}
 
 
 @dataclass(frozen=True)
@@ -83,12 +152,201 @@ class FrozenEmbeddingPair:
     participant: np.ndarray
     interviewer: np.ndarray
     cache_files: tuple[dict[str, str], ...]
+    manifest_hashes: dict[str, str] | None = None
 
 
 def build_model_specifications() -> dict[str, tuple[str, str]]:
     """Return the frozen base/augmented design names in analysis order."""
 
     return dict(MODEL_SPECS)
+
+
+def _make_logistic_regression(*, c: float, seed: int) -> LogisticRegression:
+    return LogisticRegression(
+        C=float(c),
+        class_weight="balanced",
+        solver="liblinear",
+        fit_intercept=True,
+        max_iter=2000,
+        penalty="l2",
+        random_state=int(seed),
+    )
+
+
+def make_source_classifier(*, c: float, seed: int) -> Pipeline:
+    """Fit a source model directly on frozen L2-normalized embeddings."""
+
+    return Pipeline([("classifier", _make_logistic_regression(c=c, seed=seed))])
+
+
+def make_late_fusion_classifier(*, c: float, seed: int) -> Pipeline:
+    """Standardize all late-fusion second-layer columns inside the fit."""
+
+    return Pipeline(
+        [
+            ("scale", StandardScaler()),
+            ("classifier", _make_logistic_regression(c=c, seed=seed)),
+        ]
+    )
+
+
+def make_early_concat_classifier(
+    *,
+    embedding_columns: Sequence[int],
+    numeric_columns: Sequence[int],
+    c: float,
+    seed: int,
+) -> Pipeline:
+    """Pass frozen embeddings through and scale only R/D columns in-fold."""
+
+    transformers: list[tuple[str, object, Sequence[int]]] = [
+        ("embedding_passthrough", "passthrough", list(embedding_columns))
+    ]
+    if numeric_columns:
+        transformers.append(
+            ("numeric_standardizer", StandardScaler(), list(numeric_columns))
+        )
+    features = ColumnTransformer(transformers, remainder="drop")
+    return Pipeline(
+        [
+            ("features", features),
+            ("classifier", _make_logistic_regression(c=c, seed=seed)),
+        ]
+    )
+
+
+def _hash_variants(path: str | Path) -> dict[str, str]:
+    raw = Path(path).read_bytes()
+    return {
+        "raw": hashlib.sha256(raw).hexdigest(),
+        "lf": hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest(),
+    }
+
+
+def validate_locked_file(
+    path: str | Path, expected_hashes: Mapping[str, str], *, label: str
+) -> dict[str, str]:
+    """Accept only the locked raw or LF-normalized byte hash."""
+
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"locked {label} file not found: {path}")
+    observed = _hash_variants(path)
+    allowed = {str(expected_hashes[key]).lower() for key in ("raw", "lf") if key in expected_hashes}
+    if not allowed.intersection(observed.values()):
+        raise ValueError(
+            f"locked {label} hash mismatch: observed={observed}, expected={sorted(allowed)}"
+        )
+    return observed
+
+
+def validate_locked_inputs(output_root: str | Path, *, expected_n: int = EXPECTED_N) -> dict[str, object]:
+    """Validate all frozen tabular inputs and their exact locked hashes."""
+
+    output_root = Path(output_root)
+    paths = {
+        "structural": output_root / "12_submission_audit" / "structural_baseline_features.csv",
+        "domains": output_root / "04_c5_controls" / "domain_count" / "input.csv",
+        "feature_dictionary": output_root / "12_submission_audit" / "structural_feature_dictionary.md",
+        "splits": output_root / "00_splits" / "repeated_5fold_splits_10x5.csv",
+        "plan": output_root / "03_embedding_robustness" / "embedding_incremental_analysis_plan.md",
+    }
+    hashes = {
+        key: validate_locked_file(path, LOCKED_INPUT_HASHES[key], label=key)
+        for key, path in paths.items()
+    }
+    inputs = load_frozen_incremental_inputs(output_root, expected_n=expected_n)
+    if int(inputs.labels.sum()) != FORMAL_CONFIG["expected_positive"]:
+        raise ValueError("locked cohort positive count does not match 43")
+    if int((1 - inputs.labels).sum()) != FORMAL_CONFIG["expected_negative"]:
+        raise ValueError("locked cohort negative count does not match 99")
+    return {"paths": {key: str(path) for key, path in paths.items()}, "hashes": hashes}
+
+
+def validate_run_configuration(
+    *,
+    mode: str,
+    expected_n: int,
+    expected_repeats: int,
+    main_repeat: int,
+    inner_folds: int,
+    stability_repeats: int,
+    n_bootstrap: int,
+    n_permutations: int,
+    c_grid: Sequence[float],
+    base_seed: int = BASE_SEED,
+) -> dict[str, object]:
+    """Return a mode record, rejecting any non-locked formal configuration."""
+
+    if mode not in {"formal", "smoke"}:
+        raise ValueError("mode must be formal or smoke")
+    normalized_grid = tuple(float(value) for value in c_grid)
+    if mode == "formal":
+        expected = FORMAL_CONFIG
+        actual = {
+            "expected_n": int(expected_n),
+            "expected_repeats": int(expected_repeats),
+            "main_repeat": int(main_repeat),
+            "inner_folds": int(inner_folds),
+            "stability_repeats": int(stability_repeats),
+            "n_bootstrap": int(n_bootstrap),
+            "n_permutations": int(n_permutations),
+            "base_seed": int(base_seed),
+            "c_grid": normalized_grid,
+        }
+        for key, expected_value in expected.items():
+            if key == "expected_positive" or key == "expected_negative":
+                continue
+            if actual.get(key) != expected_value:
+                raise ValueError(
+                    f"formal mode requires locked {key}={expected_value!r}, got {actual.get(key)!r}"
+                )
+        return {"mode": "formal", "status": "complete", **actual}
+    if expected_n <= 0 or expected_repeats <= 0 or stability_repeats <= 0:
+        raise ValueError("smoke configuration sizes must be positive")
+    if stability_repeats > expected_repeats:
+        raise ValueError("smoke stability_repeats cannot exceed expected_repeats")
+    return {
+        "mode": "smoke",
+        "status": "smoke_test",
+        "expected_n": int(expected_n),
+        "expected_repeats": int(expected_repeats),
+        "main_repeat": int(main_repeat),
+        "inner_folds": int(inner_folds),
+        "stability_repeats": int(stability_repeats),
+        "n_bootstrap": int(n_bootstrap),
+        "n_permutations": int(n_permutations),
+        "base_seed": int(base_seed),
+        "c_grid": normalized_grid,
+    }
+
+
+def _subset_smoke_inputs(
+    inputs: FrozenIncrementalInputs, *, expected_n: int
+) -> FrozenIncrementalInputs:
+    """Select a deterministic class-balanced prefix for smoke fixtures."""
+
+    if expected_n > len(inputs.labels):
+        raise ValueError("smoke expected_n cannot exceed the frozen cohort")
+    if expected_n == len(inputs.labels):
+        return inputs
+    if expected_n < 10:
+        raise ValueError("smoke mode requires at least 10 participants")
+    positive_ids = inputs.participant_ids[inputs.labels == 1]
+    negative_ids = inputs.participant_ids[inputs.labels == 0]
+    n_positive = int(round(expected_n * len(positive_ids) / len(inputs.labels)))
+    n_positive = max(3, min(len(positive_ids) - 3, n_positive))
+    selected_ids = np.sort(
+        np.concatenate([positive_ids[:n_positive], negative_ids[: expected_n - n_positive]])
+    )
+    index = {participant_id: position for position, participant_id in enumerate(inputs.participant_ids)}
+    selected_indices = np.asarray([index[participant_id] for participant_id in selected_ids], dtype=int)
+    return FrozenIncrementalInputs(
+        participant_ids=inputs.participant_ids[selected_indices],
+        labels=inputs.labels[selected_indices],
+        protocol=inputs.protocol[selected_indices],
+        domains=inputs.domains[selected_indices],
+    )
 
 
 def _require_columns(frame: pd.DataFrame, columns: Sequence[str], name: str) -> None:
@@ -208,6 +466,7 @@ def load_frozen_embedding_pair(
     *,
     expected_dim: int,
     expected_manifest: str | Path | None = None,
+    allow_subset: bool = False,
 ) -> FrozenEmbeddingPair:
     """Load participant/interviewer arrays from the existing cache only."""
 
@@ -216,8 +475,43 @@ def load_frozen_embedding_pair(
     manifest_path = Path(expected_manifest) if expected_manifest else model_root / "run_manifest.json"
     if not manifest_path.exists():
         raise FileNotFoundError(f"frozen embedding manifest not found: {manifest_path}")
+    locked_manifest = LOCKED_EMBEDDING_MANIFESTS.get(model_slug)
+    if locked_manifest is None:
+        raise ValueError(f"embedding model is not in the locked manifest registry: {model_slug}")
+    validate_locked_file(
+        manifest_path,
+        locked_manifest["manifest"],
+        label=f"{model_slug} run_manifest.json",
+    )
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     model = dict(manifest.get("model", {}))
+    for key in (
+        "model_name",
+        "revision",
+        "embedding_dim",
+        "chunk_words",
+        "overlap",
+    ):
+        expected_value = locked_manifest[key]
+        observed_key = "name" if key == "model_name" else key
+        if model.get(observed_key) != expected_value:
+            raise ValueError(
+                f"{model_slug} manifest {key} is not locked: "
+                f"expected={expected_value!r}, got={model.get(observed_key)!r}"
+            )
+    if not bool(model.get("revision_explicitly_passed")):
+        raise ValueError(f"{model_slug} manifest does not record an explicit revision")
+    if manifest.get("status") != "complete":
+        raise ValueError(f"{model_slug} embedding manifest is not complete")
+    if manifest.get("pooling") != locked_manifest["pooling"]:
+        raise ValueError(f"{model_slug} embedding pooling is not locked")
+    if manifest.get("empty_document_policy") != locked_manifest["empty_document_policy"]:
+        raise ValueError(f"{model_slug} empty-document policy is not locked")
+    cv = dict(manifest.get("cv", {}))
+    if cv.get("outer_repeats") != 10 or cv.get("outer_folds") != 5 or cv.get("inner_folds") != 3:
+        raise ValueError(f"{model_slug} embedding CV settings are not locked")
+    if tuple(float(value) for value in cv.get("C_grid", ())) != DEFAULT_C_GRID:
+        raise ValueError(f"{model_slug} embedding C grid is not locked")
     if int(model.get("embedding_dim", expected_dim)) != int(expected_dim):
         raise ValueError(f"{model_slug} manifest embedding dimension is not {expected_dim}")
     ids = np.asarray(participant_ids)
@@ -237,17 +531,21 @@ def load_frozen_embedding_pair(
         with np.load(cache_path, allow_pickle=False) as cached:
             cached_ids = np.asarray(cached["participant_ids"])
             if not np.array_equal(cached_ids, ids):
-                raise ValueError(f"embedding cache participant IDs do not match: {cache_path}")
+                if not allow_subset or not set(ids).issubset(set(cached_ids)):
+                    raise ValueError(f"embedding cache participant IDs do not match: {cache_path}")
             matrix = _validate_matrix(
                 condition,
                 cached["embeddings"],
-                len(ids),
+                len(cached_ids),
                 expected_dim,
             )
             norms = np.linalg.norm(matrix, axis=1)
             nonempty = norms > 0
             if nonempty.any() and not np.allclose(norms[nonempty], 1.0, atol=1e-4):
                 raise ValueError(f"{condition} embeddings are not L2-normalized")
+            if not np.array_equal(cached_ids, ids):
+                cached_index = {participant_id: index for index, participant_id in enumerate(cached_ids)}
+                matrix = matrix[np.asarray([cached_index[participant_id] for participant_id in ids])]
         matrices[condition] = matrix
         cache_records.append(
             {
@@ -265,6 +563,7 @@ def load_frozen_embedding_pair(
         participant=matrices["participant_speech"],
         interviewer=matrices["interviewer_speech"],
         cache_files=tuple(cache_records),
+        manifest_hashes=_hash_variants(manifest_path),
     )
 
 
@@ -388,19 +687,49 @@ def apply_incremental_fdr(table: pd.DataFrame) -> pd.DataFrame:
     return result
 
 
-def _fit_dense_probability(
+def _fit_classifier_probability(
     X_train: np.ndarray,
     y_train: np.ndarray,
     X_test: np.ndarray,
     *,
     c: float,
     seed: int,
+    classifier_factory,
 ) -> tuple[np.ndarray, np.ndarray]:
-    estimator = make_dense_classifier(c=float(c), seed=seed)
+    estimator = classifier_factory(c=float(c), seed=seed)
     estimator.fit(np.asarray(X_train, dtype=float), np.asarray(y_train, dtype=int))
     probability = estimator.predict_proba(np.asarray(X_test, dtype=float))[:, 1]
     score = np.asarray(estimator.decision_function(np.asarray(X_test, dtype=float)), dtype=float)
     return probability, score
+
+
+def _tune_classifier_c(
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    inner_splits: list[tuple[np.ndarray, np.ndarray]],
+    *,
+    c_grid: Sequence[float],
+    seed: int,
+    classifier_factory,
+) -> tuple[float, dict[float, float]]:
+    X_train = np.asarray(X_train, dtype=float)
+    y_train = np.asarray(y_train, dtype=int)
+    scores: dict[float, float] = {}
+    for c in sorted(float(value) for value in c_grid):
+        fold_scores: list[float] = []
+        for inner_fold, (train_idx, validation_idx) in enumerate(inner_splits, start=1):
+            probability, _ = _fit_classifier_probability(
+                X_train[train_idx],
+                y_train[train_idx],
+                X_train[validation_idx],
+                c=c,
+                seed=seed + inner_fold,
+                classifier_factory=classifier_factory,
+            )
+            fold_scores.append(roc_auc_score(y_train[validation_idx], probability))
+        scores[c] = float(np.mean(fold_scores))
+    selected = min(scores, key=lambda value: (-scores[value], value))
+    return float(selected), scores
 
 
 def _nested_source_logits(
@@ -411,6 +740,7 @@ def _nested_source_logits(
     inner_folds: int,
     c_grid: Sequence[float],
     seed: int,
+    classifier_factory=make_source_classifier,
 ) -> tuple[np.ndarray, np.ndarray, list[dict[str, object]]]:
     """Generate CF train logits and outer-test logits for one source."""
 
@@ -421,14 +751,15 @@ def _nested_source_logits(
         nested = make_inner_splits(
             y_train[meta_train], n_splits=inner_folds, seed=seed + 100 + inner_fold
         )
-        selected, scores = tune_dense_c(
+        selected, scores = _tune_classifier_c(
             X_train[meta_train],
             y_train[meta_train],
             nested,
             c_grid=c_grid,
             seed=seed + 1000 + inner_fold,
+            classifier_factory=classifier_factory,
         )
-        estimator = make_dense_classifier(c=selected, seed=seed + inner_fold)
+        estimator = classifier_factory(c=selected, seed=seed + inner_fold)
         estimator.fit(X_train[meta_train], y_train[meta_train])
         train_logits[meta_validation] = estimator.decision_function(
             X_train[meta_validation]
@@ -445,14 +776,15 @@ def _nested_source_logits(
             )
     if not np.isfinite(train_logits).all():
         raise ValueError("source cross-fitted logits are incomplete")
-    selected, scores = tune_dense_c(
+    selected, scores = _tune_classifier_c(
         X_train,
         y_train,
         inner_splits,
         c_grid=c_grid,
         seed=seed + 2000,
+        classifier_factory=classifier_factory,
     )
-    estimator = make_dense_classifier(c=selected, seed=seed + 3000)
+    estimator = classifier_factory(c=selected, seed=seed + 3000)
     estimator.fit(X_train, y_train)
     test_logits = estimator.decision_function(X_test)
     tuning.append(
@@ -465,22 +797,6 @@ def _nested_source_logits(
         }
     )
     return np.asarray(train_logits, dtype=float), np.asarray(test_logits, dtype=float), tuning
-
-
-def _scaled_numeric(
-    train_protocol: np.ndarray,
-    test_protocol: np.ndarray,
-    train_domains: np.ndarray,
-    test_domains: np.ndarray,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    protocol_scaler = StandardScaler().fit(train_protocol)
-    domain_scaler = StandardScaler().fit(train_domains)
-    return (
-        protocol_scaler.transform(train_protocol),
-        protocol_scaler.transform(test_protocol),
-        domain_scaler.transform(train_domains),
-        domain_scaler.transform(test_domains),
-    )
 
 
 def _late_design(
@@ -512,14 +828,14 @@ def _early_design(
     augmented: bool,
 ) -> np.ndarray:
     columns = [np.asarray(participant_embedding)]
-    if level in {"L2", "L4"}:
-        columns.append(np.asarray(protocol))
-    if level in {"L3", "L4"}:
-        columns.append(np.asarray(domains))
     if augmented:
         if interviewer_embedding is None:
             raise ValueError("interviewer embeddings are required for an augmented design")
         columns.append(np.asarray(interviewer_embedding))
+    if level in {"L2", "L4"}:
+        columns.append(np.asarray(protocol))
+    if level in {"L3", "L4"}:
+        columns.append(np.asarray(domains))
     return np.column_stack(columns)
 
 
@@ -551,12 +867,10 @@ def _run_repeat(
         )
         y_train = inputs.labels[train_idx]
         seed = base_seed + repeat * 100_000 + fold * 1_000
-        train_protocol, test_protocol, train_domains, test_domains = _scaled_numeric(
-            inputs.protocol[train_idx],
-            inputs.protocol[test_idx],
-            inputs.domains[train_idx],
-            inputs.domains[test_idx],
-        )
+        train_protocol = inputs.protocol[train_idx]
+        test_protocol = inputs.protocol[test_idx]
+        train_domains = inputs.domains[train_idx]
+        test_domains = inputs.domains[test_idx]
         if fusion_method == "late_fusion":
             p_train, p_test, p_tuning = _nested_source_logits(
                 pair.participant[train_idx],
@@ -600,19 +914,39 @@ def _run_repeat(
             for model_name, augmented in (("base", False), ("augmented", True)):
                 X_train = design_builder(level, augmented, True)
                 X_test = design_builder(level, augmented, False)
-                selected, scores = tune_dense_c(
+                if fusion_method == "late_fusion":
+                    classifier_factory = lambda c, seed: make_late_fusion_classifier(
+                        c=c, seed=seed
+                    )
+                else:
+                    numeric_count = (
+                        (len(PROTOCOL_FEATURES) if level in {"L2", "L4"} else 0)
+                        + (len(DOMAIN_FEATURES) if level in {"L3", "L4"} else 0)
+                    )
+                    embedding_count = pair.embedding_dim * (2 if augmented else 1)
+                    classifier_factory = lambda c, seed, embedding_count=embedding_count, numeric_count=numeric_count: make_early_concat_classifier(
+                        embedding_columns=list(range(embedding_count)),
+                        numeric_columns=list(
+                            range(embedding_count, embedding_count + numeric_count)
+                        ),
+                        c=c,
+                        seed=seed,
+                    )
+                selected, scores = _tune_classifier_c(
                     X_train,
                     y_train,
                     second_inner,
                     c_grid=c_grid,
                     seed=seed + 100 + list(MODEL_SPECS).index(level) * 10 + int(augmented),
+                    classifier_factory=classifier_factory,
                 )
-                probability, _ = _fit_dense_probability(
+                probability, _ = _fit_classifier_probability(
                     X_train,
                     y_train,
                     X_test,
                     c=selected,
                     seed=seed + 500 + list(MODEL_SPECS).index(level) * 10 + int(augmented),
+                    classifier_factory=classifier_factory,
                 )
                 tuning_rows.extend(
                     {
@@ -683,6 +1017,7 @@ def _delta_table(
     n_bootstrap: int,
     n_permutations: int,
     base_seed: int,
+    strict_fdr: bool = True,
 ) -> pd.DataFrame:
     rows: list[dict[str, object]] = []
     test_index = 0
@@ -711,7 +1046,7 @@ def _delta_table(
         fdr_family = (
             "primary_l4"
             if fusion == "late_fusion" and level == "L4"
-            else "secondary_all_late"
+            else "all_late_delta_auc"
             if fusion == "late_fusion"
             else "exploratory_early_concat"
         )
@@ -724,7 +1059,8 @@ def _delta_table(
                 "auc_ci_low": ci["delta_auc_ci_low"],
                 "auc_ci_high": ci["delta_auc_ci_high"],
                 "raw_p": float(permutation["p_value"]),
-                "bh_q": np.nan,
+                "bh_q_primary_l4": np.nan,
+                "bh_q_all_late": np.nan,
                 "delta_pr_auc": point["delta_pr_auc"],
                 "delta_brier": point["delta_brier"],
                 "delta_log_loss": point["delta_log_loss"],
@@ -742,17 +1078,22 @@ def _delta_table(
             }
         )
         test_index += 1
-    result = apply_incremental_fdr(pd.DataFrame(rows))
-    late = result.loc[result["fusion"].eq("late_fusion")].copy()
-    late["fdr_family"] = "all_late_delta_auc"
-    all_late_q = apply_bh_by_family(
-        late.rename(columns={"raw_p": "p_value"}),
-        family_column="fdr_family",
-        p_column="p_value",
-    )[["embedding", "fusion", "level", "fdr_bh_q"]].rename(
-        columns={"fdr_bh_q": "bh_q_all_late"}
-    )
-    return result.merge(all_late_q, on=["embedding", "fusion", "level"], how="left")
+    result = pd.DataFrame(rows)
+    primary = result["fusion"].eq("late_fusion") & result["level"].eq("L4")
+    all_late = result["fusion"].eq("late_fusion")
+    if strict_fdr and int(primary.sum()) != 2:
+        raise ValueError("primary L4 FDR family must contain exactly two late-fusion rows")
+    if strict_fdr and int(all_late.sum()) != 8:
+        raise ValueError("all-late FDR family must contain exactly eight rows")
+    if int(primary.sum()) == 2:
+        result.loc[primary, "bh_q_primary_l4"] = benjamini_hochberg(
+            result.loc[primary, "raw_p"].to_numpy(dtype=float)
+        )
+    if int(all_late.sum()) == 8:
+        result.loc[all_late, "bh_q_all_late"] = benjamini_hochberg(
+            result.loc[all_late, "raw_p"].to_numpy(dtype=float)
+        )
+    return result
 
 
 def _bootstrap_attenuation(
@@ -935,11 +1276,108 @@ def _sha256_ids(ids: np.ndarray) -> str:
     return digest.hexdigest()
 
 
+def _resolve_code_commit(explicit: str | None) -> str:
+    if explicit:
+        return str(explicit)
+    if os.environ.get("GIT_COMMIT"):
+        return str(os.environ["GIT_COMMIT"])
+    try:
+        repository_root = Path(__file__).resolve().parents[1]
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=repository_root,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+
+
+def _manifest_output_hashes(run_dir: Path) -> dict[str, str]:
+    manifest_path = run_dir / "run_manifest.json"
+    if not manifest_path.exists():
+        raise FileNotFoundError(f"run manifest not found: {manifest_path}")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    hashes = manifest.get("output_file_hashes")
+    if not isinstance(hashes, dict) or not hashes:
+        raise ValueError(f"run manifest has no output_file_hashes: {manifest_path}")
+    observed: dict[str, str] = {}
+    for relative_name, expected_hash in sorted(hashes.items()):
+        path = run_dir / str(relative_name)
+        if not path.exists():
+            raise FileNotFoundError(f"manifested output file not found: {path}")
+        observed[str(relative_name)] = sha256_file(path)
+        if observed[str(relative_name)] != str(expected_hash):
+            raise ValueError(
+                f"output hash mismatch in {run_dir.name}/{relative_name}: "
+                f"expected={expected_hash}, observed={observed[str(relative_name)]}"
+            )
+    return observed
+
+
+def verify_embedding_incremental_reruns(
+    output_base: str | Path,
+    *,
+    run_1: str = "run_1",
+    run_2: str = "run_2",
+    promote_final: bool = False,
+) -> dict[str, object]:
+    """Compare two immutable run directories and optionally promote a match."""
+
+    output_base = Path(output_base)
+    first_dir = output_base / run_1
+    second_dir = output_base / run_2
+    mismatches: list[str] = []
+    try:
+        first_hashes = _manifest_output_hashes(first_dir)
+        second_hashes = _manifest_output_hashes(second_dir)
+    except (FileNotFoundError, ValueError) as exc:
+        record = {"status": "failed", "mismatches": [str(exc)]}
+        atomic_write_json(record, output_base / "rerun_verification.json")
+        return record
+    if first_hashes != second_hashes:
+        all_names = sorted(set(first_hashes) | set(second_hashes))
+        mismatches.extend(
+            name
+            for name in all_names
+            if first_hashes.get(name) != second_hashes.get(name)
+        )
+    first_manifest = json.loads((first_dir / "run_manifest.json").read_text(encoding="utf-8"))
+    second_manifest = json.loads((second_dir / "run_manifest.json").read_text(encoding="utf-8"))
+    for field in ("plan_sha256", "code_commit", "mode"):
+        if first_manifest.get(field) != second_manifest.get(field):
+            mismatches.append(field)
+    status = "verified" if not mismatches else "failed"
+    record = {
+        "status": status,
+        "run_1": run_1,
+        "run_2": run_2,
+        "mismatches": mismatches,
+        "run_1_output_file_hashes": first_hashes,
+        "run_2_output_file_hashes": second_hashes,
+    }
+    atomic_write_json(record, output_base / "rerun_verification.json")
+    if status == "verified" and promote_final:
+        final_dir = output_base / "final"
+        if final_dir.exists():
+            raise FileExistsError(f"final output already exists: {final_dir}")
+        final_dir.mkdir(parents=True)
+        for path in second_dir.iterdir():
+            if path.is_file():
+                shutil.copy2(path, final_dir / path.name)
+        record["promoted_final"] = str(final_dir)
+        atomic_write_json(record, output_base / "rerun_verification.json")
+    return record
+
+
 def run_embedding_incremental_analysis(
     output_root: str | Path,
     *,
     embedding_root: str | Path | None = None,
     model_specs: Mapping[str, tuple[int, str]] | None = None,
+    mode: str = "formal",
+    run_id: int = 1,
+    code_commit: str | None = None,
     expected_n: int = EXPECTED_N,
     expected_repeats: int = 10,
     main_repeat: int = 1,
@@ -956,10 +1394,36 @@ def run_embedding_incremental_analysis(
     modeling when a cache is absent or fails its manifest hash/ID checks.
     """
 
+    if int(run_id) <= 0:
+        raise ValueError("run_id must be positive")
+    if mode == "formal" and stability_repeats is None:
+        raise ValueError("formal mode requires stability_repeats=10")
+    config = validate_run_configuration(
+        mode=mode,
+        expected_n=expected_n,
+        expected_repeats=expected_repeats,
+        main_repeat=main_repeat,
+        inner_folds=inner_folds,
+        stability_repeats=stability_repeats if stability_repeats is not None else expected_repeats,
+        n_bootstrap=n_bootstrap,
+        n_permutations=n_permutations,
+        c_grid=c_grid,
+        base_seed=base_seed,
+    )
     output_root = Path(output_root).resolve()
     analysis_root = output_root / "03_embedding_robustness"
     embedding_root = Path(embedding_root or analysis_root).resolve()
-    inputs = load_frozen_incremental_inputs(output_root, expected_n=expected_n)
+    locked_input_audit = (
+        validate_locked_inputs(output_root, expected_n=EXPECTED_N)
+        if mode == "formal"
+        else {"status": "smoke_input_hashes_not_checked"}
+    )
+    full_inputs = load_frozen_incremental_inputs(output_root, expected_n=EXPECTED_N)
+    inputs = (
+        full_inputs
+        if mode == "formal"
+        else _subset_smoke_inputs(full_inputs, expected_n=expected_n)
+    )
     membership_path = output_root / "00_splits" / "repeated_5fold_splits_10x5.csv"
     if not membership_path.exists():
         raise FileNotFoundError(f"frozen split membership not found: {membership_path}")
@@ -970,6 +1434,10 @@ def run_embedding_incremental_analysis(
         membership["participant_id"], errors="raise"
     )
     membership["label"] = pd.to_numeric(membership["label"], errors="raise").astype(int)
+    if mode == "smoke":
+        membership = membership.loc[
+            membership["participant_id"].isin(inputs.participant_ids)
+        ].copy()
     label_lookup = dict(zip(inputs.participant_ids.tolist(), inputs.labels.tolist()))
     unknown_ids = sorted(set(membership["participant_id"]) - set(label_lookup))
     if unknown_ids:
@@ -986,18 +1454,21 @@ def run_embedding_incremental_analysis(
             "split membership labels do not match frozen labels: "
             f"{mismatched_labels[:5]}"
         )
-    if sorted(membership["repeat"].unique()) != list(range(1, expected_repeats + 1)):
-        raise ValueError("split membership repeats do not match expected_repeats")
+    available_repeats = sorted(membership["repeat"].unique())
+    required_repeats = list(range(1, expected_repeats + 1))
+    if not set(required_repeats).issubset(available_repeats):
+        raise ValueError("split membership does not contain all requested repeats")
+    membership = membership.loc[membership["repeat"].isin(required_repeats)].copy()
     if main_repeat not in set(membership["repeat"]):
         raise ValueError(f"main repeat {main_repeat} is not present in split membership")
 
-    model_specs = dict(
-        model_specs
-        or {
-            "model_1_all_mpnet_base_v2": (768, "all-mpnet-base-v2"),
-            "model_2_bge_large_en_v1_5": (1024, "bge-large-en-v1.5"),
-        }
-    )
+    locked_model_specs = {
+        "model_1_all_mpnet_base_v2": (768, "all-mpnet-base-v2"),
+        "model_2_bge_large_en_v1_5": (1024, "bge-large-en-v1.5"),
+    }
+    model_specs = dict(model_specs or locked_model_specs)
+    if mode == "formal" and model_specs != locked_model_specs:
+        raise ValueError("formal mode requires both locked embedding model specifications")
     repeat_count = expected_repeats if stability_repeats is None else int(stability_repeats)
     if repeat_count < main_repeat or repeat_count > expected_repeats:
         raise ValueError("stability_repeats must include main_repeat and not exceed expected_repeats")
@@ -1011,6 +1482,7 @@ def run_embedding_incremental_analysis(
             model_slug,
             inputs.participant_ids,
             expected_dim=int(dimension),
+            allow_subset=(mode == "smoke"),
         )
         embedding_manifests.append(
             {
@@ -1020,6 +1492,7 @@ def run_embedding_incremental_analysis(
                 "revision": pair.revision,
                 "embedding_dim": pair.embedding_dim,
                 "cache_files": list(pair.cache_files),
+                "manifest_hashes": pair.manifest_hashes,
             }
         )
         for fusion_method in FUSION_METHODS:
@@ -1048,6 +1521,7 @@ def run_embedding_incremental_analysis(
         n_bootstrap=n_bootstrap,
         n_permutations=n_permutations,
         base_seed=base_seed,
+        strict_fdr=(mode == "formal"),
     )
     attenuation = _attenuation_table(
         paired,
@@ -1055,8 +1529,15 @@ def run_embedding_incremental_analysis(
         base_seed=base_seed + 900_000,
     )
     stability = _repeat_stability(predictions)
-    result_root = analysis_root / "embedding_incremental"
-    oof_output = main_oof.rename(columns={"probability": "model_probability"})
+    result_base = analysis_root / (
+        "embedding_incremental" if mode == "formal" else "embedding_incremental_smoke"
+    )
+    result_root = result_base / f"run_{int(run_id)}"
+    if result_root.exists():
+        raise FileExistsError(
+            f"immutable run directory already exists: {result_root}; use a new run_id"
+        )
+    result_root.mkdir(parents=True)
     oof_pairs = paired.copy()
     oof_pairs["repeat"] = int(main_repeat)
     oof_pairs = oof_pairs[
@@ -1072,16 +1553,35 @@ def run_embedding_incremental_analysis(
             "repeat",
         ]
     ].rename(columns={"embedding_model": "embedding", "fusion_method": "fusion"})
-    atomic_write_csv(oof_pairs, result_root / "embedding_incremental_oof_predictions.csv")
-    atomic_write_csv(metrics, result_root / "embedding_incremental_model_metrics.csv")
-    atomic_write_csv(deltas, result_root / "embedding_incremental_deltas.csv")
-    atomic_write_csv(attenuation, result_root / "embedding_incremental_attenuation.csv")
-    atomic_write_csv(stability, result_root / "embedding_incremental_repeat_stability.csv")
-    atomic_write_csv(pd.DataFrame(tuning_rows), result_root / "embedding_incremental_tuning.csv")
+    output_paths = [
+        result_root / "embedding_incremental_oof_predictions.csv",
+        result_root / "embedding_incremental_model_metrics.csv",
+        result_root / "embedding_incremental_deltas.csv",
+        result_root / "embedding_incremental_attenuation.csv",
+        result_root / "embedding_incremental_repeat_stability.csv",
+        result_root / "embedding_incremental_tuning.csv",
+    ]
+    atomic_write_csv(oof_pairs, output_paths[0])
+    atomic_write_csv(metrics, output_paths[1])
+    atomic_write_csv(deltas, output_paths[2])
+    atomic_write_csv(attenuation, output_paths[3])
+    atomic_write_csv(stability, output_paths[4])
+    atomic_write_csv(pd.DataFrame(tuning_rows), output_paths[5])
+    output_file_hashes = {path.name: sha256_file(path) for path in output_paths}
+    output_inventory_sha256 = hashlib.sha256(
+        json.dumps(output_file_hashes, sort_keys=True).encode("utf-8")
+    ).hexdigest()
+    plan_path = analysis_root / "embedding_incremental_analysis_plan.md"
+    plan_hashes = _hash_variants(plan_path) if plan_path.exists() else {}
 
     manifest = {
-        "status": "complete",
-        "analysis_status": "post-submission locked supplementary conditional-increment analysis",
+        "status": config["status"],
+        "mode": mode,
+        "run_id": int(run_id),
+        "analysis_status": "post hoc, analysis-locked supplementary conditional-increment analysis",
+        "code_commit": _resolve_code_commit(code_commit),
+        "plan_sha256": plan_hashes.get("raw"),
+        "plan_sha256_lf": plan_hashes.get("lf"),
         "cohort": {
             "n": int(len(inputs.labels)),
             "positive": int(inputs.labels.sum()),
@@ -1117,11 +1617,24 @@ def run_embedding_incremental_analysis(
             ),
             "domain_count": str(output_root / "04_c5_controls" / "domain_count" / "input.csv"),
             "split_membership": str(membership_path),
-            "split_membership_sha256": sha256_file(membership_path),
+            "split_membership_sha256": _hash_variants(membership_path),
             "protocol_features": list(PROTOCOL_FEATURES),
             "domain_features": list(DOMAIN_FEATURES),
+            "locked_input_audit": locked_input_audit,
+            "embedding_manifest_registry": LOCKED_EMBEDDING_MANIFESTS,
         },
-        "output_files": sorted(path.name for path in result_root.glob("*.csv")),
+        "classifier": {
+            "penalty": "l2",
+            "class_weight": "balanced",
+            "solver": "liblinear",
+            "fit_intercept": True,
+            "max_iter": 2000,
+            "late_fusion_scaling": "all second-layer inputs standardized inside each training fit",
+            "early_concat_scaling": "frozen embeddings passthrough; R/D standardized inside each training fit",
+        },
+        "output_files": sorted(output_file_hashes),
+        "output_file_hashes": output_file_hashes,
+        "output_inventory_sha256": output_inventory_sha256,
     }
     atomic_write_json(manifest, result_root / "run_manifest.json")
     return manifest
@@ -1133,6 +1646,11 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--output-root", default="analysis_v2")
     parser.add_argument("--embedding-root", default=None)
+    parser.add_argument("--mode", choices=["formal", "smoke"], default="formal")
+    parser.add_argument("--run-id", type=int, default=1)
+    parser.add_argument("--code-commit", default=None)
+    parser.add_argument("--verify-reruns", action="store_true")
+    parser.add_argument("--promote-final", action="store_true")
     parser.add_argument("--expected-n", type=int, default=EXPECTED_N)
     parser.add_argument("--stability-repeats", type=int, default=10)
     parser.add_argument("--bootstrap", type=int, default=5000)
@@ -1143,15 +1661,30 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
-    run_embedding_incremental_analysis(
-        args.output_root,
+    output_root = Path(args.output_root).resolve()
+    result_base = output_root / "03_embedding_robustness" / (
+        "embedding_incremental" if args.mode == "formal" else "embedding_incremental_smoke"
+    )
+    if args.verify_reruns:
+        record = verify_embedding_incremental_reruns(
+            result_base,
+            promote_final=args.promote_final,
+        )
+        print(json.dumps(record, ensure_ascii=False, sort_keys=True))
+        return 0 if record["status"] == "verified" else 1
+    manifest = run_embedding_incremental_analysis(
+        output_root,
         embedding_root=args.embedding_root,
+        mode=args.mode,
+        run_id=args.run_id,
+        code_commit=args.code_commit,
         expected_n=args.expected_n,
         stability_repeats=args.stability_repeats,
         n_bootstrap=args.bootstrap,
         n_permutations=args.permutations,
         base_seed=args.seed,
     )
+    print(json.dumps({"status": manifest["status"], "run_id": manifest["run_id"]}))
     return 0
 
 
