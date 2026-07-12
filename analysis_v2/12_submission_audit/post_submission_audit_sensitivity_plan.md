@@ -229,3 +229,17 @@ The README and CI workflow will state three levels explicitly:
 4. `manuscript: integrate post-audit sensitivity results and CI documentation` -- manuscript, evidence matrices, targeted search log, README, and GitHub Actions.
 
 After implementation, run the full test suite, verify output SHA-256 hashes, perform two independent recomputations of core numerical outputs, verify a clean worktree, push the branch, and confirm that local and remote branch heads match.
+
+## 11. Closeout amendment locked before implementation (2026-07-12)
+
+This amendment was triggered by the post-run completion audit, after the half-min point estimate and joint interval were already known. It is therefore an explicitly post hoc engineering and reporting correction, not a preregistered analysis and not a basis for changing the half-min definition, draw set, model, or confidence interval.
+
+### 11.1 Half-min raw permutation p and q
+
+The observed statistic remains the mean of the 50 draw-specific interviewer-minus-participant AUC differences. For each of 10,000 raw permutations, one participant-level Bernoulli swap vector is generated and applied consistently to the two source probabilities for that participant across all 50 draws. AUCs and their interviewer-minus-participant difference are recomputed within every draw and then averaged across draws. The two-sided finite-sample p-value is `(1 + count(abs(T_perm) >= abs(T_obs))) / (10,000 + 1)`.
+
+The half-min comparison is a one-comparison post-audit family, so its BH-adjusted q-value equals its raw p-value. The existing 5,000-replicate interval that jointly samples a complete draw and resamples participants remains unchanged and is not replaced by the permutation distribution. The fixed permutation seed is `20260705 + 505001`.
+
+### 11.2 Recalculation and portability evidence
+
+Two complete restricted-input reruns will be compared over the frozen core numerical outputs. A committed `recomputation_verification.json` will record the two run identifiers, file set, normalized SHA-256 values, and equality verdict. Text artifact hashes normalize CRLF to LF so that public integrity verification is invariant to Git newline conversion; binary artifacts remain byte-hashed. This portability correction must not change numerical CSV content.
