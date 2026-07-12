@@ -4,13 +4,11 @@
 
 This study audits the sources of PHQ-8 label-predictive signals in semi-structured interviews and tests whether full-transcript performance can be attributed directly to participant language alone.
 
-The Chinese submission draft is [`06_tables_figures/manuscript_submission_zh.md`](06_tables_figures/manuscript_submission_zh.md). Other manuscript files are retained for audit history and are not submission-authoritative.
+The reader-facing Chinese manuscript is [`06_tables_figures/main_text/manuscript_restructured_zh.md`](06_tables_figures/main_text/manuscript_restructured_zh.md). The earlier [`06_tables_figures/manuscript_submission_zh.md`](06_tables_figures/manuscript_submission_zh.md) is retained as the technical audit底稿; other manuscript files are retained for audit history and are not submission-authoritative.
 
-## Three research questions
+## Reader-facing narrative
 
-1. Does raw participant speech contain PHQ-8 label-predictive information, and how do ranking, calibration, and operating-threshold behavior differ?
-2. Do interviewer language and protocol/interaction structure also carry predictive information after explicit structure and text-quantity controls, and do they add detectable conditional information to joint models?
-3. How does a clinically guided symptom-evidence representation change performance and interpretation, and what do source traceability and review limitations permit us to claim?
+The clean manuscript uses one narrative: participant language, interviewer language and the complete transcript all contain label-related information; interviewer language has limited detectable conditional increment after joint controls; and source contrasts remain sensitive to protocol structure, text budget and window position. Calibration and retained-span source alignment are supporting analyses that bound interpretation rather than competing main stories.
 
 ## Evidence hierarchy
 

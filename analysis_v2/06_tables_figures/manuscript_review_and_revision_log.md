@@ -1,5 +1,17 @@
 # Manuscript review and revision log
 
+## 2026-07-12 reader-facing manuscript restructure
+
+The technical audit draft is now preserved as `manuscript_submission_zh.md`, while the submission-oriented text is a separate clean manuscript at `main_text/manuscript_restructured_zh.md`. The new document is organized as a standard paper rather than an analysis checklist: one title and abstract, four natural Introduction paragraphs, four Method subsections, three reader-facing Results subsections, and one five-paragraph Discussion. Internal labels, audit timeline language, and exhaustive output details remain in the audit底稿 or supplement.
+
+| Structural decision | Implementation |
+|---|---|
+| Single narrative | Source decomposition is the main line; calibration, structure, text budget and retained-span alignment support that line |
+| Reader terminology | Internal model/source IDs are replaced by descriptive names such as 基础联合模型、文本长度结构模型 and 临床导向症状证据表示 |
+| Claim downgrade | The symmetric half-min interval crosses zero and position results vary; the text-quantity explanation is therefore not ruled out |
+| Causal boundary | Source-related prediction is not described as interviewer bias, leakage, clinical diagnosis or deployment evidence |
+| Evidence placement | Main text keeps headline AUCs, conditional increments, the joint interval and the C5 alignment delta; draw-level, hash, CI and traceability details move to the supplement |
+
 ## 2026-07-12 post-audit sensitivity integration
 
 The analysis rules were frozen in `post_submission_audit_sensitivity_plan.md` before results were generated. This revision does not claim preregistration and does not replace the original five-comparison family.
