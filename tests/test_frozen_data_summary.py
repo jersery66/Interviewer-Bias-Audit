@@ -45,6 +45,21 @@ def test_frozen_data_summary_contains_key_frozen_values() -> None:
     for key in ("candidate_span_n", "final_span_n", "unchanged_source_matched_n", "manually_corrected_to_source_n"):
         assert str(int(trace[key])) in text
 
+    for expected_file in (
+        "locked_brier_fold_metrics.csv",
+        "locked_calibration_curve_data.csv",
+        "locked_threshold_curve_data.csv",
+        "locked_template_control_metrics.csv",
+        "locked_joint_predictions.csv",
+        "symmetric_half_min_draw_predictions.csv",
+        "c5_traceability_audit_no_quotes.csv",
+        "output_manifest_sha256.csv",
+    ):
+        assert expected_file in text
+
+    assert "T_template" in text
+    assert "local_pytest_passed | 101" in text
+
 
 def test_frozen_data_summary_has_no_interpretive_directives() -> None:
     text = SUMMARY.read_text(encoding="utf-8")

@@ -57,6 +57,56 @@
 | participant_symptom_evidence | platt | 0.1865 | 0.1620 | 0.2127 | 0.2112 | 0.1172 | -0.0071 | 0.2323 | 0.3028 | 0.1167 |
 | participant_symptom_evidence | isotonic | 0.1961 | 0.1629 | 0.2314 | 0.2112 | 0.0715 | -0.0948 | 0.2292 | 0.3028 | 0.0710 |
 
+### 2.1 Raw calibration bins
+
+| condition | bin | mean predicted probability | observed positive fraction |
+|---|---:|---:|---:|
+| full_transcript | 1 | 0.3854 | 0.1034 |
+| full_transcript | 2 | 0.4224 | 0.0714 |
+| full_transcript | 3 | 0.4567 | 0.3571 |
+| full_transcript | 4 | 0.4885 | 0.3929 |
+| full_transcript | 5 | 0.5340 | 0.5862 |
+| participant_speech | 1 | 0.4366 | 0.1379 |
+| participant_speech | 2 | 0.4527 | 0.2143 |
+| participant_speech | 3 | 0.4611 | 0.2857 |
+| participant_speech | 4 | 0.4701 | 0.2143 |
+| participant_speech | 5 | 0.4862 | 0.6552 |
+| interviewer_speech | 1 | 0.3223 | 0.0690 |
+| interviewer_speech | 2 | 0.3711 | 0.1071 |
+| interviewer_speech | 3 | 0.4463 | 0.2500 |
+| interviewer_speech | 4 | 0.5296 | 0.4643 |
+| interviewer_speech | 5 | 0.6299 | 0.6207 |
+| non_explicit_interviewer_speech | 1 | 0.3334 | 0.0690 |
+| non_explicit_interviewer_speech | 2 | 0.3896 | 0.1071 |
+| non_explicit_interviewer_speech | 3 | 0.4492 | 0.3571 |
+| non_explicit_interviewer_speech | 4 | 0.5141 | 0.3571 |
+| non_explicit_interviewer_speech | 5 | 0.6224 | 0.6207 |
+| participant_symptom_evidence | 1 | 0.4023 | 0.1034 |
+| participant_symptom_evidence | 2 | 0.4471 | 0.1786 |
+| participant_symptom_evidence | 3 | 0.4697 | 0.1786 |
+| participant_symptom_evidence | 4 | 0.4940 | 0.5000 |
+| participant_symptom_evidence | 5 | 0.5335 | 0.5517 |
+
+### 2.2 Brier fold range
+
+| condition | probability_variant | fold_n | model Brier min | model Brier max | BSS min | BSS max |
+|---|---|---:|---:|---:|---:|---:|
+| full_transcript | raw | 5 | 0.2126 | 0.2226 | -0.0884 | 0.0045 |
+| full_transcript | platt | 5 | 0.1349 | 0.2068 | 0.0342 | 0.3404 |
+| full_transcript | isotonic | 5 | 0.1335 | 0.2337 | -0.1425 | 0.3473 |
+| interviewer_speech | raw | 5 | 0.1876 | 0.2000 | 0.0251 | 0.1421 |
+| interviewer_speech | platt | 5 | 0.1359 | 0.1866 | 0.0972 | 0.3783 |
+| interviewer_speech | isotonic | 5 | 0.1442 | 0.1934 | 0.0814 | 0.3404 |
+| non_explicit_interviewer_speech | raw | 5 | 0.1932 | 0.2066 | -0.0072 | 0.0563 |
+| non_explicit_interviewer_speech | platt | 5 | 0.1311 | 0.1885 | 0.0914 | 0.3590 |
+| non_explicit_interviewer_speech | isotonic | 5 | 0.1327 | 0.1932 | 0.0555 | 0.3510 |
+| participant_speech | raw | 5 | 0.2274 | 0.2335 | -0.1417 | -0.0672 |
+| participant_speech | platt | 5 | 0.1394 | 0.2106 | -0.0159 | 0.3187 |
+| participant_speech | isotonic | 5 | 0.1075 | 0.2249 | -0.0286 | 0.4742 |
+| participant_symptom_evidence | raw | 5 | 0.2158 | 0.2299 | -0.1241 | -0.0078 |
+| participant_symptom_evidence | platt | 5 | 0.1569 | 0.2443 | -0.1172 | 0.2377 |
+| participant_symptom_evidence | isotonic | 5 | 0.1382 | 0.2754 | -0.2598 | 0.3243 |
+
 ## 3. 配对比较
 
 | comparison | delta AUC | CI low | CI high | raw p | q | n_bootstrap | n_permutations |
@@ -75,6 +125,23 @@
 | S_interaction | 0.5729 | 0.3707 | 0.2470 | 0.6876 |
 | S_protocol | 0.6754 | 0.5026 | 0.2245 | 0.6428 |
 | S_all | 0.7289 | 0.5219 | 0.2101 | 0.6149 |
+
+### 4.1 结构模型 AUC 区间
+
+| model | AUC | CI low | CI high | n_bootstrap |
+|---|---:|---:|---:|---:|
+| S_length | 0.5694 | 0.4683 | 0.6692 | 5000 |
+| S_interaction | 0.5729 | 0.4693 | 0.6752 | 5000 |
+| S_protocol | 0.6754 | 0.5726 | 0.7731 | 5000 |
+| S_all | 0.7289 | 0.6336 | 0.8210 | 5000 |
+
+### 4.2 模板指标
+
+| model | ROC AUC | PR-AUC | Brier | log loss | AUC CI low | AUC CI high | n_bootstrap |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| T_template | 0.7765 | 0.5751 | 0.1864 | 0.5614 | 0.6868 | 0.8575 | 5000 |
+| T_nontemplate | 0.7839 | 0.6475 | 0.2030 | 0.5964 | 0.7017 | 0.8569 | 5000 |
+| T_nontemplate_lengthmatched | 0.6354 | 0.4455 | 0.2306 | 0.6541 | 0.5362 | 0.7326 | 5000 |
 
 ## 5. 文本长度与窗口
 
@@ -183,7 +250,105 @@
 | recomputation_file_count | 43 |
 | recomputation_all_equal | true |
 | output_manifest_entries | 71 |
-| local_pytest_passed | 98 |
-| github_actions_run_id | 29191567287 |
+| local_pytest_passed | 101 |
 | github_actions_status | success |
-| git_commit | 9ad520808ff71ba81d59ac458766eff3592d3a30 |
+
+## 9. 输出文件索引
+
+| file | rows |
+|---|---:|
+| c5_retained_alignment_audit.csv | 142 |
+| c5_retained_alignment_metrics.csv | 2 |
+| c5_retained_alignment_paired_differences.csv | 3 |
+| c5_retained_alignment_predictions.csv | 142 |
+| c5_retained_alignment_probability_change_summary.csv | 1 |
+| c5_traceability_audit_no_quotes.csv | 1137 |
+| locked_brier_fold_metrics.csv | 75 |
+| locked_brier_skill_metrics.csv | 15 |
+| locked_calibration_curve_data.csv | 25 |
+| locked_core_paired_comparisons.csv | 5 |
+| locked_joint_predictions.csv | 142 |
+| locked_null_brier_predictions.csv | 142 |
+| locked_repeat1_split.csv | 710 |
+| locked_source_metrics.csv | 5 |
+| locked_source_predictions.csv | 710 |
+| locked_template_control_auc_ci.csv | 3 |
+| locked_template_control_metrics.csv | 3 |
+| locked_template_control_oof.csv | 142 |
+| locked_threshold_curve_data.csv | 95 |
+| output_manifest_sha256.csv | 71 |
+| structural_baseline_auc_ci.csv | 4 |
+| structural_baseline_features.csv | 142 |
+| structural_baseline_fold_oof.csv | 142 |
+| structural_baseline_metrics.csv | 4 |
+| structural_baseline_participant_oof.csv | 142 |
+| structure_control_figure_data.csv | 11 |
+| symmetric_half_min_audit_summary.csv | 3 |
+| symmetric_half_min_draw_metrics.csv | 100 |
+| symmetric_half_min_draw_predictions.csv | 7100 |
+| symmetric_half_min_length_audit.csv | 142 |
+| symmetric_half_min_metrics.csv | 2 |
+| symmetric_half_min_paired_comparison.csv | 1 |
+| symmetric_position_metrics.csv | 6 |
+| symmetric_position_paired_comparisons.csv | 3 |
+| symmetric_position_predictions.csv | 426 |
+| token_matched_draw_metrics.csv | 100 |
+| token_matched_draw_predictions.csv | 7100 |
+| token_matched_ensemble_comparison_audit_only.csv | 1 |
+| token_matched_ensemble_metrics_audit_only.csv | 2 |
+| token_matched_metrics.csv | 2 |
+| token_matched_paired_comparison.csv | 1 |
+| token_matched_participant_oof.csv | 142 |
+| token_matching_asymmetry_summary.csv | 3 |
+| token_matching_length_audit.csv | 142 |
+| c5_traceability_summary.json | object |
+| recomputation_verification.json | object |
+| run_manifest.json | object |
+
+## 10. 模型与运行字段
+
+| field | value |
+|---|---|
+| split_repeat | 1 |
+| outer_folds | 5 |
+| participant_predictions_per_condition | 142 |
+| tfidf_lowercase | true |
+| tfidf_strip_accents | unicode |
+| tfidf_word_ngrams | (1, 2) |
+| tfidf_min_df | 2 |
+| tfidf_max_features | 50000 |
+| tfidf_sublinear_tf | true |
+| classifier | LogisticRegression |
+| classifier_C | 1.0 |
+| classifier_class_weight | balanced |
+| classifier_solver | liblinear |
+| classifier_max_iter | 2000 |
+| numeric_scaler | StandardScaler |
+| calibration_variants | Platt; isotonic |
+| threshold_variants | max Macro-F1; max Youden J; sensitivity_at_specificity_0.80 |
+| random_seed | 20260705 |
+| python | 3.12.3 |
+| numpy | 2.2.6 |
+| pandas | 2.3.3 |
+| scikit_learn | 1.9.0 |
+| matplotlib | 3.10.0 |
+| tifffile | 2025.2.18 |
+
+## 11. 结构字段
+
+| group | feature |
+|---|---|
+| length | participant_word_count |
+| length | interviewer_word_count |
+| length | total_word_count |
+| length | interview_duration_sec |
+| interaction | participant_turn_count |
+| interaction | interviewer_turn_count |
+| interaction | total_turn_count |
+| interaction | participant_mean_words_per_turn |
+| interaction | interviewer_mean_words_per_turn |
+| protocol | interviewer_question_count |
+| protocol | clinical_question_count |
+| protocol | unique_protocol_prompt_count |
+| protocol | clinical_prompt_coverage_count |
+| protocol | non_explicit_interviewer_turn_count |
