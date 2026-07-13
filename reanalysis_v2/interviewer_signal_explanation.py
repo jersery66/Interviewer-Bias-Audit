@@ -66,6 +66,8 @@ PAIRING_DRAWS = 100
 N_BOOTSTRAP = 5000
 N_PERMUTATIONS = 10_000
 NEAR_ZERO_DOMINANT_FRACTION = 0.95
+RECOVERABILITY_HIGH_R2_THRESHOLD = 0.50
+RECOVERABILITY_NEAR_ZERO_R2_THRESHOLD = 0.05
 
 D_P_FEATURES = (
     "anhedonia_interest",
@@ -127,6 +129,14 @@ ALL_BLOCK_SUBSETS = (
     "P+R+D",
     "Q+R+D",
     "P+Q+R+D",
+)
+
+LABEL_CONDITIONED_SUBSETS = (
+    "P_within",
+    "Q",
+    "R",
+    "D",
+    "P_within+Q+R+D",
 )
 
 BLOCK_ORDER = ("P", "Q", "R", "D")
@@ -1514,7 +1524,9 @@ def build_fold_contained_matched_source_logits(
     c_grid: Sequence[float] = DEFAULT_C_GRID,
     seed: int = BASE_SEED,
     assignment_mode: str = "optimal_matched",
-) -> tuple[np.ndarray, np.ndarray, pd.DataFrame]:
+    random_reference_draws: int = PAIRING_DRAWS,
+    collect_inner_quality: bool = True,
+) -> tuple[np.ndarray, np.ndarray, pd.DataFrame, pd.DataFrame]:
     """Mismatch source data inside folds before predicting matched logits."""
 
     labels = np.asarray(labels, dtype=int)
@@ -1535,6 +1547,7 @@ def build_fold_contained_matched_source_logits(
     matched_train = np.full(len(train_idx), np.nan, dtype=float)
     matched_test = np.full(len(test_idx), np.nan, dtype=float)
     audit_rows: list[dict[str, object]] = []
+    quality_rows: list[dict[str, object]] = []
     inner_splits = make_inner_splits(labels[train_idx], n_splits=int(inner_folds), seed=int(seed))
     for inner_fold, (inner_train_local, inner_validation_local) in enumerate(inner_splits, start=1):
         inner_train_global = train_idx[inner_train_local]
@@ -1554,6 +1567,56 @@ def build_fold_contained_matched_source_logits(
                 donor=validation_frame,
                 fit_reference=fit_frame,
                 seed=int(seed) + inner_fold,
+            )
+        if collect_inner_quality:
+            random_distances: list[float] = []
+            for random_draw in range(1, int(random_reference_draws) + 1):
+                random_assignment = make_random_derangement_assignment(
+                    recipient=validation_frame,
+                    donor=validation_frame,
+                    fit_reference=fit_frame,
+                    seed=int(seed) + inner_fold * 10_000 + random_draw,
+                )
+                random_quality = pairing_quality_summary(
+                    recipient=validation_frame,
+                    donor=validation_frame,
+                    assignment=random_assignment,
+                    fit_reference=fit_frame,
+                    assignment_type="random_mismatch",
+                )
+                random_distances.append(float(random_quality["mean_distance"]))
+            quality = pairing_quality_summary(
+                recipient=validation_frame,
+                donor=validation_frame,
+                assignment=assignment,
+                fit_reference=fit_frame,
+                random_distance_reference=random_distances,
+                assignment_type=assignment_mode,
+            )
+            quality_rows.append(
+                {
+                    "partition": "outer_train_inner_validation",
+                    "inner_fold": int(inner_fold),
+                    "assignment_type": assignment_mode,
+                    "recipient_n": int(len(validation_frame)),
+                    "random_reference_n": int(len(random_distances)),
+                    "mean_distance": float(quality["mean_distance"]),
+                    "median_distance": float(quality["median_distance"]),
+                    "q95_distance": float(quality["q95_distance"]),
+                    "max_distance": float(quality["max_distance"]),
+                    "total_cost": float(quality["total_cost"]),
+                    "random_distance_q05": float(quality["random_distance_q05"]),
+                    "optimal_distance_random_percentile": float(quality["optimal_distance_random_percentile"]),
+                    "n_features_mean_abs_paired_diff_lt_0_50": int(quality["n_features_mean_abs_paired_diff_lt_0_50"]),
+                    "no_self": bool(quality["no_self"]),
+                    "one_to_one": bool(quality["one_to_one"]),
+                    "matching_adequate": bool(quality["matching_adequate"]),
+                    "max_abs_smd_descriptive": float(quality["max_abs_smd"]),
+                    **{
+                        f"mean_abs_standardized_paired_difference__{feature}": float(value)
+                        for feature, value in quality["feature_mean_abs_standardized_paired_difference"].items()
+                    },
+                }
             )
         global_lookup = {participant_id: int(index) for index, participant_id in enumerate(participant_ids.tolist())}
         donor_global = np.asarray([global_lookup[value] for value in assignment["donor_id"]], dtype=int)
@@ -1623,7 +1686,7 @@ def build_fold_contained_matched_source_logits(
         )
     if not np.isfinite(matched_test).all():
         raise ValueError("fold-contained matched outer-test logits are incomplete")
-    return matched_train, matched_test, pd.DataFrame(audit_rows)
+    return matched_train, matched_test, pd.DataFrame(audit_rows), pd.DataFrame(quality_rows)
 
 
 def _source_fold_cache(
@@ -1954,6 +2017,32 @@ def run_direct_explanation(
     return predictions, metrics, tuning, full_cache
 
 
+def is_source_score_scale_sensitive(
+    *,
+    raw_r2: float,
+    standardized_r2: float,
+    raw_spearman: float,
+    standardized_spearman: float,
+    substantive_threshold: float = 0.05,
+) -> bool:
+    """Apply the pre-locked substantive source-score scale sensitivity rule."""
+
+    threshold = float(substantive_threshold)
+    if threshold <= 0:
+        raise ValueError("substantive_threshold must be positive")
+    r2_difference = abs(float(raw_r2) - float(standardized_r2))
+    spearman_difference = abs(float(raw_spearman) - float(standardized_spearman))
+    direction_flip = bool(
+        np.isfinite(raw_r2)
+        and np.isfinite(standardized_r2)
+        and (
+            (float(raw_r2) > 0 and float(standardized_r2) < 0)
+            or (float(raw_r2) < 0 and float(standardized_r2) > 0)
+        )
+    )
+    return bool(r2_difference >= threshold or spearman_difference >= threshold or direction_flip)
+
+
 def recoverability_fold_metrics(explanation_predictions: pd.DataFrame) -> pd.DataFrame:
     """Report raw and outer-training-standardized metrics for every outer fold."""
 
@@ -2045,9 +2134,11 @@ def recoverability_scale_sensitivity(explanation_predictions: pd.DataFrame) -> p
             np.concatenate(standardized_prediction),
             np.concatenate(standardized_null),
         )
-        scale_sensitive = bool(
-            abs(float(raw["r2"]) - float(standardized["r2"])) > 1e-10
-            or abs(float(raw["spearman_rho"]) - float(standardized["spearman_rho"])) > 1e-10
+        scale_sensitive = is_source_score_scale_sensitive(
+            raw_r2=float(raw["r2"]),
+            standardized_r2=float(standardized["r2"]),
+            raw_spearman=float(raw["spearman_rho"]),
+            standardized_spearman=float(standardized["spearman_rho"]),
         )
         for scale_name, metrics in (("raw", raw), ("outer_train_standardized", standardized)):
             rows.append(
@@ -2076,6 +2167,363 @@ def recoverability_scale_sensitivity(explanation_predictions: pd.DataFrame) -> p
             ),
             axis=1,
         )
+    return result
+
+
+def _class_mean_predictions(
+    training_values: np.ndarray,
+    training_labels: np.ndarray,
+    recipient_labels: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    training_values = np.asarray(training_values, dtype=float)
+    training_labels = np.asarray(training_labels, dtype=int)
+    recipient_labels = np.asarray(recipient_labels, dtype=int)
+    means: dict[int, float] = {}
+    counts: dict[int, int] = {}
+    for label in np.unique(training_labels):
+        mask = training_labels == int(label)
+        if not mask.any():
+            continue
+        means[int(label)] = float(training_values[mask].mean())
+        counts[int(label)] = int(mask.sum())
+    missing = sorted(set(int(value) for value in recipient_labels).difference(means))
+    if missing:
+        raise ValueError(f"label-only class means are unavailable for labels: {missing}")
+    return (
+        np.asarray([means[int(label)] for label in recipient_labels], dtype=float),
+        np.asarray([counts[int(label)] for label in recipient_labels], dtype=int),
+    )
+
+
+def _cross_fitted_class_mean_predictions(
+    values: np.ndarray,
+    labels: np.ndarray,
+    inner_splits: Sequence[tuple[np.ndarray, np.ndarray]],
+) -> tuple[np.ndarray, np.ndarray]:
+    values = np.asarray(values, dtype=float)
+    labels = np.asarray(labels, dtype=int)
+    prediction = np.full(len(values), np.nan, dtype=float)
+    counts = np.zeros(len(values), dtype=int)
+    for inner_train, inner_validation in inner_splits:
+        fold_prediction, fold_counts = _class_mean_predictions(
+            values[inner_train],
+            labels[inner_train],
+            labels[inner_validation],
+        )
+        prediction[inner_validation] = fold_prediction
+        counts[inner_validation] = fold_counts
+    if not np.isfinite(prediction).all() or not (counts > 0).all():
+        raise ValueError("cross-fitted label-only predictions are incomplete")
+    return prediction, counts
+
+
+def _recoverability_metric_summary(
+    target: Sequence[float],
+    prediction: Sequence[float],
+    null_prediction: Sequence[float],
+) -> dict[str, float | bool]:
+    target = np.asarray(target, dtype=float)
+    prediction = np.asarray(prediction, dtype=float)
+    null_prediction = np.asarray(null_prediction, dtype=float)
+    target_mse = float(mean_squared_error(target, prediction))
+    null_mse = float(mean_squared_error(target, null_prediction))
+    r2_defined = bool(null_mse > 1e-15)
+    r2 = float(1.0 - target_mse / null_mse) if r2_defined else 0.0
+    rho = spearmanr(target, prediction).statistic
+    return {
+        "r2": r2,
+        "delta_mse": float(null_mse - target_mse),
+        "mae": float(mean_absolute_error(target, prediction)),
+        "rmse": float(np.sqrt(target_mse)),
+        "spearman_rho": float(rho) if np.isfinite(rho) else float("nan"),
+        "target_mse": target_mse,
+        "null_mse": null_mse,
+        "r2_defined": r2_defined,
+    }
+
+
+def run_label_only_recoverability(
+    source_cache: Mapping[tuple[str, int, int], SourceFoldCache],
+    *,
+    labels: np.ndarray,
+    participant_ids: np.ndarray,
+    representations: Sequence[str],
+    repeats: Sequence[int],
+    inner_folds: int = INNER_FOLDS,
+    base_seed: int = BASE_SEED,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Benchmark interviewer-score recoverability from labels alone."""
+
+    labels = np.asarray(labels, dtype=int)
+    participant_ids = np.asarray(participant_ids)
+    prediction_rows: list[dict[str, object]] = []
+    metric_rows: list[dict[str, object]] = []
+    for representation in representations:
+        for repeat in sorted(int(value) for value in repeats):
+            for fold in range(1, 6):
+                source = source_cache[(representation, repeat, fold)]
+                train_idx, test_idx = source.train_idx, source.test_idx
+                train_labels = labels[train_idx]
+                split_seed = int(base_seed) + repeat * 100_000 + fold * 1_000 + 71
+                inner_splits = make_inner_splits(train_labels, n_splits=int(inner_folds), seed=split_seed)
+                train_prediction, train_counts = _cross_fitted_class_mean_predictions(
+                    source.interviewer_train_logit,
+                    train_labels,
+                    inner_splits,
+                )
+                outer_test_prediction, outer_test_counts = _class_mean_predictions(
+                    source.interviewer_train_logit,
+                    train_labels,
+                    labels[test_idx],
+                )
+                overall_null = float(np.mean(source.interviewer_train_logit))
+                for local_index, global_index in enumerate(train_idx):
+                    prediction_rows.append(
+                        {
+                            "participant_id": int(participant_ids[global_index]),
+                            "label": int(labels[global_index]),
+                            "representation": representation,
+                            "repeat": int(repeat),
+                            "outer_fold": int(fold),
+                            "interviewer_logit": float(source.interviewer_train_logit[local_index]),
+                            "label_only_prediction": float(train_prediction[local_index]),
+                            "prediction_scope": "outer_train_inner_validation",
+                            "class_mean_training_n": int(train_counts[local_index]),
+                            "class_mean_training_scope": "inner_training_only",
+                            "class_mean_excludes_recipient": True,
+                            "outer_train_overall_mean_null_prediction": overall_null,
+                        }
+                    )
+                for local_index, global_index in enumerate(test_idx):
+                    prediction_rows.append(
+                        {
+                            "participant_id": int(participant_ids[global_index]),
+                            "label": int(labels[global_index]),
+                            "representation": representation,
+                            "repeat": int(repeat),
+                            "outer_fold": int(fold),
+                            "interviewer_logit": float(source.interviewer_test_logit[local_index]),
+                            "label_only_prediction": float(outer_test_prediction[local_index]),
+                            "prediction_scope": "outer_test",
+                            "class_mean_training_n": int(outer_test_counts[local_index]),
+                            "class_mean_training_scope": "outer_training_only",
+                            "class_mean_excludes_recipient": True,
+                            "outer_train_overall_mean_null_prediction": overall_null,
+                        }
+                    )
+    predictions = pd.DataFrame(prediction_rows).sort_values(
+        ["representation", "repeat", "prediction_scope", "participant_id"], kind="stable"
+    ).reset_index(drop=True)
+    for (representation, repeat), group in predictions.loc[
+        predictions["prediction_scope"].eq("outer_test")
+    ].groupby(["representation", "repeat"], sort=True):
+        group = group.sort_values("participant_id", kind="stable")
+        summary = _recoverability_metric_summary(
+            group["interviewer_logit"].to_numpy(dtype=float),
+            group["label_only_prediction"].to_numpy(dtype=float),
+            group["outer_train_overall_mean_null_prediction"].to_numpy(dtype=float),
+        )
+        for metric in ("r2", "delta_mse", "mae", "rmse", "spearman_rho"):
+            metric_rows.append(
+                {
+                    "representation": representation,
+                    "repeat": int(repeat),
+                    "prediction_scope": "outer_test",
+                    "metric": metric,
+                    "estimate": summary[metric],
+                    **summary,
+                    "r2_defined": summary["r2_defined"],
+                    "n_participants": int(len(group)),
+                    "interpretation_scope": "label_only_common_outcome_alignment_benchmark",
+                }
+            )
+    public_output_columns_are_safe(predictions.columns)
+    return predictions, pd.DataFrame(metric_rows)
+
+
+def _label_conditioned_design(
+    subset: str,
+    *,
+    p_within: np.ndarray,
+    block_matrices: Mapping[str, np.ndarray],
+    block_indices: np.ndarray,
+) -> np.ndarray:
+    p_within = np.asarray(p_within, dtype=float).reshape(-1, 1)
+    if subset == "P_within":
+        return p_within
+    if subset in {"Q", "R", "D"}:
+        return np.asarray(block_matrices[subset], dtype=float)[block_indices]
+    if subset == "P_within+Q+R+D":
+        return np.column_stack(
+            [
+                p_within,
+                np.asarray(block_matrices["Q"], dtype=float)[block_indices],
+                np.asarray(block_matrices["R"], dtype=float)[block_indices],
+                np.asarray(block_matrices["D"], dtype=float)[block_indices],
+            ]
+        )
+    raise ValueError(f"unknown label-conditioned subset: {subset}")
+
+
+def run_label_conditioned_recoverability(
+    inputs: ExplanationInputs,
+    source_cache: Mapping[tuple[str, int, int], SourceFoldCache],
+    membership: pd.DataFrame,
+    *,
+    representations: Sequence[str],
+    repeats: Sequence[int],
+    inner_folds: int = INNER_FOLDS,
+    alpha_grid: Sequence[float] = RIDGE_ALPHAS,
+    base_seed: int = BASE_SEED,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Recover interviewer-score variation after removing label alignment."""
+
+    prediction_rows: list[dict[str, object]] = []
+    metric_rows: list[dict[str, object]] = []
+    for representation in representations:
+        for repeat in sorted(int(value) for value in repeats):
+            for fold in range(1, 6):
+                source = source_cache[(representation, repeat, fold)]
+                train_idx, test_idx = source.train_idx, source.test_idx
+                train_labels = inputs.labels[train_idx]
+                split_seed = int(base_seed) + repeat * 100_000 + fold * 1_000 + 83
+                inner_splits = make_inner_splits(train_labels, n_splits=int(inner_folds), seed=split_seed)
+                interviewer_class_mean_train, _ = _cross_fitted_class_mean_predictions(
+                    source.interviewer_train_logit,
+                    train_labels,
+                    inner_splits,
+                )
+                participant_class_mean_train, _ = _cross_fitted_class_mean_predictions(
+                    source.participant_train_logit,
+                    train_labels,
+                    inner_splits,
+                )
+                interviewer_within_train = source.interviewer_train_logit - interviewer_class_mean_train
+                participant_within_train = source.participant_train_logit - participant_class_mean_train
+                interviewer_class_mean_test, interviewer_test_counts = _class_mean_predictions(
+                    source.interviewer_train_logit,
+                    train_labels,
+                    inputs.labels[test_idx],
+                )
+                participant_class_mean_test, _ = _class_mean_predictions(
+                    source.participant_train_logit,
+                    train_labels,
+                    inputs.labels[test_idx],
+                )
+                interviewer_within_test = source.interviewer_test_logit - interviewer_class_mean_test
+                participant_within_test = source.participant_test_logit - participant_class_mean_test
+                null_value = float(np.mean(interviewer_within_train))
+                for subset_index, subset in enumerate(LABEL_CONDITIONED_SUBSETS):
+                    X_train = _label_conditioned_design(
+                        subset,
+                        p_within=participant_within_train,
+                        block_matrices=inputs.block_matrices,
+                        block_indices=train_idx,
+                    )
+                    X_test = _label_conditioned_design(
+                        subset,
+                        p_within=participant_within_test,
+                        block_matrices=inputs.block_matrices,
+                        block_indices=test_idx,
+                    )
+                    if X_train.shape[1] == 0:
+                        raise ValueError(f"label-conditioned subset has no eligible features: {subset}")
+                    result = fit_explanation_fold(
+                        X_train,
+                        interviewer_within_train,
+                        X_test,
+                        stratify_labels=train_labels,
+                        inner_folds=inner_folds,
+                        alpha_grid=alpha_grid,
+                        seed=int(base_seed) + repeat * 100_000 + fold * 1_000 + subset_index,
+                    )
+                    for local_index, global_index in enumerate(test_idx):
+                        prediction_rows.append(
+                            {
+                                "participant_id": int(inputs.participant_ids[global_index]),
+                                "label": int(inputs.labels[global_index]),
+                                "representation": representation,
+                                "repeat": int(repeat),
+                                "outer_fold": int(fold),
+                                "subset": subset,
+                                "interviewer_within": float(interviewer_within_test[local_index]),
+                                "participant_within": float(participant_within_test[local_index]),
+                                "predicted_interviewer_within": float(result.test_prediction[local_index]),
+                                "label_conditioned_null_prediction": null_value,
+                                "outer_train_class_mean_I": float(interviewer_class_mean_test[local_index]),
+                                "outer_train_class_mean_P": float(participant_class_mean_test[local_index]),
+                                "class_mean_training_n": int(interviewer_test_counts[local_index]),
+                                "outer_test_mean_source_excludes_test": True,
+                                "prediction_scope": "outer_test",
+                                "selected_alpha": float(result.selected_alpha),
+                            }
+                        )
+    predictions = pd.DataFrame(prediction_rows).sort_values(
+        ["representation", "repeat", "subset", "participant_id"], kind="stable"
+    ).reset_index(drop=True)
+    for (representation, repeat, subset), group in predictions.groupby(
+        ["representation", "repeat", "subset"], sort=True
+    ):
+        summary = _recoverability_metric_summary(
+            group["interviewer_within"].to_numpy(dtype=float),
+            group["predicted_interviewer_within"].to_numpy(dtype=float),
+            group["label_conditioned_null_prediction"].to_numpy(dtype=float),
+        )
+        metric_rows.append(
+            {
+                "representation": representation,
+                "repeat": int(repeat),
+                "subset": subset,
+                "prediction_scope": "outer_test",
+                **summary,
+                "interpretation_scope": "label_conditioned_recoverability",
+            }
+        )
+    public_output_columns_are_safe(predictions.columns)
+    return predictions, pd.DataFrame(metric_rows)
+
+
+def add_label_conditioned_interpretation_flags(
+    conditioned_metrics: pd.DataFrame,
+    explanation_metrics: pd.DataFrame,
+    *,
+    high_r2_threshold: float = RECOVERABILITY_HIGH_R2_THRESHOLD,
+    near_zero_r2_threshold: float = RECOVERABILITY_NEAR_ZERO_R2_THRESHOLD,
+) -> pd.DataFrame:
+    """Attach the pre-registered label-alignment interpretation flag."""
+
+    if float(high_r2_threshold) <= 0 or float(near_zero_r2_threshold) < 0:
+        raise ValueError("recoverability interpretation thresholds must be non-negative")
+    result = conditioned_metrics.copy()
+    if result.empty:
+        result["total_recoverability_r2"] = pd.Series(dtype=float)
+        result["interpretation_flag"] = pd.Series(dtype=object)
+        return result
+    total = explanation_metrics.loc[
+        explanation_metrics["subset"].eq("P+Q+R+D"),
+        ["representation", "repeat", "r2"],
+    ].rename(columns={"r2": "total_recoverability_r2"})
+    full_conditioned = result.loc[
+        result["subset"].eq("P_within+Q+R+D"),
+        ["representation", "repeat", "r2"],
+    ].rename(columns={"r2": "full_label_conditioned_r2"})
+    result = result.merge(total, on=["representation", "repeat"], how="left", validate="many_to_one")
+    result = result.merge(full_conditioned, on=["representation", "repeat"], how="left", validate="many_to_one")
+
+    def flag(row: pd.Series) -> str:
+        total_r2 = float(row["total_recoverability_r2"])
+        conditioned_r2 = float(row["full_label_conditioned_r2"])
+        if not np.isfinite(total_r2) or not np.isfinite(conditioned_r2):
+            return "inconclusive_label_conditioned_recoverability"
+        if total_r2 >= float(high_r2_threshold) and abs(conditioned_r2) <= float(near_zero_r2_threshold):
+            return "recoverability_largely_shared_outcome_alignment"
+        if conditioned_r2 > float(near_zero_r2_threshold):
+            return "observable_blocks_reconstructed_interviewer_score_variation_beyond_binary_label_alignment"
+        return "inconclusive_label_conditioned_recoverability"
+
+    result["interpretation_flag"] = result.apply(flag, axis=1)
+    result["high_total_r2_threshold"] = float(high_r2_threshold)
+    result["near_zero_conditioned_r2_threshold"] = float(near_zero_r2_threshold)
     return result
 
 
@@ -2847,6 +3295,39 @@ def pairing_pairwise_rows(
     return rows
 
 
+def summarise_inner_training_quality(quality: pd.DataFrame) -> dict[str, object]:
+    """Apply the locked 80% inner-training matching-quality threshold."""
+
+    required = {"assignment_type", "matching_adequate", "no_self", "one_to_one"}
+    missing = sorted(required.difference(quality.columns))
+    if missing:
+        raise ValueError(f"inner matching quality is missing columns: {missing}")
+    all_assignments = quality.copy()
+    optimal = all_assignments.loc[all_assignments["assignment_type"].eq("optimal_matched")].copy()
+    if optimal.empty:
+        return {
+            "n_optimal_inner_assignments": 0,
+            "n_adequate_optimal_inner_assignments": 0,
+            "pass_rate": 0.0,
+            "all_no_self": bool(all_assignments["no_self"].astype(bool).all()) if not all_assignments.empty else False,
+            "all_one_to_one": bool(all_assignments["one_to_one"].astype(bool).all()) if not all_assignments.empty else False,
+            "training_match_quality_limited": True,
+            "interpretation_scope": "inner_training_pairing_quality_gate",
+        }
+    pass_rate = float(optimal["matching_adequate"].astype(bool).mean())
+    all_no_self = bool(all_assignments["no_self"].astype(bool).all())
+    all_one_to_one = bool(all_assignments["one_to_one"].astype(bool).all())
+    return {
+        "n_optimal_inner_assignments": int(len(optimal)),
+        "n_adequate_optimal_inner_assignments": int(optimal["matching_adequate"].astype(bool).sum()),
+        "pass_rate": pass_rate,
+        "all_no_self": all_no_self,
+        "all_one_to_one": all_one_to_one,
+        "training_match_quality_limited": bool(pass_rate < 0.80 or not all_no_self or not all_one_to_one),
+        "interpretation_scope": "inner_training_pairing_quality_gate",
+    }
+
+
 def _pairing_draw_inference(
     predictions: pd.DataFrame,
     deltas: pd.DataFrame,
@@ -2856,6 +3337,8 @@ def _pairing_draw_inference(
     n_permutations: int,
     seed: int,
 ) -> pd.DataFrame:
+    if int(n_bootstrap) <= 0 or int(n_permutations) <= 0:
+        raise ValueError("pairing inference resample counts must be positive")
     rows: list[dict[str, object]] = []
     for (representation, repeat), group in predictions.groupby(["representation", "repeat"], sort=True):
         if int(repeat) != int(main_repeat):
@@ -2872,55 +3355,95 @@ def _pairing_draw_inference(
         positive = np.flatnonzero(labels == 1)
         negative = np.flatnonzero(labels == 0)
         rng = np.random.default_rng(int(seed) + _stable_seed_offset(representation))
-        bootstrap_real_minus_optimal: list[float] = []
-        bootstrap_optimal_minus_no_i: list[float] = []
+        bootstrap_full_real_minus_optimal: list[float] = []
+        bootstrap_full_optimal_minus_no_i: list[float] = []
+        bootstrap_weak_real_minus_optimal: list[float] = []
+        bootstrap_weak_optimal_minus_no_i: list[float] = []
+        weak_real = pivot["P+I-real"].to_numpy(dtype=float)
+        weak_optimal = pivot["P+I-optimal_matched"].to_numpy(dtype=float)
+        weak_no_i = pivot["P"].to_numpy(dtype=float)
+        full_real = pivot["full+I-real"].to_numpy(dtype=float)
+        full_optimal = pivot["full+I-optimal_matched"].to_numpy(dtype=float)
+        full_no_i = pivot["full"].to_numpy(dtype=float)
         for _ in range(int(n_bootstrap)):
             index = np.concatenate(
-                [rng.choice(positive, size=len(positive), replace=True), rng.choice(negative, size=len(negative), replace=True)]
+                [
+                    rng.choice(positive, size=len(positive), replace=True),
+                    rng.choice(negative, size=len(negative), replace=True),
+                ]
             )
-            base = roc_auc_score(labels[index], pivot["P"].to_numpy()[index])
-            real = roc_auc_score(labels[index], pivot["P+I-real"].to_numpy()[index]) - base
-            optimal_delta = roc_auc_score(labels[index], pivot["P+I-optimal_matched"].to_numpy()[index]) - base
-            bootstrap_real_minus_optimal.append(real - optimal_delta)
-            bootstrap_optimal_minus_no_i.append(optimal_delta)
-        observed = float(
-            deltas.loc[
-                (deltas["representation"] == representation)
-                & (deltas["repeat"] == repeat)
-                & deltas["draw_type"].eq("optimal_matched"),
-                "real_minus_matched_delta_auc",
-            ].iloc[0]
-        )
-        matched_observed = float(
-            deltas.loc[
-                (deltas["representation"] == representation)
-                & (deltas["repeat"] == repeat)
-                & deltas["draw_type"].eq("optimal_matched"),
-                "matched_minus_no_i_delta_auc",
-            ].iloc[0]
-        )
-        extreme = 0
+            weak_base_auc = roc_auc_score(labels[index], weak_no_i[index])
+            full_base_auc = roc_auc_score(labels[index], full_no_i[index])
+            weak_optimal_delta = roc_auc_score(labels[index], weak_optimal[index]) - weak_base_auc
+            full_optimal_delta = roc_auc_score(labels[index], full_optimal[index]) - full_base_auc
+            bootstrap_weak_real_minus_optimal.append(
+                (roc_auc_score(labels[index], weak_real[index]) - weak_base_auc) - weak_optimal_delta
+            )
+            bootstrap_weak_optimal_minus_no_i.append(weak_optimal_delta)
+            bootstrap_full_real_minus_optimal.append(
+                (roc_auc_score(labels[index], full_real[index]) - full_base_auc) - full_optimal_delta
+            )
+            bootstrap_full_optimal_minus_no_i.append(full_optimal_delta)
+
+        observed_row = deltas.loc[
+            deltas["representation"].eq(representation)
+            & deltas["repeat"].eq(int(repeat))
+            & deltas["draw_type"].eq("optimal_matched")
+        ]
+        if len(observed_row) != 1:
+            raise ValueError(f"pairing delta table must contain one optimal row for {representation}/{repeat}")
+        observed_row = observed_row.iloc[0]
+        observed_weak = float(observed_row["weak_real_delta_auc"] - observed_row["weak_matched_delta_auc"])
+        observed_weak_optimal = float(observed_row["weak_matched_delta_auc"])
+        observed_full = float(observed_row["full_real_delta_auc"] - observed_row["full_matched_delta_auc"])
+        observed_full_optimal = float(observed_row["full_matched_delta_auc"])
+
+        weak_extreme = 0
+        full_extreme = 0
         for _ in range(int(n_permutations)):
             swap = rng.integers(0, 2, size=len(labels), dtype=np.int8).astype(bool)
-            real = np.where(swap, pivot["P+I-real"].to_numpy(), pivot["P+I-optimal_matched"].to_numpy())
-            optimal_prediction = np.where(swap, pivot["P+I-optimal_matched"].to_numpy(), pivot["P+I-real"].to_numpy())
-            statistic = roc_auc_score(labels, real) - roc_auc_score(labels, optimal_prediction)
-            extreme += int(abs(statistic) >= abs(observed) - 1e-15)
+            weak_left = np.where(swap, weak_optimal, weak_real)
+            weak_right = np.where(swap, weak_real, weak_optimal)
+            full_left = np.where(swap, full_optimal, full_real)
+            full_right = np.where(swap, full_real, full_optimal)
+            weak_statistic = roc_auc_score(labels, weak_left) - roc_auc_score(labels, weak_right)
+            full_statistic = roc_auc_score(labels, full_left) - roc_auc_score(labels, full_right)
+            weak_extreme += int(abs(weak_statistic) >= abs(observed_weak) - 1e-15)
+            full_extreme += int(abs(full_statistic) >= abs(observed_full) - 1e-15)
+        weak_p_value = float((weak_extreme + 1) / (int(n_permutations) + 1))
+        full_p_value = float((full_extreme + 1) / (int(n_permutations) + 1))
         rows.append(
             {
                 "representation": representation,
                 "repeat": int(repeat),
                 "draw": 0,
-                "real_minus_matched_delta_auc_observed": observed,
-                "matched_minus_no_i_delta_auc_observed": matched_observed,
-                "ci_low": float(np.quantile(bootstrap_real_minus_optimal, 0.025)),
-                "ci_high": float(np.quantile(bootstrap_real_minus_optimal, 0.975)),
-                "optimal_minus_no_i_ci_low": float(np.quantile(bootstrap_optimal_minus_no_i, 0.025)),
-                "optimal_minus_no_i_ci_high": float(np.quantile(bootstrap_optimal_minus_no_i, 0.975)),
+                "full_real_minus_optimal_delta_auc": observed_full,
+                "full_real_minus_optimal_ci_low": float(np.quantile(bootstrap_full_real_minus_optimal, 0.025)),
+                "full_real_minus_optimal_ci_high": float(np.quantile(bootstrap_full_real_minus_optimal, 0.975)),
+                "full_real_minus_optimal_p_value": full_p_value,
+                "full_optimal_minus_no_i_delta_auc": observed_full_optimal,
+                "full_optimal_minus_no_i_ci_low": float(np.quantile(bootstrap_full_optimal_minus_no_i, 0.025)),
+                "full_optimal_minus_no_i_ci_high": float(np.quantile(bootstrap_full_optimal_minus_no_i, 0.975)),
+                "weak_real_minus_optimal_delta_auc": observed_weak,
+                "weak_real_minus_optimal_ci_low": float(np.quantile(bootstrap_weak_real_minus_optimal, 0.025)),
+                "weak_real_minus_optimal_ci_high": float(np.quantile(bootstrap_weak_real_minus_optimal, 0.975)),
+                "weak_real_minus_optimal_p_value": weak_p_value,
+                "weak_optimal_minus_no_i_delta_auc": observed_weak_optimal,
+                "weak_optimal_minus_no_i_ci_low": float(np.quantile(bootstrap_weak_optimal_minus_no_i, 0.025)),
+                "weak_optimal_minus_no_i_ci_high": float(np.quantile(bootstrap_weak_optimal_minus_no_i, 0.975)),
+                "real_minus_matched_delta_auc_observed": observed_weak,
+                "matched_minus_no_i_delta_auc_observed": observed_weak_optimal,
+                "ci_low": float(np.quantile(bootstrap_weak_real_minus_optimal, 0.025)),
+                "ci_high": float(np.quantile(bootstrap_weak_real_minus_optimal, 0.975)),
+                "optimal_minus_no_i_ci_low": float(np.quantile(bootstrap_weak_optimal_minus_no_i, 0.025)),
+                "optimal_minus_no_i_ci_high": float(np.quantile(bootstrap_weak_optimal_minus_no_i, 0.975)),
+                "p_value": weak_p_value,
                 "n_bootstrap": int(n_bootstrap),
                 "n_permutations": int(n_permutations),
-                "p_value": float((extreme + 1) / (int(n_permutations) + 1)),
-                "interpretation_scope": "pairing_dependence_real_vs_optimal_matched",
+                "primary_pairing_control": "P+Q+R+D+I-real_vs_P+Q+R+D+I-optimal_matched",
+                "secondary_pairing_control": "P+I-real_vs_P+I-optimal_matched",
+                "weak_control_scope": "secondary_weak_control_pairing",
+                "interpretation_scope": "pairing_dependence_full_control_primary",
             }
         )
     return pd.DataFrame(rows)
@@ -2941,7 +3464,7 @@ def run_pairing_dependence(
     main_repeat: int = 1,
     n_bootstrap: int = N_BOOTSTRAP,
     n_permutations: int = N_PERMUTATIONS,
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Compare real, one optimal mismatch and random mismatch references."""
 
     match_frame = build_pairing_match_frame(inputs)
@@ -2950,6 +3473,7 @@ def run_pairing_dependence(
     quality_rows: list[dict[str, object]] = []
     pairwise_rows: list[dict[str, object]] = []
     random_reference_rows: list[dict[str, object]] = []
+    inner_quality_rows: list[dict[str, object]] = []
     metric_rows: list[dict[str, object]] = []
     delta_rows: list[dict[str, object]] = []
     for representation in representations:
@@ -3002,7 +3526,7 @@ def run_pairing_dependence(
                 draw_specs: list[tuple[int, str, pd.DataFrame]] = [(0, "optimal_matched", optimal_test_assignment)]
                 draw_specs.extend((draw, "random_mismatch", assignment) for draw, assignment in random_test_assignments.items())
                 for draw, draw_type, test_assignment in draw_specs:
-                    matched_train_i, matched_test_i, source_audit = build_fold_contained_matched_source_logits(
+                    matched_train_i, matched_test_i, source_audit, inner_quality = build_fold_contained_matched_source_logits(
                         representation=representation,
                         source_data=source_data[representation],
                         labels=inputs.labels,
@@ -3015,6 +3539,7 @@ def run_pairing_dependence(
                         c_grid=DEFAULT_C_GRID,
                         seed=fold_seed + draw * 10_000,
                         assignment_mode=draw_type,
+                        collect_inner_quality=(draw == 0),
                     )
                     for audit_row in source_audit.to_dict("records"):
                         assignment_rows.append(
@@ -3027,6 +3552,18 @@ def run_pairing_dependence(
                                 "draw_type": draw_type,
                                 **audit_row,
                             }
+                        )
+                    if not inner_quality.empty:
+                        inner_quality_rows.extend(
+                            {
+                                "representation": representation,
+                                "repeat": int(repeat),
+                                "outer_fold": int(fold),
+                                "draw": int(draw),
+                                "draw_type": draw_type,
+                                **quality_row,
+                            }
+                            for quality_row in inner_quality.to_dict("records")
                         )
                     quality = pairing_quality_summary(
                         recipient=test_frame,
@@ -3185,6 +3722,7 @@ def run_pairing_dependence(
     quality = pd.DataFrame(quality_rows)
     pairwise = pd.DataFrame(pairwise_rows)
     random_reference = pd.DataFrame(random_reference_rows)
+    inner_quality = pd.DataFrame(inner_quality_rows)
     stability_rows: list[dict[str, object]] = []
     for (representation, repeat), group in deltas.groupby(["representation", "repeat"], sort=True):
         optimal = group.loc[group["draw_type"].eq("optimal_matched")]
@@ -3194,17 +3732,30 @@ def run_pairing_dependence(
             & quality["repeat"].eq(int(repeat))
             & quality["assignment_type"].eq("optimal_matched")
         ]
+        inner_quality_group = inner_quality.loc[
+            inner_quality["representation"].eq(representation)
+            & inner_quality["repeat"].eq(int(repeat))
+            & inner_quality["assignment_type"].eq("optimal_matched")
+        ] if not inner_quality.empty else inner_quality
+        inner_quality_summary = summarise_inner_training_quality(inner_quality_group)
         stability_rows.append(
             {
                 "representation": representation,
                 "repeat": int(repeat),
                 "n_random_draws": int(random["draw"].nunique()),
                 "optimal_real_minus_matched_delta_auc": float(optimal["real_minus_matched_delta_auc"].iloc[0]),
+                "optimal_full_real_minus_matched_delta_auc": float(optimal["real_minus_matched_full_delta_auc"].iloc[0]),
                 "random_real_minus_matched_delta_auc_mean": float(random["real_minus_matched_delta_auc"].mean()),
                 "random_real_minus_matched_delta_auc_sd": float(random["real_minus_matched_delta_auc"].std(ddof=1)) if len(random) > 1 else 0.0,
                 "random_real_minus_matched_delta_auc_q025": float(random["real_minus_matched_delta_auc"].quantile(0.025)),
                 "random_real_minus_matched_delta_auc_q975": float(random["real_minus_matched_delta_auc"].quantile(0.975)),
+                "random_full_real_minus_matched_delta_auc_mean": float(random["real_minus_matched_full_delta_auc"].mean()),
+                "random_full_real_minus_matched_delta_auc_sd": float(random["real_minus_matched_full_delta_auc"].std(ddof=1)) if len(random) > 1 else 0.0,
+                "random_full_real_minus_matched_delta_auc_q025": float(random["real_minus_matched_full_delta_auc"].quantile(0.025)),
+                "random_full_real_minus_matched_delta_auc_q975": float(random["real_minus_matched_full_delta_auc"].quantile(0.975)),
                 "matching_adequate": bool(quality_group["matching_adequate"].all()),
+                "inner_matching_pass_rate": float(inner_quality_summary["pass_rate"]),
+                "training_match_quality_limited": bool(inner_quality_summary["training_match_quality_limited"]),
                 "interpretation_scope": "pairing_dependence_optimal_vs_random_reference",
             }
         )
@@ -3217,6 +3768,7 @@ def run_pairing_dependence(
         metrics,
         deltas,
         pd.DataFrame(stability_rows),
+        pd.DataFrame(inner_quality_rows),
     )
 
 
@@ -3338,7 +3890,7 @@ def summarise_repeat_stability(
     if not pairing_deltas.empty:
         pairing_summary = (
             pairing_deltas.loc[pairing_deltas["draw_type"].eq("optimal_matched")]
-            .groupby(["representation", "repeat"], as_index=False)["real_minus_matched_delta_auc"]
+            .groupby(["representation", "repeat"], as_index=False)["real_minus_matched_full_delta_auc"]
             .mean()
         )
         for _, row in pairing_summary.iterrows():
@@ -3346,10 +3898,10 @@ def summarise_repeat_stability(
                 {
                     "representation": row["representation"],
                     "repeat": int(row["repeat"]),
-                    "metric": "pairing_delta_auc",
+                    "metric": "pairing_full_control_delta_auc",
                     "block": "",
-                    "estimate": float(row["real_minus_matched_delta_auc"]),
-                    "interpretation_scope": "pairing_dependence_draw_stability",
+                    "estimate": float(row["real_minus_matched_full_delta_auc"]),
+                    "interpretation_scope": "pairing_dependence_full_control_primary",
                 }
             )
     if not fake_explanation_results.empty:
@@ -3826,11 +4378,19 @@ def _write_global_fdr(
         pairing = pairing_deltas.loc[
             pairing_deltas["representation"].eq(representation) & pairing_deltas["repeat"].eq(int(main_repeat))
         ]
+        if not pairing.empty and "draw" in pairing.columns:
+            pairing_primary = pairing.loc[pairing["draw"].eq(0)]
+        else:
+            pairing_primary = pairing
+        if not pairing_primary.empty and "full_real_minus_optimal_p_value" in pairing_primary.columns:
+            pairing_p_value = float(pairing_primary["full_real_minus_optimal_p_value"].dropna().iloc[0]) if pairing_primary["full_real_minus_optimal_p_value"].notna().any() else float("nan")
+        else:
+            pairing_p_value = float("nan")
         tests = [
             ("recoverability_mse_improvement", float(recoverability["p_value"])),
             ("real_D_vs_fake_D", float(fake["p_value"].iloc[0]) if not fake.empty else float("nan")),
             ("residual_delta_auc", float(residual["p_value"].iloc[0]) if not residual.empty else float("nan")),
-            ("pairing_delta_auc", float(pairing["p_value"].dropna().iloc[0]) if not pairing.empty and pairing["p_value"].notna().any() else float("nan")),
+            ("pairing_delta_auc", pairing_p_value),
         ]
         for test_name, p_value in tests:
             rows.append(
@@ -4046,6 +4606,29 @@ def run_interviewer_signal_explanation(
     )
     recoverability_fold_metrics_table = recoverability_fold_metrics(explanation_predictions)
     recoverability_scale_sensitivity_table = recoverability_scale_sensitivity(explanation_predictions)
+    label_only_predictions, label_only_metrics = run_label_only_recoverability(
+        source_cache,
+        labels=inputs.labels,
+        participant_ids=inputs.participant_ids,
+        representations=available_representations,
+        repeats=repeats,
+        inner_folds=inner_folds,
+        base_seed=base_seed,
+    )
+    label_conditioned_predictions, label_conditioned_metrics = run_label_conditioned_recoverability(
+        inputs,
+        source_cache,
+        membership,
+        representations=available_representations,
+        repeats=repeats,
+        inner_folds=inner_folds,
+        alpha_grid=alpha_grid,
+        base_seed=base_seed,
+    )
+    label_conditioned_metrics = add_label_conditioned_interpretation_flags(
+        label_conditioned_metrics,
+        explanation_metrics_table,
+    )
     shapley = run_block_shapley(
         explanation_predictions,
         main_repeat=main_repeat,
@@ -4110,6 +4693,7 @@ def run_interviewer_signal_explanation(
         pairing_metrics,
         pairing_deltas,
         pairing_stability,
+        pairing_inner_quality,
     ) = run_pairing_dependence(
         inputs,
         source_cache,
@@ -4149,6 +4733,10 @@ def run_interviewer_signal_explanation(
         "explanation_tuning.csv": explanation_tuning,
         "recoverability_fold_metrics.csv": recoverability_fold_metrics_table,
         "recoverability_scale_sensitivity.csv": recoverability_scale_sensitivity_table,
+        "label_only_recoverability.csv": label_only_predictions,
+        "label_only_recoverability_metrics.csv": label_only_metrics,
+        "label_conditioned_recoverability_oof.csv": label_conditioned_predictions,
+        "label_conditioned_recoverability_metrics.csv": label_conditioned_metrics,
         "explanation_block_shapley.csv": shapley,
         "residual_signal_oof_predictions.csv": residual_predictions,
         "residual_signal_metrics.csv": residual_metrics,
@@ -4167,6 +4755,7 @@ def run_interviewer_signal_explanation(
         "pairing_metrics.csv": pairing_metrics,
         "pairing_deltas.csv": pairing_deltas,
         "pairing_draw_stability.csv": pairing_stability,
+        "pairing_inner_training_quality.csv": pairing_inner_quality,
         "explanation_repeat_stability.csv": repeat_stability,
         "global_fdr_sensitivity.csv": global_fdr,
     }
@@ -4186,7 +4775,15 @@ def run_interviewer_signal_explanation(
 
     optimal_balance = pairing_balance.loc[pairing_balance["assignment_type"].eq("optimal_matched")]
     matching_adequate = bool(optimal_balance["matching_adequate"].all()) if not optimal_balance.empty else False
-    status = "complete" if matching_adequate else "matching_not_adequate_for_primary_interpretation"
+    training_match_quality_limited = bool(
+        pairing_stability["training_match_quality_limited"].any()
+    ) if not pairing_stability.empty and "training_match_quality_limited" in pairing_stability.columns else True
+    if training_match_quality_limited:
+        status = "training_match_quality_limited"
+    elif not matching_adequate:
+        status = "matching_not_adequate_for_primary_interpretation"
+    else:
+        status = "complete"
     input_hashes = {
         name: availability["inputs"][name].get("sha256", {})
         for name in availability["inputs"]
@@ -4224,12 +4821,25 @@ def run_interviewer_signal_explanation(
         },
         "recoverability_scale": {
             "raw_and_outer_training_standardized_fold_metrics": True,
+            "substantive_threshold": 0.05,
+            "sensitive_if": [
+                "abs(raw_r2-standardized_r2)>=0.05",
+                "abs(raw_spearman-standardized_spearman)>=0.05",
+                "raw_r2_and_standardized_r2_have_opposite_signs",
+            ],
             "participant_logit_scale_fields": [
                 "outer_train_participant_scale_mean",
                 "outer_train_participant_scale_sd",
                 "participant_logit_outer_train_standardized",
             ],
             "standardization_fit_scope": "outer_training_source_scores_only",
+        },
+        "label_alignment_recoverability": {
+            "label_only_class_mean_scope": "outer_training_only_for_outer_test; inner_training_only_for_outer_train",
+            "label_conditioned_class_mean_scope": "outer_training_only_for_outer_test; inner_training_only_for_outer_train",
+            "high_total_r2_threshold": float(RECOVERABILITY_HIGH_R2_THRESHOLD),
+            "near_zero_conditioned_r2_threshold": float(RECOVERABILITY_NEAR_ZERO_R2_THRESHOLD),
+            "interpretation_scope": "common_outcome_alignment_sensitivity_not_deployment",
         },
         "inference": {"bootstrap_resamples": int(n_bootstrap), "permutation_resamples": int(n_permutations), "primary_fdr_family": "four fixed TF-IDF tests", "main_repeat": int(main_repeat), "stability_repeats": list(repeats)},
         "fake_D": {"draws": int(fake_draws), "rowwise_partition_permutation": True, "label_free": True, "D_definition": "D-P"},
@@ -4243,7 +4853,9 @@ def run_interviewer_signal_explanation(
                 "minimum_features_mean_abs_pair_difference_lt_0_50": 5,
                 "required_no_self": True,
                 "required_one_to_one": True,
+                "minimum_optimal_inner_pass_rate": 0.80,
             },
+            "training_match_quality_limited": training_match_quality_limited,
             "source_mismatch_stage": "before_source_prediction",
             "inner_training_source_fit": "inner_training_only",
             "outer_test_source_fit": "outer_training_only",
@@ -4312,7 +4924,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         base_seed=args.seed,
     )
     print(json.dumps({"status": manifest["status"], "mode": manifest["mode"], "run_id": args.run_id}, ensure_ascii=False, sort_keys=True))
-    return 0 if manifest["status"] in {"complete", "smoke_test", "matching_not_adequate_for_primary_interpretation"} else 1
+    return 0 if manifest["status"] in {
+        "complete",
+        "smoke_test",
+        "matching_not_adequate_for_primary_interpretation",
+        "training_match_quality_limited",
+    } else 1
 
 
 if __name__ == "__main__":

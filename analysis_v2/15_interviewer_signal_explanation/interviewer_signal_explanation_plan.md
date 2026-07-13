@@ -4,8 +4,8 @@
 **Status:** Stage A plan/code contract; no formal results are included
 **Repository:** `jersery66/Interviewer-Bias-Audit`
 **Branch:** `codex/submission-audit`
-**Stage A.1 parent commit:** `6b95c9473d3c4383c0f9bc672c6d176b5b0f997d`
-**Current checkout inspected before this revision:** `6b95c9473d3c4383c0f9bc672c6d176b5b0f997d`
+**Stage A.2 parent commit:** `230cc95659d357c112569d08f60daff012186a5f`
+**Current checkout inspected before this revision:** `230cc95659d357c112569d08f60daff012186a5f`
 **Known upstream baseline:** `bbf72b4ae7ccf25b9262a1dd94c3a9da21a9431e`
 
 ## 1. Scope and research question
@@ -35,12 +35,12 @@ participant-derived `D-P` ten-domain count vector.
 
 ## 2. Stage and execution contract
 
-Stage A.1 contains only this revised plan, implementation code, tests, and
-non-result input-contract documentation. It is a method revision of the first
-Stage A commit above; the future formal `code_commit` must be the new Stage A.1
-commit, never the parent commit. It must be committed before any formal command
-is run. The Stage A.1 commit SHA is the `code_commit` recorded by future formal
-runs.
+Stage A.2 contains only this revised plan, implementation code, tests, and
+non-result input-contract documentation. It is a method revision of the Stage
+A.1 parent commit above; the future formal `code_commit` must be the new Stage
+A.2 commit, never the parent commit. It must be committed before any formal
+command is run. The Stage A.2 commit SHA is the `code_commit` recorded by
+future formal runs.
 
 Stage B is deliberately not run in the current task. A future Stage B run must:
 
@@ -52,10 +52,10 @@ Stage B is deliberately not run in the current task. A future Stage B run must:
 
 The current Stage A commit must not contain formal result CSVs, result figures,
 `final/`, manuscript revisions, or a result-bearing `run_manifest.json`.
-The same restriction applies to Stage A.1. This revision is not a formal run
+The same restriction applies to Stage A.2. This revision is not a formal run
 and does not create `run_1`, `run_2`, `final/`, or `rerun_verification.json`.
 
-### Stage A.1 locked method revision
+### Stage A.1 inherited contracts
 
 This revision replaces the original pairing implementation's precomputed-logit
 reassignment with fold-contained source refitting, removes optimum jitter, and
@@ -63,7 +63,38 @@ replaces the marginal-SMD gate with pairwise distance and paired-difference
 criteria. It also replaces the recoverability bootstrap-tail p-value with the
 locked paired-prediction-swap permutation p-value and adds raw versus
 outer-training-standardized score-scale audits. The four revised contracts are
-covered by tests before the Stage A.1 commit.
+covered by tests in the parent commit.
+
+### Stage A.2 locked method revision
+
+This revision changes the primary pairing comparison to the complete-control
+comparison `P+Q+R+D+I-real` versus
+`P+Q+R+D+I-optimal_matched`. The weak `P+I` comparison remains explicitly
+secondary and its p-value cannot enter the four-test primary TF-IDF FDR family.
+
+Stage A.2 adds two label-alignment benchmarks. The label-only benchmark predicts
+the interviewer logit from outer-training class means, with outer-training rows
+predicted by inner cross-fitting that excludes the recipient. The
+label-conditioned benchmark subtracts those same class means from both source
+scores and predicts `I_within` from `P_within`, Q, R and D. Outer-test class
+means are always estimated from outer-training source scores only. These are
+recoverability sensitivity analyses, not deployment or causal analyses.
+
+For every optimal inner-training assignment, the runner records 100 random
+non-self derangements and the locked distance/paired-feature quality fields.
+All inner assignments must be no-self and one-to-one, and at least 80% of
+optimal inner assignments must pass the existing matching gate. Otherwise the
+formal manifest is marked `training_match_quality_limited`; pairing dependence
+must not be interpreted as reliable under that status.
+
+The source-score scale-sensitive rule is substantive and fixed at 0.05:
+`source_score_scale_sensitive=True` iff the absolute raw-versus-standardized
+R2 difference is at least 0.05, the absolute Spearman difference is at least
+0.05, or raw and standardized R2 have opposite signs.
+
+The Stage A.2 commit contains only this plan, implementation code, tests, and
+non-result input-contract documentation. Its new commit SHA, rather than the
+parent SHA, is the only permitted future formal-run `code_commit`.
 
 ## 3. Frozen inputs and hashes
 
@@ -272,7 +303,67 @@ delta MSE, but its p-value is from 10,000 paired within-participant swaps of
 the null and full predictions. The global FDR table uses this permutation
 p-value, not a bootstrap tail proportion.
 
-## 7. Block Shapley summary
+The scale audit uses the substantive 0.05 rule locked in Section 2. A result is
+`source_score_scale_sensitive` only when at least one of the following holds:
+`abs(raw R2 - standardized R2) >= 0.05`,
+`abs(raw Spearman - standardized Spearman) >= 0.05`, or raw and standardized
+R2 have opposite signs. A `1e-10` numerical-difference rule is not used.
+
+## 7. Label-only recoverability benchmark
+
+For every representation, repeat and outer fold, the label-only benchmark uses
+the interviewer source logits already generated by strict source cross-fitting.
+For outer-training rows, the predicted value is the mean interviewer logit in
+the recipient's class computed from the other inner-training rows. For an
+outer-test participant, the predicted value is the outer-training class mean
+for that participant's observed label. Neither the outer-test interviewer
+logit nor the recipient's own source score enters a class mean.
+
+The benchmark reports R2, MSE improvement relative to the outer-training
+overall-mean null, MAE, RMSE and Spearman rho. It is a common-label alignment
+reference only and does not support a deployment or individual-level
+recoverability claim. Outputs are `label_only_recoverability.csv` and
+`label_only_recoverability_metrics.csv`.
+
+## 8. Label-conditioned recoverability
+
+Within each outer-training fold, interviewer and participant logits are
+residualized against the recipient label using inner cross-fitted class means:
+
+```text
+I_within_train = I_train - class_mean_I_excluding_validation
+P_within_train = P_train - class_mean_P_excluding_validation
+```
+
+For outer-test rows, class means use the complete outer-training source scores
+only:
+
+```text
+I_within_test = I_test - outer_train_class_mean_I[label_test]
+P_within_test = P_test - outer_train_class_mean_P[label_test]
+```
+
+Ridge models predict `I_within` from the locked subsets `P_within`, Q, R, D,
+and `P_within+Q+R+D`, with training-fold scaling and the inherited alpha grid
+and inner-MSE tuning. The full subset reports R2, MAE, RMSE, Spearman rho and
+delta MSE relative to the label-conditioned null. This analysis is a key
+interpretation sensitivity and is outside the four-test primary FDR family.
+Outputs are `label_conditioned_recoverability_oof.csv` and
+`label_conditioned_recoverability_metrics.csv`.
+
+For a deterministic descriptive flag, "high" is locked as total full-model
+R2 `>= 0.50` and "near zero" as absolute full label-conditioned
+`P_within+Q+R+D` R2 `<= 0.05`. The same per-representation/repeat flag is
+attached to the subset rows for auditability.
+If total recoverability is high while label-conditioned recoverability is near
+zero, the result is marked
+`recoverability_largely_shared_outcome_alignment`. If label-conditioned
+R2 is `> 0.05`, the permitted interpretation is that
+the observable blocks reconstructed interviewer-score variation beyond
+binary-label alignment; repeat stability is still required before calling this
+pattern stable.
+
+## 9. Block Shapley summary
 
 For the main repeat, the four block contributions P/Q/R/D are computed from
 the jointly aligned OOF predictions of all 16 subsets. All 24 block-entry
@@ -289,7 +380,7 @@ resample. Negative contributions are retained, no contribution is normalized
 to a percentage, and the output scope explicitly says statistical explanation
 rather than causal contribution.
 
-## 8. Residual interviewer signal
+## 10. Residual interviewer signal
 
 For each outer fold, a full P+Q+R+D ridge model is fit on outer-training
 participants and predicts the outer test interviewer logit. Predictions for
@@ -314,7 +405,7 @@ resamples and 10,000 paired participant swaps. Primary delta AUC is
 enhanced-minus-base. Delta PR-AUC uses the same direction; delta Brier and
 delta log loss use base-minus-enhanced improvement direction.
 
-## 9. Fake-D negative control
+## 11. Fake-D negative control
 
 One hundred deterministic Fake-D draws are generated per outer fold. The ten
 D-P columns move as an intact row. The train and test partitions are
@@ -328,7 +419,7 @@ label increment. The result reports the real-D value, fake-D draw mean/SD,
 negative-control contrasts are real-D R2 minus fake-D mean R2 and real-D
 residual delta AUC minus fake-D mean residual delta AUC.
 
-## 10. Pairing dependence
+## 12. Pairing dependence
 
 Pairing is a statistical pairing-dependence analysis, not an identified human
 interaction effect. Matching variables are locked to interviewer word count,
@@ -365,6 +456,16 @@ If this gate fails, the run is marked
 `matching_not_adequate_for_primary_interpretation` and no pairing advantage is
 claimed.
 
+For each outer-training inner-validation partition, the runner additionally
+writes `pairing_inner_training_quality.csv` with assignment type, inner fold,
+recipient count, mean/median/q95 distance, 100-draw random-reference q05,
+optimal distance percentile, all seven mean absolute standardized paired
+differences, feature pass count, no-self, one-to-one and matching adequacy.
+Every optimal inner assignment must be no-self and one-to-one, and at least 80%
+must pass the distance and 5-of-7 feature gate. Failure is recorded as
+`training_match_quality_limited` and prevents a reliable pairing-dependence
+interpretation.
+
 The late-fusion logit-level label models compare:
 
 ```text
@@ -372,13 +473,17 @@ weak:     P, P + I-real, P + I-matched
 complete: P+Q+R+D, P+Q+R+D+I-real, P+Q+R+D+I-matched
 ```
 
-Primary estimates are real-minus-matched delta AUC, matched-minus-no-I delta
-AUC, real-minus-matched delta PR-AUC, and absolute probability change. Both
-participant and matching-draw uncertainty are retained. The primary matched
-comparison is real versus draw-0 optimal; random draws are a reference
-distribution and are reported separately.
+The primary estimates are the complete-control real-minus-optimal delta AUC,
+complete-control optimal-minus-no-I delta AUC, complete-control delta PR-AUC,
+and absolute probability change. The primary randomization test swaps the
+`full+I-real` and `full+I-optimal_matched` probabilities within participant.
+The weak `P+I-real` versus `P+I-optimal_matched` result remains available with
+scope `secondary_weak_control_pairing` and is not the primary FDR p-value.
+Both participant and matching-draw uncertainty are retained. Draw 0 is the
+optimal matched comparison; random draws are a reference distribution and are
+reported separately.
 
-## 11. Statistical families and repeat stability
+## 13. Statistical families and repeat stability
 
 TF-IDF is the primary representation. The four primary test families are
 fixed before results:
@@ -388,7 +493,10 @@ fixed before results:
 3. residual delta AUC after P+Q+R+D;
 4. real interviewer versus matched interviewer pairing delta AUC.
 
-BH-FDR is applied to those four TF-IDF family p-values. MPNet and BGE are
+For item 4, the TF-IDF p-value is specifically
+`full_real_minus_optimal_p_value` from the complete-control pairing
+randomization test. The weak-control p-value is never substituted. BH-FDR is
+applied to those four TF-IDF family p-values. MPNet and BGE are
 representation-stability results and are not added to the primary family;
 the runner also writes a global all-representation BH sensitivity table.
 
@@ -397,7 +505,7 @@ stability rows for full recoverability R2, P/Q/R/D Shapley deltas, residual
 delta AUC, pairing delta AUC, and real-D minus Fake-D. Repeats are not treated
 as independent samples and no repeat-level t test is run.
 
-## 12. Formal output contract
+## 14. Formal output contract
 
 Each `run_1` or `run_2` contains:
 
@@ -414,6 +522,10 @@ explanation_subset_metrics.csv
 explanation_tuning.csv
 recoverability_fold_metrics.csv
 recoverability_scale_sensitivity.csv
+label_only_recoverability.csv
+label_only_recoverability_metrics.csv
+label_conditioned_recoverability_oof.csv
+label_conditioned_recoverability_metrics.csv
 explanation_block_shapley.csv
 residual_signal_oof_predictions.csv
 residual_signal_metrics.csv
@@ -432,6 +544,7 @@ pairing_oof_predictions.csv
 pairing_metrics.csv
 pairing_deltas.csv
 pairing_draw_stability.csv
+pairing_inner_training_quality.csv
 explanation_repeat_stability.csv
 global_fdr_sensitivity.csv
 run_manifest.json
@@ -444,7 +557,9 @@ figures/fake_domain_negative_control_plot.{png,svg,pdf}
 
 `run_manifest.json` records code commit, all input hashes, cohort and split
 hash, feature blocks, dropped constant/near-zero features, model and grid
-settings, bootstrap/permutation counts, matching and Fake-D settings, seeds,
+settings, label-only and label-conditioned class-mean scopes, the 0.05 scale
+sensitivity threshold, bootstrap/permutation counts, matching and Fake-D
+settings, the 80% inner-quality gate, training-match-quality status, seeds,
 output hashes, and completion status. `verify_reruns` compares the manifest
 output hash maps and the locked plan/code fields; only a verified match may be
 promoted to `final/`.
@@ -453,7 +568,7 @@ No output file contains `text`, `spoken_text`, `verified_text`, an exact quote,
 or an embedding cache payload. The source-score and feature outputs are
 participant-level derived signals only.
 
-## 13. CLI contract
+## 15. CLI contract
 
 The command is:
 
@@ -470,7 +585,7 @@ code-path testing and never writes `final/`. `--verify-reruns` compares
 `run_1` and `run_2`; `--promote-final` is accepted only when verification is
 successful. The current task runs neither formal mode nor verification mode.
 
-## 14. Allowed and prohibited interpretation
+## 16. Allowed and prohibited interpretation
 
 Allowed after verified results:
 
@@ -494,7 +609,7 @@ Prohibited:
   non-identified pairing comparison;
 - D-P described as an independent clinical measurement or D-All.
 
-## 15. Stage A implementation and test checklist
+## 17. Stage A implementation and test checklist
 
 The implementation files are fixed to:
 
@@ -510,7 +625,13 @@ handling, D-P hash/column contract, intact-row Fake-D draws and no-self
 assignments, label-blind/non-cross-fold matching, train/test donor isolation,
 cross-fitted residual training predictions, Shapley symmetry and efficiency,
 joint participant bootstrap indexing, formal/smoke output separation, rerun
-hash verification, and absence of interview source text in public outputs.
+hash verification, and absence of interview source text in public outputs. The
+Stage A.2 tests additionally cover complete-control pairing FDR selection over
+weak-control direction reversals, outer-training-only label means, exclusion
+of the label-only recipient, outer-test label-conditioned residuals, shared
+label-only versus within-label simulated recoverability, inner matching-quality
+output and the 80% gate, the substantive scale threshold and R2 direction
+flip.
 
 Before the Stage A commit:
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -13,7 +14,10 @@ from reanalysis_v2.interviewer_signal_explanation import (
     ExplanationInputs,
     SourceRepresentationData,
     SourceFoldCache,
+    _pairing_draw_inference,
+    _write_global_fdr,
     PAIRING_MATCH_FEATURES,
+    add_label_conditioned_interpretation_flags,
     apply_fake_domain_permutation,
     audit_numeric_features,
     block_subset_columns,
@@ -32,6 +36,10 @@ from reanalysis_v2.interviewer_signal_explanation import (
     recoverability_fold_metrics,
     recoverability_inference,
     recoverability_scale_sensitivity,
+    is_source_score_scale_sensitive,
+    run_label_conditioned_recoverability,
+    run_label_only_recoverability,
+    summarise_inner_training_quality,
     run_direct_explanation,
     run_fake_domain_controls,
     run_pairing_dependence,
@@ -296,7 +304,7 @@ def test_fold_contained_mismatch_swaps_source_before_prediction_and_keeps_donors
         seed=7,
     )
 
-    matched_train, matched_test, audit = build_fold_contained_matched_source_logits(
+    matched_train, matched_test, audit, _ = build_fold_contained_matched_source_logits(
         representation="tfidf",
         source_data=source_data,
         labels=labels,
@@ -393,6 +401,337 @@ def test_recoverability_inference_reports_permutation_p_and_bootstrap_delta_mse_
     assert "observed_delta_mse" in result
     assert "permutation_p_value" in result
     assert result["n_permutations"] == 50
+
+
+def test_primary_pairing_fdr_uses_full_control_p_value_even_when_directions_reverse() -> None:
+    explanation = pd.DataFrame(
+        {
+            "participant_id": [1, 2, 3, 4],
+            "label": [0, 0, 1, 1],
+            "representation": "tfidf",
+            "repeat": 1,
+            "subset": "P+Q+R+D",
+            "interviewer_logit": [0.0, 0.1, 0.9, 1.0],
+            "predicted_interviewer_logit": [0.0, 0.1, 0.9, 1.0],
+            "outer_train_mean_null_prediction": 0.5,
+        }
+    )
+    residual = pd.DataFrame({"representation": ["tfidf"], "repeat": [1], "p_value": [0.2]})
+    fake = pd.DataFrame({"representation": ["tfidf"], "repeat": [1], "p_value": [0.3]})
+    pairing = pd.DataFrame(
+        {
+            "representation": ["tfidf"],
+            "repeat": [1],
+            "draw": [0],
+            "full_real_minus_optimal_delta_auc": [0.25],
+            "weak_real_minus_optimal_delta_auc": [-0.25],
+            "full_real_minus_optimal_p_value": [0.037],
+            "weak_real_minus_optimal_p_value": [0.991],
+        }
+    )
+
+    result = _write_global_fdr(
+        explanation,
+        residual,
+        fake,
+        pairing,
+        main_repeat=1,
+        n_bootstrap=10,
+        n_permutations=10,
+    )
+
+    assert result.loc[result["test"].eq("pairing_delta_auc"), "p_value"].item() == pytest.approx(0.037)
+
+
+def test_pairing_draw_inference_reports_full_primary_and_weak_secondary_fields() -> None:
+    labels = np.array([0, 0, 0, 0, 1, 1, 1, 1])
+    rows = []
+    model_values = {
+        "P": np.array([0.10, 0.20, 0.30, 0.40, 0.60, 0.70, 0.80, 0.90]),
+        "P+I-real": np.array([0.08, 0.18, 0.28, 0.38, 0.62, 0.72, 0.82, 0.92]),
+        "P+I-optimal_matched": np.array([0.12, 0.22, 0.32, 0.42, 0.58, 0.68, 0.78, 0.88]),
+        "full": np.array([0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85]),
+        "full+I-real": np.array([0.05, 0.15, 0.25, 0.35, 0.65, 0.75, 0.85, 0.95]),
+        "full+I-optimal_matched": np.array([0.16, 0.26, 0.36, 0.46, 0.54, 0.64, 0.74, 0.84]),
+    }
+    for model_name, probabilities in model_values.items():
+        rows.extend(
+            {
+                "participant_id": int(index),
+                "label": int(labels[index]),
+                "representation": "tfidf",
+                "repeat": 1,
+                "outer_fold": 1,
+                "draw": 0,
+                "draw_type": "optimal_matched",
+                "model_name": model_name,
+                "probability": float(probabilities[index]),
+            }
+            for index in range(len(labels))
+        )
+    predictions = pd.DataFrame(rows)
+    deltas = pd.DataFrame(
+        {
+            "representation": ["tfidf"],
+            "repeat": [1],
+            "draw": [0],
+            "draw_type": ["optimal_matched"],
+            "weak_real_delta_auc": [0.1],
+            "weak_matched_delta_auc": [0.05],
+            "full_real_delta_auc": [0.2],
+            "full_matched_delta_auc": [0.1],
+        }
+    )
+    result = _pairing_draw_inference(
+        predictions,
+        deltas,
+        main_repeat=1,
+        n_bootstrap=20,
+        n_permutations=20,
+        seed=13,
+    )
+
+    assert {
+        "full_real_minus_optimal_delta_auc",
+        "full_real_minus_optimal_ci_low",
+        "full_real_minus_optimal_ci_high",
+        "full_real_minus_optimal_p_value",
+        "full_optimal_minus_no_i_delta_auc",
+        "full_optimal_minus_no_i_ci_low",
+        "full_optimal_minus_no_i_ci_high",
+        "weak_real_minus_optimal_delta_auc",
+        "weak_real_minus_optimal_p_value",
+    }.issubset(result.columns)
+    assert result.loc[0, "primary_pairing_control"].startswith("P+Q+R+D")
+    assert result.loc[0, "weak_control_scope"] == "secondary_weak_control_pairing"
+
+
+def test_label_only_outer_test_prediction_uses_outer_training_class_mean() -> None:
+    inputs, membership, cache = _synthetic_explanation_inputs_and_cache()
+    oof, metrics = run_label_only_recoverability(
+        cache,
+        labels=inputs.labels,
+        participant_ids=inputs.participant_ids,
+        representations=("tfidf",),
+        repeats=(1,),
+        inner_folds=2,
+        base_seed=31,
+    )
+
+    source = cache[("tfidf", 1, 1)]
+    test_rows = oof.loc[(oof["outer_fold"] == 1) & oof["prediction_scope"].eq("outer_test")]
+    expected = {
+        int(label): float(source.interviewer_train_logit[inputs.labels[source.train_idx] == label].mean())
+        for label in (0, 1)
+    }
+    assert np.allclose(test_rows["label_only_prediction"], [expected[int(label)] for label in test_rows["label"]])
+    assert set(metrics["prediction_scope"]) == {"outer_test"}
+
+
+def test_label_only_outer_training_predictions_are_inner_cross_fitted_without_self() -> None:
+    inputs, membership, cache = _synthetic_explanation_inputs_and_cache()
+    oof, _ = run_label_only_recoverability(
+        cache,
+        labels=inputs.labels,
+        participant_ids=inputs.participant_ids,
+        representations=("tfidf",),
+        repeats=(1,),
+        inner_folds=2,
+        base_seed=31,
+    )
+
+    train_rows = oof.loc[oof["prediction_scope"].eq("outer_train_inner_validation")]
+    assert not train_rows.empty
+    assert train_rows["class_mean_excludes_recipient"].eq(True).all()
+    assert train_rows["class_mean_training_n"].gt(0).all()
+    for fold in range(1, 6):
+        source = cache[("tfidf", 1, fold)]
+        full_class_counts = pd.Series(inputs.labels[source.train_idx]).value_counts().to_dict()
+        fold_rows = train_rows.loc[train_rows["outer_fold"].eq(fold)]
+        assert all(
+            int(row.class_mean_training_n) < int(full_class_counts[int(row.label)])
+            for row in fold_rows.itertuples(index=False)
+        )
+
+
+def test_label_conditioned_outer_test_residual_uses_outer_training_class_mean() -> None:
+    inputs, membership, cache = _synthetic_explanation_inputs_and_cache()
+    oof, _ = run_label_conditioned_recoverability(
+        inputs,
+        cache,
+        membership,
+        representations=("tfidf",),
+        repeats=(1,),
+        inner_folds=2,
+        alpha_grid=(0.1, 1.0),
+        base_seed=31,
+    )
+
+    source = cache[("tfidf", 1, 1)]
+    row = oof.loc[(oof["outer_fold"] == 1) & oof["prediction_scope"].eq("outer_test")].iloc[0]
+    global_index = int(np.flatnonzero(inputs.participant_ids == int(row["participant_id"])).item())
+    label = int(inputs.labels[global_index])
+    expected_mean = source.interviewer_train_logit[inputs.labels[source.train_idx] == label].mean()
+    assert row["interviewer_within"] == pytest.approx(source.interviewer_test_logit[np.flatnonzero(source.test_idx == global_index).item()] - expected_mean)
+    assert bool(row["outer_test_mean_source_excludes_test"])
+
+
+def test_label_conditioned_recoverability_removes_shared_label_alignment() -> None:
+    inputs, membership, cache = _synthetic_explanation_inputs_and_cache()
+    shared_cache: dict[tuple[str, int, int], SourceFoldCache] = {}
+    for key, source in cache.items():
+        train_labels = inputs.labels[source.train_idx].astype(float)
+        test_labels = inputs.labels[source.test_idx].astype(float)
+        shared_cache[key] = replace(
+            source,
+            participant_train_logit=2.0 * train_labels,
+            participant_test_logit=2.0 * test_labels,
+            interviewer_train_logit=10.0 * train_labels,
+            interviewer_test_logit=10.0 * test_labels,
+        )
+
+    _, label_only_metrics = run_label_only_recoverability(
+        shared_cache,
+        labels=inputs.labels,
+        participant_ids=inputs.participant_ids,
+        representations=("tfidf",),
+        repeats=(1,),
+        inner_folds=2,
+        base_seed=31,
+    )
+    _, conditioned_metrics = run_label_conditioned_recoverability(
+        inputs,
+        shared_cache,
+        membership,
+        representations=("tfidf",),
+        repeats=(1,),
+        inner_folds=2,
+        alpha_grid=(0.1, 1.0),
+        base_seed=31,
+    )
+
+    assert label_only_metrics.loc[label_only_metrics["metric"].eq("r2"), "estimate"].item() > 0.9
+    full = conditioned_metrics.loc[conditioned_metrics["subset"].eq("P_within+Q+R+D")].iloc[0]
+    assert full["target_mse"] == pytest.approx(0.0)
+    assert full["r2"] == pytest.approx(0.0)
+
+    explanation_metrics = pd.DataFrame(
+        {
+            "representation": ["tfidf"],
+            "repeat": [1],
+            "subset": ["P+Q+R+D"],
+            "r2": [1.0],
+        }
+    )
+    flagged = add_label_conditioned_interpretation_flags(conditioned_metrics, explanation_metrics)
+    assert set(flagged["interpretation_flag"]) == {"recoverability_largely_shared_outcome_alignment"}
+
+
+def test_label_conditioned_recoverability_retains_within_label_shared_variation() -> None:
+    inputs, membership, cache = _synthetic_explanation_inputs_and_cache()
+    within = np.linspace(-1.0, 1.0, len(inputs.labels))
+    varied_cache: dict[tuple[str, int, int], SourceFoldCache] = {}
+    for key, source in cache.items():
+        varied_cache[key] = replace(
+            source,
+            participant_train_logit=within[source.train_idx],
+            participant_test_logit=within[source.test_idx],
+            interviewer_train_logit=3.0 * within[source.train_idx],
+            interviewer_test_logit=3.0 * within[source.test_idx],
+        )
+    conditioned_inputs = replace(
+        inputs,
+        block_matrices={**inputs.block_matrices, "Q": within.reshape(-1, 1)},
+        block_columns={**inputs.block_columns, "Q": ("within_q",)},
+    )
+
+    _, metrics = run_label_conditioned_recoverability(
+        conditioned_inputs,
+        varied_cache,
+        membership,
+        representations=("tfidf",),
+        repeats=(1,),
+        inner_folds=2,
+        alpha_grid=(0.1, 1.0),
+        base_seed=31,
+    )
+
+    full = metrics.loc[metrics["subset"].eq("P_within+Q+R+D")].iloc[0]
+    assert full["r2"] > 0.5
+
+
+def test_inner_validation_matching_quality_is_returned_with_random_reference() -> None:
+    n = 20
+    ids = np.arange(3000, 3000 + n)
+    labels = np.array([0] * 10 + [1] * 10)
+    texts = np.asarray([("calm " if label == 0 else "sad ") + "shared token" for label in labels], dtype=object)
+    source_data = SourceRepresentationData(texts, texts, "text")
+    frame = pd.DataFrame({"participant_id": ids, **{name: np.arange(n, dtype=float) + index for index, name in enumerate(PAIRING_MATCH_FEATURES)}})
+    train_idx = np.arange(16)
+    test_idx = np.arange(16, 20)
+    test_assignment = make_pairing_assignment(
+        recipient=frame.iloc[test_idx].reset_index(drop=True),
+        donor=frame.iloc[test_idx].reset_index(drop=True),
+        fit_reference=frame.iloc[train_idx].reset_index(drop=True),
+        seed=3,
+    )
+
+    matched_train, matched_test, audit, quality = build_fold_contained_matched_source_logits(
+        representation="tfidf",
+        source_data=source_data,
+        labels=labels,
+        participant_ids=ids,
+        match_frame=frame,
+        train_idx=train_idx,
+        test_idx=test_idx,
+        outer_test_assignment=test_assignment,
+        inner_folds=2,
+        c_grid=(0.1, 1.0),
+        seed=7,
+    )
+
+    assert np.isfinite(matched_train).all() and np.isfinite(matched_test).all()
+    assert set(quality["assignment_type"]) == {"optimal_matched"}
+    assert quality["random_reference_n"].eq(100).all()
+    assert {"mean_distance", "random_distance_q05", "matching_adequate"}.issubset(quality.columns)
+    assert set(audit["prediction_stage"]) == {"after_mismatch"}
+
+
+def test_inner_training_quality_gate_marks_below_eighty_percent_pass_rate() -> None:
+    quality = pd.DataFrame(
+        {
+            "assignment_type": ["optimal_matched"] * 5,
+            "matching_adequate": [True, True, True, True, False],
+            "no_self": [True] * 5,
+            "one_to_one": [True] * 5,
+        }
+    )
+    summary = summarise_inner_training_quality(quality)
+    assert summary["pass_rate"] == pytest.approx(0.8)
+    assert summary["training_match_quality_limited"] is False
+
+    quality.loc[3, "matching_adequate"] = False
+    summary = summarise_inner_training_quality(quality)
+    assert summary["pass_rate"] == pytest.approx(0.6)
+    assert summary["training_match_quality_limited"] is True
+
+
+def test_scale_difference_below_substantive_threshold_is_not_sensitive() -> None:
+    assert not is_source_score_scale_sensitive(
+        raw_r2=0.10,
+        standardized_r2=0.13,
+        raw_spearman=0.20,
+        standardized_spearman=0.22,
+    )
+
+
+def test_scale_r2_direction_flip_is_sensitive() -> None:
+    assert is_source_score_scale_sensitive(
+        raw_r2=0.10,
+        standardized_r2=-0.01,
+        raw_spearman=0.20,
+        standardized_spearman=0.22,
+    )
 
 
 def test_nested_dense_source_logits_produces_cross_fitted_train_and_outer_test_scores() -> None:
@@ -579,6 +918,7 @@ def test_residual_fake_d_and_pairing_smoke_keep_separate_contracts() -> None:
         pairing_metrics,
         pairing_deltas,
         pairing_stability,
+        pairing_inner_quality,
     ) = run_pairing_dependence(
         inputs,
         cache,
@@ -620,6 +960,7 @@ def test_residual_fake_d_and_pairing_smoke_keep_separate_contracts() -> None:
     assert {"optimal_matched", "random_mismatch"}.issubset(set(pairing_balance["assignment_type"]))
     assert not pairing_pairwise_balance.empty
     assert not pairing_random_reference.empty
+    assert not pairing_inner_quality.empty
     assert {"optimal_real_minus_matched_delta_auc", "random_real_minus_matched_delta_auc_mean"}.issubset(
         pairing_stability.columns
     )
