@@ -68,6 +68,7 @@ N_PERMUTATIONS = 10_000
 NEAR_ZERO_DOMINANT_FRACTION = 0.95
 RECOVERABILITY_HIGH_R2_THRESHOLD = 0.50
 RECOVERABILITY_NEAR_ZERO_R2_THRESHOLD = 0.05
+PRIMARY_REPRESENTATION = "tfidf"
 
 D_P_FEATURES = (
     "anhedonia_interest",
@@ -138,6 +139,175 @@ LABEL_CONDITIONED_SUBSETS = (
     "D",
     "P_within+Q+R+D",
 )
+
+
+def _primary_configuration(
+    representation: str,
+    repeat: int,
+    *,
+    main_repeat: int,
+    primary_representation: str = PRIMARY_REPRESENTATION,
+) -> bool:
+    return bool(
+        str(representation).lower() == str(primary_representation).lower()
+        and int(repeat) == int(main_repeat)
+    )
+
+
+def pairing_random_prediction_draws(
+    representation: str,
+    repeat: int,
+    *,
+    main_repeat: int,
+    n_draws: int,
+    primary_representation: str = PRIMARY_REPRESENTATION,
+) -> tuple[int, ...]:
+    """Return random pairing prediction draws for the locked primary scope."""
+
+    if int(n_draws) < 0:
+        raise ValueError("n_draws must be non-negative")
+    if not _primary_configuration(
+        representation,
+        repeat,
+        main_repeat=main_repeat,
+        primary_representation=primary_representation,
+    ):
+        return ()
+    return tuple(range(1, int(n_draws) + 1))
+
+
+def fake_domain_draws_for_configuration(
+    representation: str,
+    repeat: int,
+    *,
+    main_repeat: int,
+    n_draws: int,
+    primary_representation: str = PRIMARY_REPRESENTATION,
+) -> tuple[int, ...]:
+    """Return complete Fake-D draws for the locked primary scope."""
+
+    return pairing_random_prediction_draws(
+        representation,
+        repeat,
+        main_repeat=main_repeat,
+        n_draws=n_draws,
+        primary_representation=primary_representation,
+    )
+
+
+def estimate_computation_plan(
+    *,
+    representations: Sequence[str],
+    repeats: Sequence[int],
+    main_repeat: int,
+    inner_folds: int,
+    outer_folds: int = 5,
+    pairing_random_draws: int = PAIRING_DRAWS,
+    fake_draws: int = FAKE_D_DRAWS,
+    primary_representation: str = PRIMARY_REPRESENTATION,
+) -> dict[str, object]:
+    """Estimate the formal fitting workload under the Stage A.3 schedule."""
+
+    representations = tuple(str(value).lower() for value in representations)
+    repeats = tuple(sorted(int(value) for value in repeats))
+    if not representations or not repeats:
+        raise ValueError("representations and repeats must be non-empty")
+    if int(inner_folds) <= 0 or int(outer_folds) <= 0:
+        raise ValueError("fold counts must be positive")
+    if int(pairing_random_draws) < 0 or int(fake_draws) < 0:
+        raise ValueError("draw counts must be non-negative")
+    configuration_count = len(representations) * len(repeats)
+    primary_pairing_draw_count = sum(
+        len(
+            pairing_random_prediction_draws(
+                representation,
+                repeat,
+                main_repeat=main_repeat,
+                n_draws=pairing_random_draws,
+                primary_representation=primary_representation,
+            )
+        )
+        for representation in representations
+        for repeat in repeats
+    )
+    primary_fake_draw_count = sum(
+        len(
+            fake_domain_draws_for_configuration(
+                representation,
+                repeat,
+                main_repeat=main_repeat,
+                n_draws=fake_draws,
+                primary_representation=primary_representation,
+            )
+        )
+        for representation in representations
+        for repeat in repeats
+    )
+    heldout_source_invocations = configuration_count * int(outer_folds) * (int(inner_folds) + 1)
+    legacy_heldout_source_invocations = heldout_source_invocations * (int(pairing_random_draws) + 1)
+    optimal_pairing_label_fits = configuration_count * int(outer_folds) * 6
+    random_pairing_label_fits = primary_pairing_draw_count * int(outer_folds) * 6
+    real_fake_label_fits = configuration_count * int(outer_folds) * 2
+    fake_draw_fit_invocations = primary_fake_draw_count * int(outer_folds) * 3
+    return {
+        "primary_representation": str(primary_representation),
+        "main_repeat": int(main_repeat),
+        "configuration_count": int(configuration_count),
+        "source_prediction_reuse_within_heldout_partition": True,
+        "pairing": {
+            "inner_folds": int(inner_folds),
+            "outer_folds": int(outer_folds),
+            "optimal_prediction_configurations": int(configuration_count),
+            "random_distance_reference_draws_per_configuration": int(pairing_random_draws),
+            "random_prediction_draw_configurations": int(
+                sum(
+                    int(
+                        _primary_configuration(
+                            representation,
+                            repeat,
+                            main_repeat=main_repeat,
+                            primary_representation=primary_representation,
+                        )
+                    )
+                    for representation in representations
+                    for repeat in repeats
+                )
+            ),
+            "random_prediction_draws": int(primary_pairing_draw_count),
+            "heldout_source_prediction_invocations": int(heldout_source_invocations),
+            "legacy_heldout_source_prediction_invocations": int(legacy_heldout_source_invocations),
+            "estimated_optimal_label_model_fit_invocations": int(optimal_pairing_label_fits),
+            "estimated_random_label_model_fit_invocations": int(random_pairing_label_fits),
+            "random_prediction_scope": {
+                "representations": [str(primary_representation)],
+                "repeats": [int(main_repeat)],
+            },
+        },
+        "fake_D": {
+            "full_draw_configurations": int(
+                sum(
+                    int(
+                        _primary_configuration(
+                            representation,
+                            repeat,
+                            main_repeat=main_repeat,
+                            primary_representation=primary_representation,
+                        )
+                    )
+                    for representation in representations
+                    for repeat in repeats
+                )
+            ),
+            "full_draws": int(primary_fake_draw_count),
+            "real_baseline_configurations": int(configuration_count),
+            "estimated_real_label_model_fit_invocations": int(real_fake_label_fits),
+            "estimated_fake_draw_fit_invocations": int(fake_draw_fit_invocations),
+            "draw_scope": {
+                "representations": [str(primary_representation)],
+                "repeats": [int(main_repeat)],
+            },
+        },
+    }
 
 BLOCK_ORDER = ("P", "Q", "R", "D")
 _FORBIDDEN_PUBLIC_TOKENS = (
@@ -1509,6 +1679,70 @@ def _fit_source_on_training_predict_donors(
     return np.asarray(result.test_logits, dtype=float)
 
 
+def build_fold_contained_heldout_source_logits(
+    *,
+    representation: str,
+    source_data: SourceRepresentationData,
+    labels: np.ndarray,
+    participant_ids: np.ndarray,
+    train_idx: np.ndarray,
+    test_idx: np.ndarray,
+    inner_folds: int = INNER_FOLDS,
+    c_grid: Sequence[float] = DEFAULT_C_GRID,
+    seed: int = BASE_SEED,
+) -> dict[str, dict[object, float]]:
+    """Fit each fold-contained source model once and predict its whole holdout.
+
+    The returned maps are safe to reuse for any donor permutation within the
+    same held-out partition: every value in a partition was produced by one
+    source model that was fit without that partition.
+    """
+
+    labels = np.asarray(labels, dtype=int)
+    participant_ids = np.asarray(participant_ids)
+    train_idx = np.asarray(train_idx, dtype=int)
+    test_idx = np.asarray(test_idx, dtype=int)
+    if set(train_idx).intersection(test_idx):
+        raise ValueError("outer train and test indices overlap")
+    if source_data.interviewer.shape[0] != len(participant_ids):
+        raise ValueError("source data and participant IDs are not aligned")
+    inner_validation_logits: dict[object, float] = {}
+    inner_splits = make_inner_splits(labels[train_idx], n_splits=int(inner_folds), seed=int(seed))
+    for inner_fold, (inner_train_local, inner_validation_local) in enumerate(inner_splits, start=1):
+        inner_train_global = train_idx[inner_train_local]
+        inner_validation_global = train_idx[inner_validation_local]
+        predicted = _fit_source_on_training_predict_donors(
+            representation=representation,
+            source_data=source_data,
+            labels=labels,
+            source_train_idx=inner_train_global,
+            donor_idx=inner_validation_global,
+            inner_folds=inner_folds,
+            c_grid=c_grid,
+            seed=int(seed) + 10_000 + inner_fold,
+        )
+        for global_index, logit in zip(inner_validation_global, predicted):
+            inner_validation_logits[participant_ids[global_index]] = float(logit)
+    outer_test_predicted = _fit_source_on_training_predict_donors(
+        representation=representation,
+        source_data=source_data,
+        labels=labels,
+        source_train_idx=train_idx,
+        donor_idx=test_idx,
+        inner_folds=inner_folds,
+        c_grid=c_grid,
+        seed=int(seed) + 20_000,
+    )
+    outer_test_logits = {
+        participant_ids[global_index]: float(logit)
+        for global_index, logit in zip(test_idx, outer_test_predicted)
+    }
+    return {
+        "inner_validation": inner_validation_logits,
+        "outer_test": outer_test_logits,
+    }
+
+
 def build_fold_contained_matched_source_logits(
     *,
     representation: str,
@@ -1526,6 +1760,8 @@ def build_fold_contained_matched_source_logits(
     assignment_mode: str = "optimal_matched",
     random_reference_draws: int = PAIRING_DRAWS,
     collect_inner_quality: bool = True,
+    precomputed_heldout_logits: Mapping[str, Mapping[object, float]] | None = None,
+    heldout_split_seed: int | None = None,
 ) -> tuple[np.ndarray, np.ndarray, pd.DataFrame, pd.DataFrame]:
     """Mismatch source data inside folds before predicting matched logits."""
 
@@ -1544,11 +1780,29 @@ def build_fold_contained_matched_source_logits(
     if set(outer_test_assignment["donor_id"]) != set(participant_ids[test_idx]):
         raise ValueError("outer-test assignment donors must stay inside outer-test")
     frame = match_frame.reset_index(drop=True)
+    split_seed = int(seed) if heldout_split_seed is None else int(heldout_split_seed)
+    if precomputed_heldout_logits is None:
+        precomputed_heldout_logits = build_fold_contained_heldout_source_logits(
+            representation=representation,
+            source_data=source_data,
+            labels=labels,
+            participant_ids=participant_ids,
+            train_idx=train_idx,
+            test_idx=test_idx,
+            inner_folds=inner_folds,
+            c_grid=c_grid,
+            seed=split_seed,
+        )
+    required_partitions = {"inner_validation", "outer_test"}
+    if not required_partitions.issubset(precomputed_heldout_logits):
+        raise ValueError("precomputed held-out logits must include inner_validation and outer_test")
+    inner_validation_logits = precomputed_heldout_logits["inner_validation"]
+    outer_test_logits = precomputed_heldout_logits["outer_test"]
     matched_train = np.full(len(train_idx), np.nan, dtype=float)
     matched_test = np.full(len(test_idx), np.nan, dtype=float)
     audit_rows: list[dict[str, object]] = []
     quality_rows: list[dict[str, object]] = []
-    inner_splits = make_inner_splits(labels[train_idx], n_splits=int(inner_folds), seed=int(seed))
+    inner_splits = make_inner_splits(labels[train_idx], n_splits=int(inner_folds), seed=split_seed)
     for inner_fold, (inner_train_local, inner_validation_local) in enumerate(inner_splits, start=1):
         inner_train_global = train_idx[inner_train_local]
         inner_validation_global = train_idx[inner_validation_local]
@@ -1618,18 +1872,13 @@ def build_fold_contained_matched_source_logits(
                     },
                 }
             )
-        global_lookup = {participant_id: int(index) for index, participant_id in enumerate(participant_ids.tolist())}
-        donor_global = np.asarray([global_lookup[value] for value in assignment["donor_id"]], dtype=int)
-        predicted = _fit_source_on_training_predict_donors(
-            representation=representation,
-            source_data=source_data,
-            labels=labels,
-            source_train_idx=inner_train_global,
-            donor_idx=donor_global,
-            inner_folds=inner_folds,
-            c_grid=c_grid,
-            seed=int(seed) + 10_000 + inner_fold,
-        )
+        try:
+            predicted = np.asarray(
+                [inner_validation_logits[donor_id] for donor_id in assignment["donor_id"]],
+                dtype=float,
+            )
+        except KeyError as exc:
+            raise ValueError("precomputed inner-validation logits do not cover donor IDs") from exc
         predicted_by_recipient = {
             recipient_id: float(logit)
             for recipient_id, logit in zip(assignment["recipient_id"], predicted)
@@ -1655,20 +1904,15 @@ def build_fold_contained_matched_source_logits(
     if not np.isfinite(matched_train).all():
         raise ValueError("fold-contained matched training logits are incomplete")
 
-    global_lookup = {participant_id: int(index) for index, participant_id in enumerate(participant_ids.tolist())}
-    test_donor_global = np.asarray([global_lookup[value] for value in outer_test_assignment["donor_id"]], dtype=int)
-    outer_test_logits = _fit_source_on_training_predict_donors(
-        representation=representation,
-        source_data=source_data,
-        labels=labels,
-        source_train_idx=train_idx,
-        donor_idx=test_donor_global,
-        inner_folds=inner_folds,
-        c_grid=c_grid,
-        seed=int(seed) + 20_000,
-    )
+    try:
+        assignment_logits = np.asarray(
+            [outer_test_logits[donor_id] for donor_id in outer_test_assignment["donor_id"]],
+            dtype=float,
+        )
+    except KeyError as exc:
+        raise ValueError("precomputed outer-test logits do not cover donor IDs") from exc
     test_local_by_id = {participant_ids[global_index]: local for local, global_index in enumerate(test_idx)}
-    for assignment_row, logit in zip(outer_test_assignment.to_dict("records"), outer_test_logits):
+    for assignment_row, logit in zip(outer_test_assignment.to_dict("records"), assignment_logits):
         matched_test[test_local_by_id[assignment_row["recipient_id"]]] = float(logit)
         audit_rows.append(
             {
@@ -2890,17 +3134,28 @@ def run_fake_domain_controls(
     alpha_grid: Sequence[float] = RIDGE_ALPHAS,
     base_seed: int = BASE_SEED,
     return_oof: bool = False,
+    fake_draw_representations: Sequence[str] | None = None,
+    fake_draw_repeats: Sequence[int] | None = None,
 ) -> tuple[pd.DataFrame, ...]:
     """Run intact-row Fake-D explanation and residual negative controls.
 
     The main repeat is used for primary inference, while ``repeats`` controls
-    the repeat-stability rows.  Every repeat receives its own real-D baseline
-    and its own partition-local fake-D draws.
+    the repeat-stability rows. Every requested representation/repeat receives
+    its deterministic real-D baseline. Complete Fake-D draws are restricted to
+    the primary representation and main repeat unless explicit draw scopes are
+    provided.
     """
 
     selected_repeats = tuple(sorted(int(value) for value in (repeats if repeats is not None else (main_repeat,))))
     if not selected_repeats or int(main_repeat) not in selected_repeats:
         raise ValueError("Fake-D repeats must be non-empty and include main_repeat")
+    fake_draw_representations = tuple(
+        str(value).lower()
+        for value in (fake_draw_representations if fake_draw_representations is not None else (PRIMARY_REPRESENTATION,))
+    )
+    fake_draw_repeats = tuple(
+        sorted(int(value) for value in (fake_draw_repeats if fake_draw_repeats is not None else (main_repeat,)))
+    )
     assignment_rows: list[dict[str, object]] = []
     explanation_rows: list[dict[str, object]] = []
     residual_rows: list[dict[str, object]] = []
@@ -3001,7 +3256,18 @@ def run_fake_domain_controls(
                         }
                     )
 
-            for draw in range(1, int(n_draws) + 1):
+            if representation not in fake_draw_representations or repeat not in fake_draw_repeats:
+                draws_for_configuration = ()
+            elif fake_draw_representations == (PRIMARY_REPRESENTATION,) and fake_draw_repeats == (int(main_repeat),):
+                draws_for_configuration = fake_domain_draws_for_configuration(
+                    representation,
+                    repeat,
+                    main_repeat=main_repeat,
+                    n_draws=n_draws,
+                )
+            else:
+                draws_for_configuration = tuple(range(1, int(n_draws) + 1))
+            for draw in draws_for_configuration:
                 draw_explanation_rows: list[dict[str, object]] = []
                 draw_residual_rows: list[dict[str, object]] = []
                 for fold in range(1, 6):
@@ -3431,13 +3697,13 @@ def _pairing_draw_inference(
                 "weak_optimal_minus_no_i_delta_auc": observed_weak_optimal,
                 "weak_optimal_minus_no_i_ci_low": float(np.quantile(bootstrap_weak_optimal_minus_no_i, 0.025)),
                 "weak_optimal_minus_no_i_ci_high": float(np.quantile(bootstrap_weak_optimal_minus_no_i, 0.975)),
-                "real_minus_matched_delta_auc_observed": observed_weak,
-                "matched_minus_no_i_delta_auc_observed": observed_weak_optimal,
-                "ci_low": float(np.quantile(bootstrap_weak_real_minus_optimal, 0.025)),
-                "ci_high": float(np.quantile(bootstrap_weak_real_minus_optimal, 0.975)),
-                "optimal_minus_no_i_ci_low": float(np.quantile(bootstrap_weak_optimal_minus_no_i, 0.025)),
-                "optimal_minus_no_i_ci_high": float(np.quantile(bootstrap_weak_optimal_minus_no_i, 0.975)),
-                "p_value": weak_p_value,
+                "real_minus_matched_delta_auc_observed": observed_full,
+                "matched_minus_no_i_delta_auc_observed": observed_full_optimal,
+                "ci_low": float(np.quantile(bootstrap_full_real_minus_optimal, 0.025)),
+                "ci_high": float(np.quantile(bootstrap_full_real_minus_optimal, 0.975)),
+                "optimal_minus_no_i_ci_low": float(np.quantile(bootstrap_full_optimal_minus_no_i, 0.025)),
+                "optimal_minus_no_i_ci_high": float(np.quantile(bootstrap_full_optimal_minus_no_i, 0.975)),
+                "p_value": full_p_value,
                 "n_bootstrap": int(n_bootstrap),
                 "n_permutations": int(n_permutations),
                 "primary_pairing_control": "P+Q+R+D+I-real_vs_P+Q+R+D+I-optimal_matched",
@@ -3517,14 +3783,34 @@ def run_pairing_dependence(
                             **{key: value for key, value in random_quality.items() if key not in {"feature_mean_abs_standardized_paired_difference", "feature_median_abs_standardized_paired_difference", "feature_q95_abs_standardized_paired_difference", "feature_mean_signed_standardized_paired_difference"}},
                         }
                     )
+                random_prediction_draws = pairing_random_prediction_draws(
+                    representation,
+                    repeat,
+                    main_repeat=main_repeat,
+                    n_draws=n_draws,
+                )
                 optimal_test_assignment = make_pairing_assignment(
                     recipient=test_frame,
                     donor=test_frame,
                     fit_reference=train_frame,
                     seed=fold_seed,
                 )
+                heldout_logits = build_fold_contained_heldout_source_logits(
+                    representation=representation,
+                    source_data=source_data[representation],
+                    labels=inputs.labels,
+                    participant_ids=inputs.participant_ids,
+                    train_idx=train_idx,
+                    test_idx=test_idx,
+                    inner_folds=inner_folds,
+                    c_grid=DEFAULT_C_GRID,
+                    seed=fold_seed,
+                )
                 draw_specs: list[tuple[int, str, pd.DataFrame]] = [(0, "optimal_matched", optimal_test_assignment)]
-                draw_specs.extend((draw, "random_mismatch", assignment) for draw, assignment in random_test_assignments.items())
+                draw_specs.extend(
+                    (draw, "random_mismatch", random_test_assignments[draw])
+                    for draw in random_prediction_draws
+                )
                 for draw, draw_type, test_assignment in draw_specs:
                     matched_train_i, matched_test_i, source_audit, inner_quality = build_fold_contained_matched_source_logits(
                         representation=representation,
@@ -3540,6 +3826,8 @@ def run_pairing_dependence(
                         seed=fold_seed + draw * 10_000,
                         assignment_mode=draw_type,
                         collect_inner_quality=(draw == 0),
+                        precomputed_heldout_logits=heldout_logits,
+                        heldout_split_seed=fold_seed,
                     )
                     for audit_row in source_audit.to_dict("records"):
                         assignment_rows.append(
@@ -3694,12 +3982,18 @@ def run_pairing_dependence(
                 "weak_matched_delta_auc": weak_matched,
                 "full_real_delta_auc": full_real,
                 "full_matched_delta_auc": full_matched,
-                "real_minus_matched_delta_auc": weak_real - weak_matched,
-                "matched_minus_no_i_delta_auc": weak_matched,
-                "real_minus_optimal_delta_auc": weak_real - weak_matched if draw_type == "optimal_matched" else float("nan"),
-                "real_minus_random_delta_auc": weak_real - weak_matched if draw_type == "random_mismatch" else float("nan"),
-                "optimal_minus_no_i_delta_auc": weak_matched if draw_type == "optimal_matched" else float("nan"),
-                "random_minus_no_i_delta_auc": weak_matched if draw_type == "random_mismatch" else float("nan"),
+                "weak_real_minus_matched_delta_auc": weak_real - weak_matched,
+                "weak_matched_minus_no_i_delta_auc": weak_matched,
+                "real_minus_matched_delta_auc": full_real - full_matched,
+                "matched_minus_no_i_delta_auc": full_matched,
+                "weak_real_minus_optimal_delta_auc": weak_real - weak_matched if draw_type == "optimal_matched" else float("nan"),
+                "weak_real_minus_random_delta_auc": weak_real - weak_matched if draw_type == "random_mismatch" else float("nan"),
+                "weak_optimal_minus_no_i_delta_auc": weak_matched if draw_type == "optimal_matched" else float("nan"),
+                "weak_random_minus_no_i_delta_auc": weak_matched if draw_type == "random_mismatch" else float("nan"),
+                "real_minus_optimal_delta_auc": full_real - full_matched if draw_type == "optimal_matched" else float("nan"),
+                "real_minus_random_delta_auc": full_real - full_matched if draw_type == "random_mismatch" else float("nan"),
+                "optimal_minus_no_i_delta_auc": full_matched if draw_type == "optimal_matched" else float("nan"),
+                "random_minus_no_i_delta_auc": full_matched if draw_type == "random_mismatch" else float("nan"),
                 "real_minus_matched_full_delta_auc": full_real - full_matched,
                 "mean_abs_probability_change_weak": float(np.mean(np.abs(wide["P+I-real"] - wide[matched_name]))),
                 "mean_abs_probability_change_full": float(np.mean(np.abs(wide["full+I-real"] - wide[full_matched_name]))),
@@ -3738,13 +4032,19 @@ def run_pairing_dependence(
             & inner_quality["assignment_type"].eq("optimal_matched")
         ] if not inner_quality.empty else inner_quality
         inner_quality_summary = summarise_inner_training_quality(inner_quality_group)
-        stability_rows.append(
-            {
-                "representation": representation,
-                "repeat": int(repeat),
-                "n_random_draws": int(random["draw"].nunique()),
-                "optimal_real_minus_matched_delta_auc": float(optimal["real_minus_matched_delta_auc"].iloc[0]),
-                "optimal_full_real_minus_matched_delta_auc": float(optimal["real_minus_matched_full_delta_auc"].iloc[0]),
+        if random.empty:
+            random_summary = {
+                "random_real_minus_matched_delta_auc_mean": float("nan"),
+                "random_real_minus_matched_delta_auc_sd": float("nan"),
+                "random_real_minus_matched_delta_auc_q025": float("nan"),
+                "random_real_minus_matched_delta_auc_q975": float("nan"),
+                "random_full_real_minus_matched_delta_auc_mean": float("nan"),
+                "random_full_real_minus_matched_delta_auc_sd": float("nan"),
+                "random_full_real_minus_matched_delta_auc_q025": float("nan"),
+                "random_full_real_minus_matched_delta_auc_q975": float("nan"),
+            }
+        else:
+            random_summary = {
                 "random_real_minus_matched_delta_auc_mean": float(random["real_minus_matched_delta_auc"].mean()),
                 "random_real_minus_matched_delta_auc_sd": float(random["real_minus_matched_delta_auc"].std(ddof=1)) if len(random) > 1 else 0.0,
                 "random_real_minus_matched_delta_auc_q025": float(random["real_minus_matched_delta_auc"].quantile(0.025)),
@@ -3753,6 +4053,17 @@ def run_pairing_dependence(
                 "random_full_real_minus_matched_delta_auc_sd": float(random["real_minus_matched_full_delta_auc"].std(ddof=1)) if len(random) > 1 else 0.0,
                 "random_full_real_minus_matched_delta_auc_q025": float(random["real_minus_matched_full_delta_auc"].quantile(0.025)),
                 "random_full_real_minus_matched_delta_auc_q975": float(random["real_minus_matched_full_delta_auc"].quantile(0.975)),
+            }
+        stability_rows.append(
+            {
+                "representation": representation,
+                "repeat": int(repeat),
+                "n_random_draws": int(random["draw"].nunique()),
+                "random_prediction_draws_executed": int(random["draw"].nunique()),
+                "random_distance_reference_draws": int(n_draws),
+                "optimal_real_minus_matched_delta_auc": float(optimal["real_minus_matched_delta_auc"].iloc[0]),
+                "optimal_full_real_minus_matched_delta_auc": float(optimal["real_minus_matched_full_delta_auc"].iloc[0]),
+                **random_summary,
                 "matching_adequate": bool(quality_group["matching_adequate"].all()),
                 "inner_matching_pass_rate": float(inner_quality_summary["pass_rate"]),
                 "training_match_quality_limited": bool(inner_quality_summary["training_match_quality_limited"]),
@@ -4583,6 +4894,15 @@ def run_interviewer_signal_explanation(
         return manifest
 
     repeats = tuple(range(1, int(stability_repeats) + 1))
+    computation_plan = estimate_computation_plan(
+        representations=available_representations,
+        repeats=repeats,
+        main_repeat=main_repeat,
+        inner_folds=inner_folds,
+        outer_folds=5,
+        pairing_random_draws=pairing_draws,
+        fake_draws=fake_draws,
+    )
     source_scores, source_cache, source_tuning = run_source_score_crossfit(
         inputs,
         membership,
@@ -4668,6 +4988,8 @@ def run_interviewer_signal_explanation(
         alpha_grid=alpha_grid,
         base_seed=base_seed,
         return_oof=True,
+        fake_draw_representations=(PRIMARY_REPRESENTATION,),
+        fake_draw_repeats=(main_repeat,),
     )
     fake_summary = fake_domain_summary(
         fake_explanation_results,
@@ -4841,6 +5163,7 @@ def run_interviewer_signal_explanation(
             "near_zero_conditioned_r2_threshold": float(RECOVERABILITY_NEAR_ZERO_R2_THRESHOLD),
             "interpretation_scope": "common_outcome_alignment_sensitivity_not_deployment",
         },
+        "computation": computation_plan,
         "inference": {"bootstrap_resamples": int(n_bootstrap), "permutation_resamples": int(n_permutations), "primary_fdr_family": "four fixed TF-IDF tests", "main_repeat": int(main_repeat), "stability_repeats": list(repeats)},
         "fake_D": {"draws": int(fake_draws), "rowwise_partition_permutation": True, "label_free": True, "D_definition": "D-P"},
         "matching": {
@@ -4856,10 +5179,12 @@ def run_interviewer_signal_explanation(
                 "minimum_optimal_inner_pass_rate": 0.80,
             },
             "training_match_quality_limited": training_match_quality_limited,
-            "source_mismatch_stage": "before_source_prediction",
+            "source_mismatch_stage": "heldout_partition_prediction_then_within_partition_reorder",
             "inner_training_source_fit": "inner_training_only",
             "outer_test_source_fit": "outer_training_only",
             "precomputed_oof_logit_reassignment": False,
+            "heldout_partition_logit_reassignment": True,
+            "heldout_inner_split_seed_fixed_across_draws": True,
             "status": "adequate" if matching_adequate else "matching_not_adequate_for_primary_interpretation",
         },
         "seeds": {"base_seed": int(base_seed), "source_seed_formula": "base + repeat*100000 + fold*1000 + source_offset", "bootstrap": int(base_seed), "permutation": int(base_seed) + 1_000_003},

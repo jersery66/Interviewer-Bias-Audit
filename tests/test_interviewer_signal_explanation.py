@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
+import reanalysis_v2.interviewer_signal_explanation as explanation_module
 
 from reanalysis_v2.interviewer_signal_explanation import (
     ALL_BLOCK_SUBSETS,
@@ -24,6 +25,8 @@ from reanalysis_v2.interviewer_signal_explanation import (
     build_fold_contained_matched_source_logits,
     compute_shapley_values,
     derive_interviewer_path_features,
+    estimate_computation_plan,
+    fake_domain_draws_for_configuration,
     fake_domain_summary,
     fit_ridge_pipeline,
     joint_bootstrap_indices,
@@ -33,6 +36,7 @@ from reanalysis_v2.interviewer_signal_explanation import (
     paired_prediction_swap_permutation,
     public_output_columns_are_safe,
     pairing_quality_summary,
+    pairing_random_prediction_draws,
     recoverability_fold_metrics,
     recoverability_inference,
     recoverability_scale_sensitivity,
@@ -504,6 +508,39 @@ def test_pairing_draw_inference_reports_full_primary_and_weak_secondary_fields()
     }.issubset(result.columns)
     assert result.loc[0, "primary_pairing_control"].startswith("P+Q+R+D")
     assert result.loc[0, "weak_control_scope"] == "secondary_weak_control_pairing"
+    assert result.loc[0, "p_value"] == pytest.approx(result.loc[0, "full_real_minus_optimal_p_value"])
+    assert result.loc[0, "real_minus_matched_delta_auc_observed"] == pytest.approx(
+        result.loc[0, "full_real_minus_optimal_delta_auc"]
+    )
+    assert result.loc[0, "ci_low"] == pytest.approx(result.loc[0, "full_real_minus_optimal_ci_low"])
+    assert result.loc[0, "ci_high"] == pytest.approx(result.loc[0, "full_real_minus_optimal_ci_high"])
+
+
+def test_random_prediction_and_fake_d_draws_are_restricted_to_primary_configuration() -> None:
+    assert pairing_random_prediction_draws("tfidf", 1, main_repeat=1, n_draws=3) == (1, 2, 3)
+    assert pairing_random_prediction_draws("tfidf", 2, main_repeat=1, n_draws=3) == ()
+    assert pairing_random_prediction_draws("mpnet", 1, main_repeat=1, n_draws=3) == ()
+    assert fake_domain_draws_for_configuration("tfidf", 1, main_repeat=1, n_draws=3) == (1, 2, 3)
+    assert fake_domain_draws_for_configuration("bge", 1, main_repeat=1, n_draws=3) == ()
+    assert fake_domain_draws_for_configuration("tfidf", 2, main_repeat=1, n_draws=3) == ()
+
+
+def test_computation_plan_reports_cached_source_predictions_and_reduced_draw_scope() -> None:
+    config = estimate_computation_plan(
+        representations=("tfidf", "mpnet", "bge"),
+        repeats=tuple(range(1, 11)),
+        main_repeat=1,
+        inner_folds=3,
+        outer_folds=5,
+        pairing_random_draws=100,
+        fake_draws=100,
+    )
+
+    assert config["pairing"]["heldout_source_prediction_invocations"] == 3 * 10 * 5 * 4
+    assert config["pairing"]["legacy_heldout_source_prediction_invocations"] == 3 * 10 * 5 * 4 * 101
+    assert config["pairing"]["random_prediction_draw_configurations"] == 1
+    assert config["fake_D"]["full_draw_configurations"] == 1
+    assert config["source_prediction_reuse_within_heldout_partition"] is True
 
 
 def test_label_only_outer_test_prediction_uses_outer_training_class_mean() -> None:
@@ -695,6 +732,109 @@ def test_inner_validation_matching_quality_is_returned_with_random_reference() -
     assert quality["random_reference_n"].eq(100).all()
     assert {"mean_distance", "random_distance_q05", "matching_adequate"}.issubset(quality.columns)
     assert set(audit["prediction_stage"]) == {"after_mismatch"}
+
+
+def test_fold_contained_matching_can_reuse_one_heldout_prediction_per_partition(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    n = 20
+    ids = np.arange(4000, 4000 + n)
+    labels = np.array([0] * 10 + [1] * 10)
+    texts = np.asarray(["shared source text"] * n, dtype=object)
+    source_data = SourceRepresentationData(texts, texts, "text")
+    frame = pd.DataFrame(
+        {
+            "participant_id": ids,
+            **{name: np.arange(n, dtype=float) + index for index, name in enumerate(PAIRING_MATCH_FEATURES)},
+        }
+    )
+    train_idx = np.arange(16)
+    test_idx = np.arange(16, 20)
+    test_assignment = make_pairing_assignment(
+        recipient=frame.iloc[test_idx].reset_index(drop=True),
+        donor=frame.iloc[test_idx].reset_index(drop=True),
+        fit_reference=frame.iloc[train_idx].reset_index(drop=True),
+        seed=5,
+    )
+    heldout = {
+        "inner_validation": {int(participant_id): float(participant_id) for participant_id in ids[train_idx]},
+        "outer_test": {int(participant_id): float(participant_id) for participant_id in ids[test_idx]},
+    }
+    split_seeds: list[int] = []
+    original_make_inner_splits = explanation_module.make_inner_splits
+
+    def capture_inner_splits(
+        y_outer_train: np.ndarray,
+        *,
+        n_splits: int,
+        seed: int,
+    ) -> list[tuple[np.ndarray, np.ndarray]]:
+        split_seeds.append(int(seed))
+        return original_make_inner_splits(y_outer_train, n_splits=n_splits, seed=seed)
+
+    monkeypatch.setattr(explanation_module, "make_inner_splits", capture_inner_splits)
+
+    matched_train, matched_test, audit, quality = build_fold_contained_matched_source_logits(
+        representation="tfidf",
+        source_data=source_data,
+        labels=labels,
+        participant_ids=ids,
+        match_frame=frame,
+        train_idx=train_idx,
+        test_idx=test_idx,
+        outer_test_assignment=test_assignment,
+        inner_folds=2,
+        c_grid=(0.1, 1.0),
+        seed=11,
+        precomputed_heldout_logits=heldout,
+        heldout_split_seed=7,
+    )
+
+    assert np.isfinite(matched_train).all() and np.isfinite(matched_test).all()
+    train_local = {int(ids[global_index]): local_index for local_index, global_index in enumerate(train_idx)}
+    for row in audit.loc[audit["scope"].eq("outer_train_inner_validation")].itertuples(index=False):
+        assert matched_train[train_local[int(row.recipient_id)]] == pytest.approx(float(row.donor_id))
+    assert len(quality) == 2
+    assert split_seeds == [7]
+    test_local = {int(ids[global_index]): local_index for local_index, global_index in enumerate(test_idx)}
+    for row in test_assignment.itertuples(index=False):
+        assert matched_test[test_local[int(row.recipient_id)]] == pytest.approx(float(row.donor_id))
+
+
+def test_pairing_random_draws_reuse_one_source_prediction_per_heldout_partition(monkeypatch: pytest.MonkeyPatch) -> None:
+    inputs, membership, cache = _synthetic_explanation_inputs_and_cache()
+    texts = np.asarray(["calm shared source" if label == 0 else "sad shared source" for label in inputs.labels], dtype=object)
+    source_data = {
+        "tfidf": SourceRepresentationData(
+            participant=texts,
+            interviewer=texts,
+            feature_type="text",
+        )
+    }
+    calls: list[tuple[int, int]] = []
+    original = explanation_module._fit_source_on_training_predict_donors
+
+    def counted_fit_source(**kwargs: object) -> np.ndarray:
+        calls.append((len(np.asarray(kwargs["source_train_idx"])), len(np.asarray(kwargs["donor_idx"]))))
+        return original(**kwargs)
+
+    monkeypatch.setattr(explanation_module, "_fit_source_on_training_predict_donors", counted_fit_source)
+    run_pairing_dependence(
+        inputs,
+        cache,
+        membership,
+        representations=("tfidf",),
+        repeats=(1,),
+        source_data=source_data,
+        inner_folds=2,
+        c_grid=(0.1, 1.0),
+        n_draws=2,
+        base_seed=47,
+        n_bootstrap=5,
+        n_permutations=5,
+    )
+
+    assert len(calls) == 5 * (2 + 1)
 
 
 def test_inner_training_quality_gate_marks_below_eighty_percent_pass_rate() -> None:
@@ -966,3 +1106,8 @@ def test_residual_fake_d_and_pairing_smoke_keep_separate_contracts() -> None:
     )
     assert not pairing_metrics.empty
     assert not pairing_deltas.empty
+    optimal_delta = pairing_deltas.loc[pairing_deltas["draw_type"].eq("optimal_matched")].iloc[0]
+    assert optimal_delta["real_minus_matched_delta_auc"] == pytest.approx(
+        optimal_delta["real_minus_matched_full_delta_auc"]
+    )
+    assert "weak_real_minus_matched_delta_auc" in pairing_deltas.columns

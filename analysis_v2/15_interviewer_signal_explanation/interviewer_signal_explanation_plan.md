@@ -4,8 +4,8 @@
 **Status:** Stage A plan/code contract; no formal results are included
 **Repository:** `jersery66/Interviewer-Bias-Audit`
 **Branch:** `codex/submission-audit`
-**Stage A.2 parent commit:** `230cc95659d357c112569d08f60daff012186a5f`
-**Current checkout inspected before this revision:** `230cc95659d357c112569d08f60daff012186a5f`
+**Stage A.3 parent commit:** `81a934837d25d90715769eacac2a57fafb97919c`
+**Current checkout inspected before this revision:** `81a934837d25d90715769eacac2a57fafb97919c`
 **Known upstream baseline:** `bbf72b4ae7ccf25b9262a1dd94c3a9da21a9431e`
 
 ## 1. Scope and research question
@@ -18,7 +18,7 @@ Formal outputs will be written only below:
 analysis_v2/15_interviewer_signal_explanation/
 ```
 
-The primary question is:
+The module-level question is:
 
 > Which observable information blocks can statistically reconstruct the
 > interviewer-side PHQ-8 predictive signal, and does a residual signal remain
@@ -30,16 +30,25 @@ dependence, and representation stability. It does not identify causal
 mediation, a causal interviewer effect, a signal composition percentage, an
 independent mechanism, or a complete explanation.
 
+This module is a second-layer constraint on the existing source and conditional
+increment analyses. It is not assumed to supersede the original incremental
+research question or to become the primary manuscript storyline. Its target is
+a PHQ-label-trained interviewer model score, not an interviewer mental process,
+objective language composition, individual interaction mechanism, or causal
+source of interviewer-side predictive signal. Results must therefore be framed
+as statistical recoverability, conditional attenuation, overlapping predictive
+information, residual signal, and pairing dependence.
+
 The module will not use `D-All`. The symptom block is always the frozen
 participant-derived `D-P` ten-domain count vector.
 
 ## 2. Stage and execution contract
 
-Stage A.2 contains only this revised plan, implementation code, tests, and
+Stage A.3 contains only this revised plan, implementation code, tests, and
 non-result input-contract documentation. It is a method revision of the Stage
-A.1 parent commit above; the future formal `code_commit` must be the new Stage
-A.2 commit, never the parent commit. It must be committed before any formal
-command is run. The Stage A.2 commit SHA is the `code_commit` recorded by
+A.2 parent commit above; the future formal `code_commit` must be the new Stage
+A.3 commit, never the parent commit. It must be committed before any formal
+command is run. The Stage A.3 commit SHA is the `code_commit` recorded by
 future formal runs.
 
 Stage B is deliberately not run in the current task. A future Stage B run must:
@@ -52,7 +61,7 @@ Stage B is deliberately not run in the current task. A future Stage B run must:
 
 The current Stage A commit must not contain formal result CSVs, result figures,
 `final/`, manuscript revisions, or a result-bearing `run_manifest.json`.
-The same restriction applies to Stage A.2. This revision is not a formal run
+The same restriction applies to Stage A.3. This revision is not a formal run
 and does not create `run_1`, `run_2`, `final/`, or `rerun_verification.json`.
 
 ### Stage A.1 inherited contracts
@@ -65,7 +74,7 @@ locked paired-prediction-swap permutation p-value and adds raw versus
 outer-training-standardized score-scale audits. The four revised contracts are
 covered by tests in the parent commit.
 
-### Stage A.2 locked method revision
+### Stage A.2 inherited method revision
 
 This revision changes the primary pairing comparison to the complete-control
 comparison `P+Q+R+D+I-real` versus
@@ -92,9 +101,39 @@ The source-score scale-sensitive rule is substantive and fixed at 0.05:
 R2 difference is at least 0.05, the absolute Spearman difference is at least
 0.05, or raw and standardized R2 have opposite signs.
 
-The Stage A.2 commit contains only this plan, implementation code, tests, and
-non-result input-contract documentation. Its new commit SHA, rather than the
-parent SHA, is the only permitted future formal-run `code_commit`.
+The Stage A.2 parent commit contains only the inherited plan, implementation
+code, tests, and non-result input-contract documentation. Stage A.3 supersedes
+its `code_commit` for any future formal run.
+
+### Stage A.3 locked engineering revision
+
+Stage A.3 does not add an analysis, change a research question, change an
+estimator, change a threshold, or change a primary test family. It only removes
+ambiguous primary-pairing aliases and reduces repeated fitting under the same
+fold-containment contract.
+
+For each inner-validation partition, one source model is fit on inner-training
+rows and predicts the complete inner-validation partition once. For outer test,
+one source model is fit on outer-training rows and predicts the complete
+outer-test partition once. Optimal and eligible random donor assignments then
+reorder these held-out logits within the same partition. This is not a
+cross-person permutation of heterogeneous OOF scores: every reordered value in
+a partition comes from one model that did not see that partition.
+
+Random mismatch prediction draws and complete Fake-D draws are restricted to
+the primary representation `tfidf` and main repeat `1`. For all representations
+and repeats, the deterministic optimal pairing comparison remains available;
+100 random mismatch assignments are still generated as distance references for
+the matching gate. Repeats 2--10 and non-primary representations therefore do
+not repeat the 100 random label-model controls. Complete Fake-D draws are not
+repeated outside the primary representation/main repeat; deterministic real-D
+baselines remain available for repeat stability.
+
+The formal manifest records the requested configuration, the estimated
+held-out source prediction invocations, the legacy repeated-fit estimate, the
+random-prediction draw scope, the Fake-D draw scope, and the resulting fitting
+configuration. These are workload controls only and do not alter scientific
+interpretation.
 
 ## 3. Frozen inputs and hashes
 
@@ -407,17 +446,20 @@ delta log loss use base-minus-enhanced improvement direction.
 
 ## 11. Fake-D negative control
 
-One hundred deterministic Fake-D draws are generated per outer fold. The ten
-D-P columns move as an intact row. The train and test partitions are
-permuted independently, each assignment is a non-identity derangement, and no
-train donor ID can occur in a test assignment. Labels are never read to make a
-draw. Recipient and donor IDs are written to `fake_domain_assignments.csv`.
+One hundred deterministic Fake-D draws are generated per outer fold only for
+TF-IDF/repeat 1. The ten D-P columns move as an intact row. The train and test
+partitions are permuted independently, each assignment is a non-identity
+derangement, and no train donor ID can occur in a test assignment. Labels are
+never read to make a draw. Recipient and donor IDs are written to
+`fake_domain_assignments.csv`.
 
 Each draw runs the full P+Q+R+D-fake explanation and its corresponding residual
-label increment. The result reports the real-D value, fake-D draw mean/SD,
-2.5th/97.5th percentiles, and participant/draw uncertainty. The primary
-negative-control contrasts are real-D R2 minus fake-D mean R2 and real-D
-residual delta AUC minus fake-D mean residual delta AUC.
+label increment in that primary configuration. Deterministic real-D baselines
+remain available for every requested representation/repeat. The result reports
+the real-D value, fake-D draw mean/SD, 2.5th/97.5th percentiles, and
+participant/draw uncertainty. The primary negative-control contrasts are real-D
+R2 minus fake-D mean R2 and real-D residual delta AUC minus fake-D mean residual
+delta AUC.
 
 ## 12. Pairing dependence
 
@@ -432,17 +474,22 @@ data-dependent dimensionality choice is introduced.
 For each outer training and outer test partition independently, Hungarian
 assignment minimizes standardized Euclidean distance with the recipient/donor
 diagonal forbidden. Standardization is fit on outer training and reused for
-outer test. Draw 0 is one deterministic `optimal_matched` assignment. Draws
-1--100 are fully random `random_mismatch` derangements; no jitter is added to
-the optimum and random draws are not described as near-optimal.
+outer test. Draw 0 is one deterministic `optimal_matched` assignment. One
+hundred random non-self derangements are generated for the distance reference
+in every configuration, but random mismatch prediction draws 1--100 are
+executed only for TF-IDF/repeat 1. No jitter is added to the optimum and random
+draws are not described as near-optimal.
 
-The source mismatch is performed before source prediction. For each outer
-training fold, an inner-validation assignment is made within that inner
-validation partition; the source model is fit only on inner-training rows and
-predicts the donor source material after the mismatch. For outer test, the
-source model is fit only on outer-training rows and predicts mismatched donor
-material from the outer-test partition. A precomputed outer OOF logit is never
-permuted or reassigned to a recipient.
+Source prediction is cached at the held-out partition level before donor
+reordering. For each outer training fold, an inner-validation source model is
+fit only on inner-training rows and predicts every inner-validation source
+record once; optimal or random donor assignments then reorder those logits
+within that same inner-validation partition. For outer test, a source model is
+fit only on outer-training rows and predicts every outer-test source record
+once; donor assignments reorder those logits within the same outer-test
+partition. A precomputed outer OOF logit is never permuted or reassigned to a
+recipient, and the cached inner-validation split seed is held fixed across
+assignment draws.
 
 Balance is assessed pairwise rather than by post-match marginal SMD, because a
 one-to-one permutation of the same partition would make its marginal SMD zero
@@ -481,7 +528,12 @@ The weak `P+I-real` versus `P+I-optimal_matched` result remains available with
 scope `secondary_weak_control_pairing` and is not the primary FDR p-value.
 Both participant and matching-draw uncertainty are retained. Draw 0 is the
 optimal matched comparison; random draws are a reference distribution and are
-reported separately.
+reported separately. The generic fields `p_value`,
+`real_minus_matched_delta_auc_observed`, `ci_low`, `ci_high`, and
+`optimal_minus_no_i_ci_low/high` refer to the complete-control primary result;
+pairing delta/stability fields without a `weak_` prefix likewise refer to the
+complete-control result; weak-control results retain only their `weak_`-
+prefixed names.
 
 ## 13. Statistical families and repeat stability
 
@@ -502,8 +554,11 @@ the runner also writes a global all-representation BH sensitivity table.
 
 Repeat 1 is the main estimate. Repeats 1 through 10 are summarized as
 stability rows for full recoverability R2, P/Q/R/D Shapley deltas, residual
-delta AUC, pairing delta AUC, and real-D minus Fake-D. Repeats are not treated
-as independent samples and no repeat-level t test is run.
+delta AUC, optimal-pairing delta AUC, and deterministic real-D baselines. The
+real-D minus Fake-D contrast is complete only for TF-IDF/repeat 1 under the
+locked draw scope; it is not fabricated for other representations or repeats.
+Repeats are not treated as independent samples and no repeat-level t test is
+run.
 
 ## 14. Formal output contract
 
@@ -559,10 +614,11 @@ figures/fake_domain_negative_control_plot.{png,svg,pdf}
 hash, feature blocks, dropped constant/near-zero features, model and grid
 settings, label-only and label-conditioned class-mean scopes, the 0.05 scale
 sensitivity threshold, bootstrap/permutation counts, matching and Fake-D
-settings, the 80% inner-quality gate, training-match-quality status, seeds,
-output hashes, and completion status. `verify_reruns` compares the manifest
-output hash maps and the locked plan/code fields; only a verified match may be
-promoted to `final/`.
+settings, the random-distance and random-prediction draw scopes, estimated
+fitting invocations, held-out source prediction reuse, the 80% inner-quality
+gate, training-match-quality status, seeds, output hashes, and completion
+status. `verify_reruns` compares the manifest output hash maps and the locked
+plan/code fields; only a verified match may be promoted to `final/`.
 
 No output file contains `text`, `spoken_text`, `verified_text`, an exact quote,
 or an embedding cache payload. The source-score and feature outputs are
