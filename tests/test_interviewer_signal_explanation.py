@@ -11,19 +11,27 @@ from reanalysis_v2.interviewer_signal_explanation import (
     ALL_BLOCK_SUBSETS,
     D_P_FEATURES,
     ExplanationInputs,
+    SourceRepresentationData,
     SourceFoldCache,
     PAIRING_MATCH_FEATURES,
     apply_fake_domain_permutation,
     audit_numeric_features,
     block_subset_columns,
+    build_fold_contained_matched_source_logits,
     compute_shapley_values,
     derive_interviewer_path_features,
     fake_domain_summary,
     fit_ridge_pipeline,
     joint_bootstrap_indices,
+    make_random_derangement_assignment,
     make_pairing_assignment,
     nested_dense_source_logits,
+    paired_prediction_swap_permutation,
     public_output_columns_are_safe,
+    pairing_quality_summary,
+    recoverability_fold_metrics,
+    recoverability_inference,
+    recoverability_scale_sensitivity,
     run_direct_explanation,
     run_fake_domain_controls,
     run_pairing_dependence,
@@ -221,6 +229,172 @@ def test_pairing_assignment_is_one_to_one_nonself_and_uses_only_matching_feature
     assert set(result.columns) >= {"recipient_id", "donor_id", "distance", "self_match"}
 
 
+def test_pairing_quality_gate_rejects_bad_one_to_one_assignment_despite_zero_marginal_smd() -> None:
+    ids = np.arange(8)
+    features = pd.DataFrame(
+        {
+            "participant_id": ids,
+            **{name: ids.astype(float) * (index + 1) for index, name in enumerate(PAIRING_MATCH_FEATURES)},
+        }
+    )
+    bad_assignment = pd.DataFrame(
+        {
+            "recipient_id": ids,
+            "donor_id": np.roll(ids, 4),
+            "self_match": False,
+            "one_to_one": True,
+        }
+    )
+    quality = pairing_quality_summary(
+        recipient=features,
+        donor=features,
+        assignment=bad_assignment,
+        fit_reference=features,
+        random_distance_reference=np.full(100, 1e6),
+        assignment_type="optimal_matched",
+    )
+
+    assert quality["max_abs_smd"] == pytest.approx(0.0)
+    assert quality["matching_adequate"] is False
+    assert quality["n_features_mean_abs_paired_diff_lt_0_50"] < 5
+
+
+def test_fold_contained_mismatch_swaps_source_before_prediction_and_keeps_donors_in_validation_partition() -> None:
+    n = 20
+    ids = np.arange(2000, 2000 + n)
+    labels = np.array([0] * 10 + [1] * 10)
+    texts = np.array(
+        [
+            ("calm baseline " if label == 0 else "sad concern ") + "shared symptom interview token"
+            for label in labels
+        ],
+        dtype=object,
+    )
+    source_data = SourceRepresentationData(
+        participant=np.asarray(texts, dtype=object),
+        interviewer=np.asarray(texts, dtype=object),
+        feature_type="text",
+    )
+    match_frame = pd.DataFrame(
+        {
+            "participant_id": ids,
+            **{name: np.arange(n, dtype=float) + index for index, name in enumerate(PAIRING_MATCH_FEATURES)},
+        }
+    )
+    outer_train = np.arange(16)
+    outer_test = np.arange(16, 20)
+    train_assignment = make_pairing_assignment(
+        recipient=match_frame.iloc[outer_train].reset_index(drop=True),
+        donor=match_frame.iloc[outer_train].reset_index(drop=True),
+        fit_reference=match_frame.iloc[outer_train].reset_index(drop=True),
+        seed=7,
+    )
+    test_assignment = make_pairing_assignment(
+        recipient=match_frame.iloc[outer_test].reset_index(drop=True),
+        donor=match_frame.iloc[outer_test].reset_index(drop=True),
+        fit_reference=match_frame.iloc[outer_train].reset_index(drop=True),
+        seed=7,
+    )
+
+    matched_train, matched_test, audit = build_fold_contained_matched_source_logits(
+        representation="tfidf",
+        source_data=source_data,
+        labels=labels,
+        participant_ids=ids,
+        match_frame=match_frame,
+        train_idx=outer_train,
+        test_idx=outer_test,
+        outer_test_assignment=test_assignment,
+        outer_train_assignment=train_assignment,
+        inner_folds=2,
+        c_grid=(0.1, 1.0),
+        seed=19,
+    )
+
+    assert np.isfinite(matched_train).all()
+    assert np.isfinite(matched_test).all()
+    assert set(audit["prediction_stage"]) == {"after_mismatch"}
+    inner_rows = audit.loc[audit["scope"].eq("outer_train_inner_validation")]
+    assert not inner_rows.empty
+    assert (inner_rows["donor_partition"] == "inner_validation").all()
+    for row in inner_rows.itertuples(index=False):
+        assert set(row.source_train_ids).isdisjoint({row.recipient_id, row.donor_id})
+    test_rows = audit.loc[audit["scope"].eq("outer_test")]
+    assert set(test_rows["donor_partition"]) == {"outer_test"}
+    assert set(test_rows["source_train_ids"].map(tuple).explode()) <= set(ids[outer_train])
+
+
+def test_random_derangement_assignment_is_not_an_optimal_matched_draw() -> None:
+    ids = np.arange(10)
+    features = pd.DataFrame(
+        {
+            "participant_id": ids,
+            **{name: ids.astype(float) + index for index, name in enumerate(PAIRING_MATCH_FEATURES)},
+        }
+    )
+    optimal = make_pairing_assignment(
+        recipient=features,
+        donor=features,
+        fit_reference=features,
+        seed=1,
+    )
+    random = make_random_derangement_assignment(
+        recipient=features,
+        donor=features,
+        fit_reference=features,
+        seed=2,
+    )
+
+    assert set(random["assignment_type"]) == {"random_mismatch"}
+    assert set(optimal["assignment_type"]) == {"optimal_matched"}
+    assert not random["donor_id"].equals(optimal["donor_id"])
+
+
+def test_recoverability_permutation_p_is_one_when_null_and_full_predictions_match() -> None:
+    target = np.linspace(-1.0, 1.0, 20)
+    null = np.linspace(-1.0, 1.0, 20)
+    result = paired_prediction_swap_permutation(
+        target,
+        null,
+        null.copy(),
+        n_permutations=200,
+        seed=3,
+    )
+
+    assert result["observed_delta_mse"] == pytest.approx(0.0)
+    assert result["p_value"] == pytest.approx(1.0)
+
+
+def test_recoverability_inference_reports_permutation_p_and_bootstrap_delta_mse_ci() -> None:
+    ids = np.arange(8)
+    target = np.linspace(-1.0, 1.0, 8)
+    null = np.zeros(8)
+    full = target * 0.5
+    frame = pd.DataFrame(
+        {
+            "participant_id": ids,
+            "representation": "tfidf",
+            "repeat": 1,
+            "subset": "P+Q+R+D",
+            "interviewer_logit": target,
+            "predicted_interviewer_logit": full,
+            "outer_train_mean_null_prediction": null,
+        }
+    )
+    result = recoverability_inference(
+        frame,
+        representation="tfidf",
+        repeat=1,
+        n_bootstrap=20,
+        n_permutations=50,
+        seed=4,
+    )
+
+    assert "observed_delta_mse" in result
+    assert "permutation_p_value" in result
+    assert result["n_permutations"] == 50
+
+
 def test_nested_dense_source_logits_produces_cross_fitted_train_and_outer_test_scores() -> None:
     rng = np.random.default_rng(4)
     ids = np.arange(20)
@@ -330,6 +504,12 @@ def test_direct_explanation_runs_all_subsets_and_crossfits_full_training_predict
     assert set(full_cache) == {("tfidf", 1, fold) for fold in range(1, 6)}
     assert all(np.isfinite(result.train_prediction).all() for result in full_cache.values())
     assert not tuning.empty
+    fold_scale = recoverability_fold_metrics(predictions)
+    pooled_scale = recoverability_scale_sensitivity(predictions)
+    assert {"raw_r2", "outer_train_standardized_r2", "outer_train_participant_scale_sd"}.issubset(
+        fold_scale.columns
+    )
+    assert set(pooled_scale["scale"]) == {"raw", "outer_train_standardized"}
 
 
 def test_residual_fake_d_and_pairing_smoke_keep_separate_contracts() -> None:
@@ -376,12 +556,36 @@ def test_residual_fake_d_and_pairing_smoke_keep_separate_contracts() -> None:
         base_seed=43,
         return_oof=True,
     )
-    pairing_assignments, pairing_predictions, pairing_balance, pairing_metrics, pairing_deltas, _ = run_pairing_dependence(
+    texts = np.asarray(
+        [
+            ("calm baseline " if label == 0 else "sad concern ") + "shared symptom interview token"
+            for label in inputs.labels
+        ],
+        dtype=object,
+    )
+    source_data = {
+        "tfidf": SourceRepresentationData(
+            participant=texts,
+            interviewer=texts,
+            feature_type="text",
+        )
+    }
+    (
+        pairing_assignments,
+        pairing_predictions,
+        pairing_balance,
+        pairing_pairwise_balance,
+        pairing_random_reference,
+        pairing_metrics,
+        pairing_deltas,
+        pairing_stability,
+    ) = run_pairing_dependence(
         inputs,
         cache,
         membership,
         representations=("tfidf",),
         repeats=(1,),
+        source_data=source_data,
         inner_folds=2,
         c_grid=(0.1, 1.0),
         n_draws=1,
@@ -408,9 +612,16 @@ def test_residual_fake_d_and_pairing_smoke_keep_separate_contracts() -> None:
         seed=43,
     )
     assert fake_summary.loc[0, "double_bootstrap_n"] == 10
-    assert len(pairing_assignments) == len(inputs.participant_ids) * 5
-    assert pairing_assignments.groupby(["outer_fold", "partition"]) ["recipient_id"].nunique().min() >= 2
-    assert pairing_assignments["self_match"].eq(False).all()
-    assert pairing_balance["matching_adequate"].all()
+    assert not pairing_assignments.empty
+    assert {"outer_train_inner_validation", "outer_test"}.issubset(set(pairing_assignments["scope"]))
+    outer_assignments = pairing_assignments.loc[pairing_assignments["record_type"].eq("outer_test_assignment")]
+    assert outer_assignments["self_match"].eq(False).all()
+    assert not pairing_balance.empty
+    assert {"optimal_matched", "random_mismatch"}.issubset(set(pairing_balance["assignment_type"]))
+    assert not pairing_pairwise_balance.empty
+    assert not pairing_random_reference.empty
+    assert {"optimal_real_minus_matched_delta_auc", "random_real_minus_matched_delta_auc_mean"}.issubset(
+        pairing_stability.columns
+    )
     assert not pairing_metrics.empty
     assert not pairing_deltas.empty

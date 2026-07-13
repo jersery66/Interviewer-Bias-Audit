@@ -4,7 +4,8 @@
 **Status:** Stage A plan/code contract; no formal results are included
 **Repository:** `jersery66/Interviewer-Bias-Audit`
 **Branch:** `codex/submission-audit`
-**Current checkout inspected:** `fa177900`
+**Stage A.1 parent commit:** `6b95c9473d3c4383c0f9bc672c6d176b5b0f997d`
+**Current checkout inspected before this revision:** `6b95c9473d3c4383c0f9bc672c6d176b5b0f997d`
 **Known upstream baseline:** `bbf72b4ae7ccf25b9262a1dd94c3a9da21a9431e`
 
 ## 1. Scope and research question
@@ -34,9 +35,11 @@ participant-derived `D-P` ten-domain count vector.
 
 ## 2. Stage and execution contract
 
-Stage A contains only this plan, implementation code, tests, and non-result
-input-contract documentation. It must be committed before any formal command
-is run. The Stage A commit SHA is the `code_commit` recorded by future formal
+Stage A.1 contains only this revised plan, implementation code, tests, and
+non-result input-contract documentation. It is a method revision of the first
+Stage A commit above; the future formal `code_commit` must be the new Stage A.1
+commit, never the parent commit. It must be committed before any formal command
+is run. The Stage A.1 commit SHA is the `code_commit` recorded by future formal
 runs.
 
 Stage B is deliberately not run in the current task. A future Stage B run must:
@@ -49,6 +52,18 @@ Stage B is deliberately not run in the current task. A future Stage B run must:
 
 The current Stage A commit must not contain formal result CSVs, result figures,
 `final/`, manuscript revisions, or a result-bearing `run_manifest.json`.
+The same restriction applies to Stage A.1. This revision is not a formal run
+and does not create `run_1`, `run_2`, `final/`, or `rerun_verification.json`.
+
+### Stage A.1 locked method revision
+
+This revision replaces the original pairing implementation's precomputed-logit
+reassignment with fold-contained source refitting, removes optimum jitter, and
+replaces the marginal-SMD gate with pairwise distance and paired-difference
+criteria. It also replaces the recoverability bootstrap-tail p-value with the
+locked paired-prediction-swap permutation p-value and adds raw versus
+outer-training-standardized score-scale audits. The four revised contracts are
+covered by tests before the Stage A.1 commit.
 
 ## 3. Frozen inputs and hashes
 
@@ -245,6 +260,18 @@ MAE, RMSE, Spearman rho, and MSE improvement. `explanation_oof_predictions`
 retains the observed target, null prediction, model prediction, and fold
 metadata for every subset.
 
+For scale sensitivity, every explanation prediction also retains the
+outer-training interviewer-score mean/SD and participant-score mean/SD. The
+fold metrics report raw and outer-training-standardized target/prediction
+metrics. The scale-sensitivity table compares pooled raw metrics with the
+corresponding fold-standardized metrics; no test-fold mean or SD is used to
+standardize a score.
+
+Recoverability inference keeps a participant bootstrap confidence interval for
+delta MSE, but its p-value is from 10,000 paired within-participant swaps of
+the null and full predictions. The global FDR table uses this permutation
+p-value, not a bootstrap tail proportion.
+
 ## 7. Block Shapley summary
 
 For the main repeat, the four block contributions P/Q/R/D are computed from
@@ -313,14 +340,28 @@ data-dependent dimensionality choice is introduced.
 
 For each outer training and outer test partition independently, Hungarian
 assignment minimizes standardized Euclidean distance with the recipient/donor
-diagonal forbidden. Standardization is fit on the outer training partition and
-reused for its test partition. One hundred deterministic jittered assignments
-are generated; every donor ledger records the distance, self-match flag,
-one-to-one status, donor reuse, partition, and fold.
+diagonal forbidden. Standardization is fit on outer training and reused for
+outer test. Draw 0 is one deterministic `optimal_matched` assignment. Draws
+1--100 are fully random `random_mismatch` derangements; no jitter is added to
+the optimum and random draws are not described as near-optimal.
 
-The matching balance gate is `max(abs(post-match standardized mean
-difference)) <= 0.10` over the locked variables and one-to-one/no-self checks.
-If any primary draw fails the gate, the run is marked
+The source mismatch is performed before source prediction. For each outer
+training fold, an inner-validation assignment is made within that inner
+validation partition; the source model is fit only on inner-training rows and
+predicts the donor source material after the mismatch. For outer test, the
+source model is fit only on outer-training rows and predicts mismatched donor
+material from the outer-test partition. A precomputed outer OOF logit is never
+permuted or reassigned to a recipient.
+
+Balance is assessed pairwise rather than by post-match marginal SMD, because a
+one-to-one permutation of the same partition would make its marginal SMD zero
+by construction. The audit reports per-feature mean/median/q95 absolute
+standardized paired differences, per-pair standardized Euclidean distances,
+total assignment cost, and the distance distribution of 100 random non-self
+assignments. The primary gate requires no self-match, one-to-one donors, an
+optimal mean distance below the random-reference 5th percentile, and at least
+5 of 7 features with mean absolute standardized paired difference below 0.50.
+If this gate fails, the run is marked
 `matching_not_adequate_for_primary_interpretation` and no pairing advantage is
 claimed.
 
@@ -333,7 +374,9 @@ complete: P+Q+R+D, P+Q+R+D+I-real, P+Q+R+D+I-matched
 
 Primary estimates are real-minus-matched delta AUC, matched-minus-no-I delta
 AUC, real-minus-matched delta PR-AUC, and absolute probability change. Both
-participant and matching-draw uncertainty are retained.
+participant and matching-draw uncertainty are retained. The primary matched
+comparison is real versus draw-0 optimal; random draws are a reference
+distribution and are reported separately.
 
 ## 11. Statistical families and repeat stability
 
@@ -369,6 +412,8 @@ source_score_crossfit.csv
 explanation_oof_predictions.csv
 explanation_subset_metrics.csv
 explanation_tuning.csv
+recoverability_fold_metrics.csv
+recoverability_scale_sensitivity.csv
 explanation_block_shapley.csv
 residual_signal_oof_predictions.csv
 residual_signal_metrics.csv
@@ -381,6 +426,8 @@ fake_domain_residual_oof_predictions.csv
 fake_domain_summary.csv
 pairing_assignments.csv
 pairing_balance.csv
+pairing_pairwise_balance.csv
+pairing_random_reference.csv
 pairing_oof_predictions.csv
 pairing_metrics.csv
 pairing_deltas.csv

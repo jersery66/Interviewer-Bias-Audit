@@ -442,7 +442,12 @@ def make_pairing_assignment(
     fit_reference: pd.DataFrame,
     seed: int,
 ) -> pd.DataFrame:
-    """Create one label-blind Hungarian donor assignment."""
+    """Create the one deterministic label-blind Hungarian assignment.
+
+    ``seed`` is retained for call-site compatibility but deliberately does not
+    perturb the optimum. Random mismatch references use
+    :func:`make_random_derangement_assignment` instead.
+    """
 
     for frame, name in ((recipient, "recipient"), (donor, "donor"), (fit_reference, "fit reference")):
         _require_columns(frame, ["participant_id", *PAIRING_MATCH_FEATURES], name)
@@ -451,14 +456,8 @@ def make_pairing_assignment(
         raise ValueError("recipient and donor partitions must have equal size >= 2")
     if recipient["participant_id"].duplicated().any() or donor["participant_id"].duplicated().any():
         raise ValueError("pairing IDs must be unique")
-    fit_values = fit_reference[list(PAIRING_MATCH_FEATURES)].to_numpy(dtype=float)
-    recipient_values = recipient[list(PAIRING_MATCH_FEATURES)].to_numpy(dtype=float)
-    donor_values = donor[list(PAIRING_MATCH_FEATURES)].to_numpy(dtype=float)
-    mean = fit_values.mean(axis=0)
-    scale = fit_values.std(axis=0, ddof=0)
-    scale[scale <= 1e-12] = 1.0
-    recipient_z = (recipient_values - mean) / scale
-    donor_z = (donor_values - mean) / scale
+    _ = seed
+    recipient_z, donor_z, _ = _pairing_z_values(recipient, donor, fit_reference)
     cost = np.square(recipient_z[:, None, :] - donor_z[None, :, :]).sum(axis=2)
     recipient_ids = recipient["participant_id"].to_numpy()
     donor_ids = donor["participant_id"].to_numpy()
@@ -468,18 +467,19 @@ def make_pairing_assignment(
                 cost[row_index, donor_index] = np.inf
     if not np.isfinite(cost).any(axis=1).all():
         raise ValueError("pairing assignment has no feasible non-self donor")
-    rng = np.random.default_rng(int(seed))
-    finite = np.isfinite(cost)
-    jittered = cost.copy()
-    jittered[finite] += rng.uniform(0.0, 1e-9, size=int(finite.sum()))
-    row_index, donor_index = linear_sum_assignment(jittered)
+    row_index, donor_index = linear_sum_assignment(cost)
     if len(row_index) != len(recipient):
         raise ValueError("Hungarian assignment did not cover every recipient")
+    pairwise_distance = np.sqrt(cost[row_index, donor_index])
     result = pd.DataFrame(
         {
+            "recipient_index": row_index.astype(int),
+            "donor_index": donor_index.astype(int),
             "recipient_id": recipient_ids[row_index],
             "donor_id": donor_ids[donor_index],
-            "distance": cost[row_index, donor_index],
+            "distance": pairwise_distance,
+            "standardized_euclidean_distance": pairwise_distance,
+            "assignment_type": "optimal_matched",
         }
     )
     result["self_match"] = result["recipient_id"].eq(result["donor_id"])
@@ -488,6 +488,154 @@ def make_pairing_assignment(
     if result["self_match"].any() or not result["one_to_one"].all():
         raise AssertionError("pairing assignment violated donor contract")
     return result.sort_values("recipient_id", kind="stable").reset_index(drop=True)
+
+
+def _pairing_z_values(
+    recipient: pd.DataFrame,
+    donor: pd.DataFrame,
+    fit_reference: pd.DataFrame,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    reference_values = fit_reference[list(PAIRING_MATCH_FEATURES)].to_numpy(dtype=float)
+    recipient_values = recipient[list(PAIRING_MATCH_FEATURES)].to_numpy(dtype=float)
+    donor_values = donor[list(PAIRING_MATCH_FEATURES)].to_numpy(dtype=float)
+    mean = reference_values.mean(axis=0)
+    scale = reference_values.std(axis=0, ddof=0)
+    scale[scale <= 1e-12] = 1.0
+    return (recipient_values - mean) / scale, (donor_values - mean) / scale, scale
+
+
+def make_random_derangement_assignment(
+    *,
+    recipient: pd.DataFrame,
+    donor: pd.DataFrame,
+    fit_reference: pd.DataFrame,
+    seed: int,
+) -> pd.DataFrame:
+    """Create one fully random label-free non-self donor assignment."""
+
+    for frame, name in ((recipient, "recipient"), (donor, "donor"), (fit_reference, "fit reference")):
+        _require_columns(frame, ["participant_id", *PAIRING_MATCH_FEATURES], name)
+        _as_numeric(frame, PAIRING_MATCH_FEATURES, name)
+    if len(recipient) != len(donor) or len(recipient) < 2:
+        raise ValueError("recipient and donor partitions must have equal size >= 2")
+    if recipient["participant_id"].duplicated().any() or donor["participant_id"].duplicated().any():
+        raise ValueError("pairing IDs must be unique")
+    recipient_z, donor_z, _ = _pairing_z_values(recipient, donor, fit_reference)
+    donor_order = _make_derangement(len(recipient), seed=int(seed))
+    recipient_ids = recipient["participant_id"].to_numpy()
+    donor_ids = donor["participant_id"].to_numpy()
+    for recipient_id, donor_id in zip(recipient_ids, donor_ids[donor_order]):
+        if recipient_id == donor_id:
+            raise AssertionError("random mismatch produced self assignment")
+    pairwise_difference = recipient_z - donor_z[donor_order]
+    pairwise_distance = np.sqrt(np.square(pairwise_difference).sum(axis=1))
+    result = pd.DataFrame(
+        {
+            "recipient_index": np.arange(len(recipient), dtype=int),
+            "donor_index": donor_order.astype(int),
+            "recipient_id": recipient_ids,
+            "donor_id": donor_ids[donor_order],
+            "distance": pairwise_distance,
+            "standardized_euclidean_distance": pairwise_distance,
+            "assignment_type": "random_mismatch",
+        }
+    )
+    result["self_match"] = result["recipient_id"].eq(result["donor_id"])
+    result["donor_reuse_count"] = result.groupby("donor_id")["donor_id"].transform("size").astype(int)
+    result["one_to_one"] = bool(result["donor_id"].nunique() == len(result))
+    if result["self_match"].any() or not result["one_to_one"].all():
+        raise AssertionError("random mismatch violated donor contract")
+    return result
+
+
+def pairing_quality_summary(
+    *,
+    recipient: pd.DataFrame,
+    donor: pd.DataFrame,
+    assignment: pd.DataFrame,
+    fit_reference: pd.DataFrame,
+    random_distance_reference: Sequence[float] | None = None,
+    assignment_type: str = "optimal_matched",
+    max_mean_abs_paired_difference: float = 0.50,
+    random_quantile: float = 0.05,
+) -> dict[str, object]:
+    """Measure pairwise matching quality and apply the pre-locked gate."""
+
+    _require_columns(assignment, ["recipient_id", "donor_id"], "pairing assignment")
+    recipient_lookup = recipient.set_index("participant_id")
+    donor_lookup = donor.set_index("participant_id")
+    if set(assignment["recipient_id"]) != set(recipient["participant_id"]):
+        raise ValueError("pairing assignment does not cover all recipients")
+    if set(assignment["donor_id"]) != set(donor["participant_id"]):
+        raise ValueError("pairing assignment does not cover all donors")
+    ordered_recipient = recipient_lookup.loc[assignment["recipient_id"].tolist(), list(PAIRING_MATCH_FEATURES)]
+    ordered_donor = donor_lookup.loc[assignment["donor_id"].tolist(), list(PAIRING_MATCH_FEATURES)]
+    _, _, scale = _pairing_z_values(recipient, donor, fit_reference)
+    signed_standardized_difference = (
+        ordered_recipient.to_numpy(dtype=float) - ordered_donor.to_numpy(dtype=float)
+    ) / scale
+    absolute_standardized_difference = np.abs(signed_standardized_difference)
+    distances = np.sqrt(np.square(signed_standardized_difference).sum(axis=1))
+    random_reference = (
+        np.asarray(random_distance_reference, dtype=float)
+        if random_distance_reference is not None
+        else np.asarray([], dtype=float)
+    )
+    random_reference = random_reference[np.isfinite(random_reference)]
+    random_q05 = float(np.quantile(random_reference, random_quantile)) if len(random_reference) else float("nan")
+    mean_distance = float(np.mean(distances))
+    random_position = (
+        float((np.count_nonzero(random_reference <= mean_distance) + 1) / (len(random_reference) + 1))
+        if len(random_reference)
+        else float("nan")
+    )
+    feature_means = absolute_standardized_difference.mean(axis=0)
+    feature_medians = np.median(absolute_standardized_difference, axis=0)
+    feature_q95 = np.quantile(absolute_standardized_difference, 0.95, axis=0)
+    feature_pass_count = int(np.count_nonzero(feature_means < float(max_mean_abs_paired_difference)))
+    if "self_match" in assignment.columns:
+        no_self = not assignment["self_match"].astype(bool).any()
+    else:
+        no_self = not assignment["recipient_id"].eq(assignment["donor_id"]).any()
+    if "one_to_one" in assignment.columns:
+        one_to_one = bool(assignment["one_to_one"].astype(bool).all())
+    else:
+        one_to_one = bool(assignment["donor_id"].nunique() == len(assignment))
+    optimal_distance_pass = bool(
+        assignment_type != "optimal_matched"
+        or (len(random_reference) > 0 and mean_distance < random_q05)
+    )
+    matching_adequate = bool(no_self and one_to_one and optimal_distance_pass and feature_pass_count >= 5)
+    return {
+        "assignment_type": assignment_type,
+        "n_pairs": int(len(assignment)),
+        "no_self": bool(no_self),
+        "one_to_one": bool(one_to_one),
+        "mean_distance": mean_distance,
+        "median_distance": float(np.median(distances)),
+        "q95_distance": float(np.quantile(distances, 0.95)),
+        "max_distance": float(np.max(distances)),
+        "total_distance": float(np.sum(distances)),
+        "total_cost": float(np.sum(np.square(distances))),
+        "max_abs_smd": float(np.max(np.abs(signed_standardized_difference.mean(axis=0)))),
+        "random_distance_q05": random_q05,
+        "optimal_distance_random_percentile": random_position,
+        "n_features_mean_abs_paired_diff_lt_0_50": feature_pass_count,
+        "matching_adequate": matching_adequate,
+        "feature_mean_abs_standardized_paired_difference": {
+            feature: float(feature_means[index]) for index, feature in enumerate(PAIRING_MATCH_FEATURES)
+        },
+        "feature_median_abs_standardized_paired_difference": {
+            feature: float(feature_medians[index]) for index, feature in enumerate(PAIRING_MATCH_FEATURES)
+        },
+        "feature_q95_abs_standardized_paired_difference": {
+            feature: float(feature_q95[index]) for index, feature in enumerate(PAIRING_MATCH_FEATURES)
+        },
+        "feature_mean_signed_standardized_paired_difference": {
+            feature: float(signed_standardized_difference[:, index].mean())
+            for index, feature in enumerate(PAIRING_MATCH_FEATURES)
+        },
+    }
 
 
 def nested_dense_source_logits(
@@ -552,6 +700,47 @@ def joint_bootstrap_indices(n: int, *, n_bootstrap: int, seed: int) -> np.ndarra
         raise ValueError("bootstrap dimensions must be positive")
     rng = np.random.default_rng(int(seed))
     return rng.integers(0, int(n), size=(int(n_bootstrap), int(n)), dtype=np.int64)
+
+
+def paired_prediction_swap_permutation(
+    target: Sequence[float],
+    null_prediction: Sequence[float],
+    full_prediction: Sequence[float],
+    *,
+    n_permutations: int,
+    seed: int,
+) -> dict[str, float | int]:
+    """Test paired null/full prediction improvement by within-participant swaps."""
+
+    if int(n_permutations) <= 0:
+        raise ValueError("n_permutations must be positive")
+    target = np.asarray(target, dtype=float)
+    null_prediction = np.asarray(null_prediction, dtype=float)
+    full_prediction = np.asarray(full_prediction, dtype=float)
+    if not (len(target) == len(null_prediction) == len(full_prediction)) or len(target) == 0:
+        raise ValueError("target, null and full predictions must have equal non-zero length")
+    observed = float(
+        mean_squared_error(target, null_prediction)
+        - mean_squared_error(target, full_prediction)
+    )
+    rng = np.random.default_rng(int(seed))
+    null_as_null = np.empty(len(null_prediction), dtype=float)
+    full_as_full = np.empty(len(full_prediction), dtype=float)
+    statistics = np.empty(int(n_permutations), dtype=float)
+    for index in range(int(n_permutations)):
+        swap = rng.integers(0, 2, size=len(null_prediction), dtype=np.int8).astype(bool)
+        null_as_null[:] = np.where(swap, full_prediction, null_prediction)
+        full_as_full[:] = np.where(swap, null_prediction, full_prediction)
+        statistics[index] = float(
+            mean_squared_error(target, null_as_null)
+            - mean_squared_error(target, full_as_full)
+        )
+    extreme = int(np.count_nonzero(np.abs(statistics) >= abs(observed) - 1e-15))
+    return {
+        "observed_delta_mse": observed,
+        "p_value": float((extreme + 1) / (int(n_permutations) + 1)),
+        "n_permutations": int(n_permutations),
+    }
 
 
 def public_output_columns_are_safe(columns: Sequence[object]) -> None:
@@ -935,6 +1124,15 @@ class SourceFoldCache:
     tuning: tuple[dict[str, object], ...]
 
 
+@dataclass(frozen=True)
+class SourceRepresentationData:
+    """Frozen participant/interviewer source material used for source refits."""
+
+    participant: np.ndarray
+    interviewer: np.ndarray
+    feature_type: str
+
+
 def _hash_variants(path: str | Path) -> dict[str, str]:
     raw = Path(path).read_bytes()
     return {
@@ -1189,6 +1387,53 @@ def _load_source_text(
     return table["text"].fillna("").astype(str).to_numpy(dtype=object)
 
 
+def load_source_representation_data(
+    output_root: str | Path,
+    participant_ids: np.ndarray,
+    labels: np.ndarray,
+    *,
+    representations: Sequence[str],
+    embedding_root: str | Path | None = None,
+) -> dict[str, SourceRepresentationData]:
+    """Load the already frozen source material without re-encoding it."""
+
+    output_root = Path(output_root).resolve()
+    paths = _input_paths(output_root)
+    result: dict[str, SourceRepresentationData] = {}
+    if "tfidf" in representations:
+        result["tfidf"] = SourceRepresentationData(
+            participant=_load_source_text(
+                paths["participant_text"], participant_ids, labels, condition="participant_speech"
+            ),
+            interviewer=_load_source_text(
+                paths["interviewer_text"], participant_ids, labels, condition="interviewer_speech"
+            ),
+            feature_type="text",
+        )
+    embedding_root = Path(embedding_root or output_root / "03_embedding_robustness").resolve()
+    embedding_specs = {
+        "mpnet": ("model_1_all_mpnet_base_v2", 768),
+        "bge": ("model_2_bge_large_en_v1_5", 1024),
+    }
+    for representation in representations:
+        if representation not in embedding_specs:
+            continue
+        slug, dimension = embedding_specs[representation]
+        pair = load_frozen_embedding_pair(
+            embedding_root,
+            slug,
+            participant_ids,
+            expected_dim=dimension,
+            allow_subset=False,
+        )
+        result[representation] = SourceRepresentationData(
+            participant=pair.participant,
+            interviewer=pair.interviewer,
+            feature_type="embedding",
+        )
+    return result
+
+
 def _source_result_from_dense(
     X_train: np.ndarray,
     y_train: np.ndarray,
@@ -1215,6 +1460,170 @@ def _source_result_from_dense(
         selected_c=selected_c,
         tuning=tuple(tuning),
     )
+
+
+def _fit_source_on_training_predict_donors(
+    *,
+    representation: str,
+    source_data: SourceRepresentationData,
+    labels: np.ndarray,
+    source_train_idx: np.ndarray,
+    donor_idx: np.ndarray,
+    inner_folds: int,
+    c_grid: Sequence[float],
+    seed: int,
+) -> np.ndarray:
+    """Fit a source model on source_train_idx and predict donor_idx only."""
+
+    if len(donor_idx) == 0:
+        return np.empty(0, dtype=float)
+    if representation == "tfidf":
+        result = nested_text_source_logits(
+            source_data.interviewer[source_train_idx],
+            labels[source_train_idx],
+            source_data.interviewer[donor_idx],
+            inner_folds=inner_folds,
+            seed=seed,
+        )
+    elif representation in {"mpnet", "bge"}:
+        result = _source_result_from_dense(
+            source_data.interviewer[source_train_idx],
+            labels[source_train_idx],
+            source_data.interviewer[donor_idx],
+            inner_folds=inner_folds,
+            c_grid=c_grid,
+            seed=seed,
+        )
+    else:
+        raise ValueError(f"unknown representation: {representation}")
+    return np.asarray(result.test_logits, dtype=float)
+
+
+def build_fold_contained_matched_source_logits(
+    *,
+    representation: str,
+    source_data: SourceRepresentationData,
+    labels: np.ndarray,
+    participant_ids: np.ndarray,
+    match_frame: pd.DataFrame,
+    train_idx: np.ndarray,
+    test_idx: np.ndarray,
+    outer_test_assignment: pd.DataFrame,
+    outer_train_assignment: pd.DataFrame | None = None,
+    inner_folds: int = INNER_FOLDS,
+    c_grid: Sequence[float] = DEFAULT_C_GRID,
+    seed: int = BASE_SEED,
+    assignment_mode: str = "optimal_matched",
+) -> tuple[np.ndarray, np.ndarray, pd.DataFrame]:
+    """Mismatch source data inside folds before predicting matched logits."""
+
+    labels = np.asarray(labels, dtype=int)
+    participant_ids = np.asarray(participant_ids)
+    train_idx = np.asarray(train_idx, dtype=int)
+    test_idx = np.asarray(test_idx, dtype=int)
+    if source_data.interviewer.shape[0] != len(participant_ids):
+        raise ValueError("source data and participant IDs are not aligned")
+    if set(train_idx).intersection(test_idx):
+        raise ValueError("outer train and test indices overlap")
+    if assignment_mode not in {"optimal_matched", "random_mismatch"}:
+        raise ValueError("assignment_mode must be optimal_matched or random_mismatch")
+    if set(outer_test_assignment["recipient_id"]) != set(participant_ids[test_idx]):
+        raise ValueError("outer-test assignment does not cover the outer-test recipients")
+    if set(outer_test_assignment["donor_id"]) != set(participant_ids[test_idx]):
+        raise ValueError("outer-test assignment donors must stay inside outer-test")
+    frame = match_frame.reset_index(drop=True)
+    matched_train = np.full(len(train_idx), np.nan, dtype=float)
+    matched_test = np.full(len(test_idx), np.nan, dtype=float)
+    audit_rows: list[dict[str, object]] = []
+    inner_splits = make_inner_splits(labels[train_idx], n_splits=int(inner_folds), seed=int(seed))
+    for inner_fold, (inner_train_local, inner_validation_local) in enumerate(inner_splits, start=1):
+        inner_train_global = train_idx[inner_train_local]
+        inner_validation_global = train_idx[inner_validation_local]
+        validation_frame = frame.iloc[inner_validation_global].reset_index(drop=True)
+        fit_frame = frame.iloc[inner_train_global].reset_index(drop=True)
+        if assignment_mode == "random_mismatch":
+            assignment = make_random_derangement_assignment(
+                recipient=validation_frame,
+                donor=validation_frame,
+                fit_reference=fit_frame,
+                seed=int(seed) + inner_fold,
+            )
+        else:
+            assignment = make_pairing_assignment(
+                recipient=validation_frame,
+                donor=validation_frame,
+                fit_reference=fit_frame,
+                seed=int(seed) + inner_fold,
+            )
+        global_lookup = {participant_id: int(index) for index, participant_id in enumerate(participant_ids.tolist())}
+        donor_global = np.asarray([global_lookup[value] for value in assignment["donor_id"]], dtype=int)
+        predicted = _fit_source_on_training_predict_donors(
+            representation=representation,
+            source_data=source_data,
+            labels=labels,
+            source_train_idx=inner_train_global,
+            donor_idx=donor_global,
+            inner_folds=inner_folds,
+            c_grid=c_grid,
+            seed=int(seed) + 10_000 + inner_fold,
+        )
+        predicted_by_recipient = {
+            recipient_id: float(logit)
+            for recipient_id, logit in zip(assignment["recipient_id"], predicted)
+        }
+        for local_position, global_index in zip(inner_validation_local, inner_validation_global):
+            recipient_id = participant_ids[global_index]
+            donor_id = assignment.loc[assignment["recipient_id"].eq(recipient_id), "donor_id"].iloc[0]
+            matched_train[int(local_position)] = predicted_by_recipient[recipient_id]
+            audit_rows.append(
+                {
+                    "scope": "outer_train_inner_validation",
+                    "inner_fold": int(inner_fold),
+                    "recipient_id": recipient_id,
+                    "donor_id": donor_id,
+                    "donor_partition": "inner_validation",
+                    "source_train_ids": tuple(participant_ids[inner_train_global].tolist()),
+                    "source_feature_type": source_data.feature_type,
+                    "prediction_stage": "after_mismatch",
+                    "source_model_scope": "inner_training_only",
+                    "assignment_type": assignment_mode,
+                }
+            )
+    if not np.isfinite(matched_train).all():
+        raise ValueError("fold-contained matched training logits are incomplete")
+
+    global_lookup = {participant_id: int(index) for index, participant_id in enumerate(participant_ids.tolist())}
+    test_donor_global = np.asarray([global_lookup[value] for value in outer_test_assignment["donor_id"]], dtype=int)
+    outer_test_logits = _fit_source_on_training_predict_donors(
+        representation=representation,
+        source_data=source_data,
+        labels=labels,
+        source_train_idx=train_idx,
+        donor_idx=test_donor_global,
+        inner_folds=inner_folds,
+        c_grid=c_grid,
+        seed=int(seed) + 20_000,
+    )
+    test_local_by_id = {participant_ids[global_index]: local for local, global_index in enumerate(test_idx)}
+    for assignment_row, logit in zip(outer_test_assignment.to_dict("records"), outer_test_logits):
+        matched_test[test_local_by_id[assignment_row["recipient_id"]]] = float(logit)
+        audit_rows.append(
+            {
+                "scope": "outer_test",
+                "inner_fold": 0,
+                "recipient_id": assignment_row["recipient_id"],
+                "donor_id": assignment_row["donor_id"],
+                "donor_partition": "outer_test",
+                "source_train_ids": tuple(participant_ids[train_idx].tolist()),
+                "source_feature_type": source_data.feature_type,
+                "prediction_stage": "after_mismatch",
+                "source_model_scope": "outer_training_only",
+                "assignment_type": str(assignment_row.get("assignment_type", assignment_mode)),
+            }
+        )
+    if not np.isfinite(matched_test).all():
+        raise ValueError("fold-contained matched outer-test logits are incomplete")
+    return matched_train, matched_test, pd.DataFrame(audit_rows)
 
 
 def _source_fold_cache(
@@ -1305,32 +1714,13 @@ def run_source_score_crossfit(
     """Run strict source cross-fitting and retain fold-local caches in memory."""
 
     output_root = Path(output_root).resolve()
-    paths = _input_paths(output_root)
-    participant_text = interviewer_text = None
-    if "tfidf" in representations:
-        participant_text = _load_source_text(
-            paths["participant_text"], inputs.participant_ids, inputs.labels, condition="participant_speech"
-        )
-        interviewer_text = _load_source_text(
-            paths["interviewer_text"], inputs.participant_ids, inputs.labels, condition="interviewer_speech"
-        )
-    embedding_root = Path(embedding_root or output_root / "03_embedding_robustness").resolve()
-    embedding_arrays: dict[str, tuple[np.ndarray, np.ndarray]] = {}
-    embedding_specs = {
-        "mpnet": ("model_1_all_mpnet_base_v2", 768),
-        "bge": ("model_2_bge_large_en_v1_5", 1024),
-    }
-    for representation in representations:
-        if representation in embedding_specs:
-            slug, dim = embedding_specs[representation]
-            pair = load_frozen_embedding_pair(
-                embedding_root,
-                slug,
-                inputs.participant_ids,
-                expected_dim=dim,
-                allow_subset=False,
-            )
-            embedding_arrays[representation] = (pair.participant, pair.interviewer)
+    source_data = load_source_representation_data(
+        output_root,
+        inputs.participant_ids,
+        inputs.labels,
+        representations=representations,
+        embedding_root=embedding_root,
+    )
 
     rows: list[dict[str, object]] = []
     tuning_rows: list[dict[str, object]] = []
@@ -1345,9 +1735,15 @@ def run_source_score_crossfit(
                     membership, repeat, int(fold), inputs.participant_ids
                 )
                 seed = int(base_seed) + repeat * 100_000 + int(fold) * 1_000
+                participant_text = interviewer_text = None
                 participant_embedding = interviewer_embedding = None
-                if representation in embedding_arrays:
-                    participant_embedding, interviewer_embedding = embedding_arrays[representation]
+                representation_data = source_data[representation]
+                if representation_data.feature_type == "text":
+                    participant_text = representation_data.participant
+                    interviewer_text = representation_data.interviewer
+                else:
+                    participant_embedding = representation_data.participant
+                    interviewer_embedding = representation_data.interviewer
                 fold_cache = _source_fold_cache(
                     representation,
                     train_idx=train_idx,
@@ -1448,6 +1844,13 @@ def run_direct_explanation(
                 target_train = source.interviewer_train_logit
                 target_test = source.interviewer_test_logit
                 null_value = float(np.mean(target_train))
+                target_scale = float(np.std(target_train, ddof=0))
+                if target_scale <= 1e-12:
+                    target_scale = 1.0
+                participant_mean = float(np.mean(source.participant_train_logit))
+                participant_scale = float(np.std(source.participant_train_logit, ddof=0))
+                if participant_scale <= 1e-12:
+                    participant_scale = 1.0
                 for subset_index, subset in enumerate(ALL_BLOCK_SUBSETS):
                     X_train = _subset_design(
                         subset,
@@ -1502,9 +1905,26 @@ def run_direct_explanation(
                                 "repeat": int(repeat),
                                 "outer_fold": int(fold),
                                 "subset": subset,
+                                "participant_logit": float(source.participant_test_logit[local_index]),
                                 "interviewer_logit": float(target_test[local_index]),
                                 "predicted_interviewer_logit": float(prediction[local_index]),
                                 "outer_train_mean_null_prediction": null_value,
+                                "outer_train_target_scale_mean": null_value,
+                                "outer_train_target_scale_sd": target_scale,
+                                "outer_train_participant_scale_mean": participant_mean,
+                                "outer_train_participant_scale_sd": participant_scale,
+                                "participant_logit_outer_train_standardized": float(
+                                    (source.participant_test_logit[local_index] - participant_mean) / participant_scale
+                                ),
+                                "interviewer_logit_outer_train_standardized": float(
+                                    (target_test[local_index] - null_value) / target_scale
+                                ),
+                                "predicted_interviewer_logit_outer_train_standardized": float(
+                                    (prediction[local_index] - null_value) / target_scale
+                                ),
+                                "outer_train_mean_null_prediction_standardized": float(
+                                    (null_value - null_value) / target_scale
+                                ),
                                 "selected_alpha": selected_alpha,
                             }
                         )
@@ -1532,6 +1952,131 @@ def run_direct_explanation(
     tuning = pd.DataFrame(tuning_rows)
     public_output_columns_are_safe(predictions.columns)
     return predictions, metrics, tuning, full_cache
+
+
+def recoverability_fold_metrics(explanation_predictions: pd.DataFrame) -> pd.DataFrame:
+    """Report raw and outer-training-standardized metrics for every outer fold."""
+
+    required = {
+        "representation",
+        "repeat",
+        "outer_fold",
+        "subset",
+        "interviewer_logit",
+        "predicted_interviewer_logit",
+        "outer_train_mean_null_prediction",
+        "outer_train_target_scale_mean",
+        "outer_train_target_scale_sd",
+        "outer_train_participant_scale_mean",
+        "outer_train_participant_scale_sd",
+    }
+    missing = sorted(required.difference(explanation_predictions.columns))
+    if missing:
+        raise ValueError(f"explanation predictions are missing scale fields: {missing}")
+    rows: list[dict[str, object]] = []
+    grouping = ["representation", "repeat", "outer_fold", "subset"]
+    for keys, group in explanation_predictions.groupby(grouping, sort=True):
+        representation, repeat, outer_fold, subset = keys
+        target = group["interviewer_logit"].to_numpy(dtype=float)
+        prediction = group["predicted_interviewer_logit"].to_numpy(dtype=float)
+        null_prediction = group["outer_train_mean_null_prediction"].to_numpy(dtype=float)
+        target_mean = float(group["outer_train_target_scale_mean"].iloc[0])
+        target_sd = float(group["outer_train_target_scale_sd"].iloc[0])
+        if target_sd <= 1e-12:
+            target_sd = 1.0
+        target_standardized = (target - target_mean) / target_sd
+        prediction_standardized = (prediction - target_mean) / target_sd
+        null_standardized = (null_prediction - target_mean) / target_sd
+        raw = explanation_metrics(target, prediction, null_prediction)
+        standardized = explanation_metrics(
+            target_standardized,
+            prediction_standardized,
+            null_standardized,
+        )
+        rows.append(
+            {
+                "representation": representation,
+                "repeat": int(repeat),
+                "outer_fold": int(outer_fold),
+                "subset": subset,
+                "n_participants": int(len(group)),
+                "outer_train_target_scale_mean": target_mean,
+                "outer_train_target_scale_sd": target_sd,
+                "outer_train_participant_scale_mean": float(group["outer_train_participant_scale_mean"].iloc[0]),
+                "outer_train_participant_scale_sd": float(group["outer_train_participant_scale_sd"].iloc[0]),
+                **{f"raw_{key}": value for key, value in raw.items()},
+                **{f"outer_train_standardized_{key}": value for key, value in standardized.items()},
+                "standardization_scope": "outer_training_source_scores_only",
+                "interpretation_scope": "recoverability_fold_scale_sensitivity",
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def recoverability_scale_sensitivity(explanation_predictions: pd.DataFrame) -> pd.DataFrame:
+    """Compare pooled raw and fold-standardized recoverability metrics."""
+
+    fold_metrics = recoverability_fold_metrics(explanation_predictions)
+    rows: list[dict[str, object]] = []
+    grouping = ["representation", "repeat", "subset"]
+    for keys, group in explanation_predictions.groupby(grouping, sort=True):
+        representation, repeat, subset = keys
+        group = group.sort_values(["outer_fold", "participant_id"], kind="stable")
+        target = group["interviewer_logit"].to_numpy(dtype=float)
+        prediction = group["predicted_interviewer_logit"].to_numpy(dtype=float)
+        null_prediction = group["outer_train_mean_null_prediction"].to_numpy(dtype=float)
+        raw = explanation_metrics(target, prediction, null_prediction)
+        standardized_target: list[np.ndarray] = []
+        standardized_prediction: list[np.ndarray] = []
+        standardized_null: list[np.ndarray] = []
+        for _, fold in group.groupby("outer_fold", sort=True):
+            target_mean = float(fold["outer_train_target_scale_mean"].iloc[0])
+            target_sd = float(fold["outer_train_target_scale_sd"].iloc[0])
+            if target_sd <= 1e-12:
+                target_sd = 1.0
+            fold_target = fold["interviewer_logit"].to_numpy(dtype=float)
+            fold_prediction = fold["predicted_interviewer_logit"].to_numpy(dtype=float)
+            fold_null = fold["outer_train_mean_null_prediction"].to_numpy(dtype=float)
+            standardized_target.append((fold_target - target_mean) / target_sd)
+            standardized_prediction.append((fold_prediction - target_mean) / target_sd)
+            standardized_null.append((fold_null - target_mean) / target_sd)
+        standardized = explanation_metrics(
+            np.concatenate(standardized_target),
+            np.concatenate(standardized_prediction),
+            np.concatenate(standardized_null),
+        )
+        scale_sensitive = bool(
+            abs(float(raw["r2"]) - float(standardized["r2"])) > 1e-10
+            or abs(float(raw["spearman_rho"]) - float(standardized["spearman_rho"])) > 1e-10
+        )
+        for scale_name, metrics in (("raw", raw), ("outer_train_standardized", standardized)):
+            rows.append(
+                {
+                    "representation": representation,
+                    "repeat": int(repeat),
+                    "subset": subset,
+                    "scale": scale_name,
+                    "n_participants": int(len(group)),
+                    **metrics,
+                    "source_score_scale_sensitive": scale_sensitive,
+                    "standardization_scope": "none" if scale_name == "raw" else "outer_training_source_scores_only",
+                    "interpretation_scope": "recoverability_scale_sensitivity",
+                }
+            )
+    result = pd.DataFrame(rows)
+    if not result.empty and not fold_metrics.empty:
+        result["n_outer_folds"] = result.apply(
+            lambda row: int(
+                fold_metrics.loc[
+                    fold_metrics["representation"].eq(row["representation"])
+                    & fold_metrics["repeat"].eq(int(row["repeat"]))
+                    & fold_metrics["subset"].eq(row["subset"]),
+                    "outer_fold",
+                ].nunique()
+            ),
+            axis=1,
+        )
+    return result
 
 
 def _shapley_from_prediction_groups(
@@ -2194,23 +2739,29 @@ def pairing_balance_rows(
     draw: int,
     partition: str,
     fit_reference: pd.DataFrame,
+    assignment_type: str = "optimal_matched",
+    random_distance_reference: Sequence[float] | None = None,
 ) -> list[dict[str, object]]:
-    """Report pre/post standardized balance for one donor ledger."""
+    """Report pairwise balance; marginal SMD is descriptive only."""
 
-    donor_lookup = donor.set_index("participant_id")
-    assigned_donor = donor_lookup.loc[assignment["donor_id"].tolist(), list(PAIRING_MATCH_FEATURES)]
-    recipient_values = recipient[list(PAIRING_MATCH_FEATURES)].to_numpy(dtype=float)
-    donor_values = assigned_donor.to_numpy(dtype=float)
-    reference = fit_reference[list(PAIRING_MATCH_FEATURES)].to_numpy(dtype=float)
-    scale = reference.std(axis=0, ddof=0)
-    scale[scale <= 1e-12] = 1.0
-    before_smd = (recipient_values.mean(axis=0) - donor[list(PAIRING_MATCH_FEATURES)].to_numpy(dtype=float).mean(axis=0)) / scale
-    after_smd = (recipient_values.mean(axis=0) - donor_values.mean(axis=0)) / scale
-    adequate = bool(
-        np.max(np.abs(after_smd), initial=0.0) <= 0.10
-        and not assignment["self_match"].any()
-        and assignment["one_to_one"].all()
+    quality = pairing_quality_summary(
+        recipient=recipient,
+        donor=donor,
+        assignment=assignment,
+        fit_reference=fit_reference,
+        random_distance_reference=random_distance_reference,
+        assignment_type=assignment_type,
     )
+    recipient_lookup = recipient.set_index("participant_id")
+    donor_lookup = donor.set_index("participant_id")
+    ordered_recipient = recipient_lookup.loc[assignment["recipient_id"].tolist(), list(PAIRING_MATCH_FEATURES)]
+    ordered_donor = donor_lookup.loc[assignment["donor_id"].tolist(), list(PAIRING_MATCH_FEATURES)]
+    _, _, scale = _pairing_z_values(recipient, donor, fit_reference)
+    signed_difference = (ordered_recipient.to_numpy(dtype=float) - ordered_donor.to_numpy(dtype=float)) / scale
+    absolute_difference = np.abs(signed_difference)
+    feature_means = quality["feature_mean_abs_standardized_paired_difference"]
+    feature_medians = quality["feature_median_abs_standardized_paired_difference"]
+    feature_q95 = quality["feature_q95_abs_standardized_paired_difference"]
     rows = []
     for index, feature in enumerate(PAIRING_MATCH_FEATURES):
         rows.append(
@@ -2221,10 +2772,26 @@ def pairing_balance_rows(
                 "draw": int(draw),
                 "partition": partition,
                 "feature": feature,
-                "before_standardized_mean_difference": float(before_smd[index]),
-                "after_standardized_mean_difference": float(after_smd[index]),
-                "max_abs_after_smd": float(np.max(np.abs(after_smd), initial=0.0)),
-                "matching_adequate": adequate,
+                "assignment_type": assignment_type,
+                "mean_signed_standardized_paired_difference": float(signed_difference[:, index].mean()),
+                "mean_abs_standardized_paired_difference": float(feature_means[feature]),
+                "median_abs_standardized_paired_difference": float(feature_medians[feature]),
+                "q95_abs_standardized_paired_difference": float(feature_q95[feature]),
+                "before_standardized_mean_difference": float(
+                    (recipient[list(PAIRING_MATCH_FEATURES)].to_numpy(dtype=float).mean(axis=0)[index]
+                     - donor[list(PAIRING_MATCH_FEATURES)].to_numpy(dtype=float).mean(axis=0)[index]) / scale[index]
+                ),
+                "after_standardized_mean_difference": float(signed_difference[:, index].mean()),
+                "max_abs_smd": float(quality["max_abs_smd"]),
+                "mean_distance": float(quality["mean_distance"]),
+                "median_distance": float(quality["median_distance"]),
+                "q95_distance": float(quality["q95_distance"]),
+                "max_distance": float(quality["max_distance"]),
+                "total_cost": float(quality["total_cost"]),
+                "random_distance_q05": float(quality["random_distance_q05"]),
+                "optimal_distance_random_percentile": float(quality["optimal_distance_random_percentile"]),
+                "n_features_mean_abs_paired_diff_lt_0_50": int(quality["n_features_mean_abs_paired_diff_lt_0_50"]),
+                "matching_adequate": bool(quality["matching_adequate"]),
                 "self_match_count": int(assignment["self_match"].sum()),
                 "max_donor_reuse_count": int(assignment["donor_reuse_count"].max()),
                 "one_to_one": bool(assignment["one_to_one"].all()),
@@ -2233,85 +2800,127 @@ def pairing_balance_rows(
     return rows
 
 
-def _assigned_source_scores(
-    source_scores: np.ndarray,
-    donor_assignment: pd.DataFrame,
-    participant_ids: np.ndarray,
-) -> np.ndarray:
-    lookup = {participant_id: index for index, participant_id in enumerate(participant_ids.tolist())}
-    return np.asarray(
-        [source_scores[lookup[participant_id]] for participant_id in donor_assignment["donor_id"]],
-        dtype=float,
-    )
+def pairing_pairwise_rows(
+    *,
+    recipient: pd.DataFrame,
+    donor: pd.DataFrame,
+    assignment: pd.DataFrame,
+    fit_reference: pd.DataFrame,
+    representation: str,
+    repeat: int,
+    outer_fold: int,
+    draw: int,
+    partition: str,
+    assignment_type: str,
+) -> list[dict[str, object]]:
+    """Return one auditable row per recipient-donor pair."""
+
+    recipient_lookup = recipient.set_index("participant_id")
+    donor_lookup = donor.set_index("participant_id")
+    _, _, scale = _pairing_z_values(recipient, donor, fit_reference)
+    rows: list[dict[str, object]] = []
+    for assignment_row in assignment.to_dict("records"):
+        recipient_values = recipient_lookup.loc[assignment_row["recipient_id"], list(PAIRING_MATCH_FEATURES)].to_numpy(dtype=float)
+        donor_values = donor_lookup.loc[assignment_row["donor_id"], list(PAIRING_MATCH_FEATURES)].to_numpy(dtype=float)
+        standardized_difference = (recipient_values - donor_values) / scale
+        row: dict[str, object] = {
+            "record_type": "pairwise",
+            "representation": representation,
+            "repeat": int(repeat),
+            "outer_fold": int(outer_fold),
+            "draw": int(draw),
+            "partition": partition,
+            "assignment_type": assignment_type,
+            "recipient_id": assignment_row["recipient_id"],
+            "donor_id": assignment_row["donor_id"],
+            "self_match": bool(assignment_row.get("self_match", False)),
+            "one_to_one": bool(assignment_row.get("one_to_one", False)),
+            "standardized_euclidean_distance": float(np.sqrt(np.square(standardized_difference).sum())),
+        }
+        row.update(
+            {
+                f"abs_standardized_pair_difference__{feature}": float(abs(standardized_difference[index]))
+                for index, feature in enumerate(PAIRING_MATCH_FEATURES)
+            }
+        )
+        rows.append(row)
+    return rows
 
 
 def _pairing_draw_inference(
     predictions: pd.DataFrame,
     deltas: pd.DataFrame,
     *,
+    main_repeat: int,
     n_bootstrap: int,
     n_permutations: int,
     seed: int,
 ) -> pd.DataFrame:
     rows: list[dict[str, object]] = []
     for (representation, repeat), group in predictions.groupby(["representation", "repeat"], sort=True):
-        if int(repeat) != 1:
+        if int(repeat) != int(main_repeat):
             continue
-        pivot = group.pivot_table(index=["draw", "participant_id", "label"], columns="model_name", values="probability")
-        pivot = pivot.reset_index()
-        required = {"P", "P+I-real", "P+I-matched", "full", "full+I-real", "full+I-matched"}
+        optimal = group.loc[group["draw_type"].eq("optimal_matched")]
+        pivot = optimal.pivot_table(
+            index=["participant_id", "label"], columns="model_name", values="probability"
+        ).reset_index()
+        required = {"P", "P+I-real", "P+I-optimal_matched", "full", "full+I-real", "full+I-optimal_matched"}
         if not required.issubset(pivot.columns):
             raise ValueError(f"pairing predictions are missing model columns: {sorted(required - set(pivot.columns))}")
-        draws = np.sort(pivot["draw"].unique())
-        participant_ids = np.sort(pivot["participant_id"].unique())
-        labels = pivot.loc[pivot["draw"].eq(draws[0])].sort_values("participant_id")["label"].to_numpy(dtype=int)
+        pivot = pivot.sort_values("participant_id", kind="stable")
+        labels = pivot["label"].to_numpy(dtype=int)
         positive = np.flatnonzero(labels == 1)
         negative = np.flatnonzero(labels == 0)
         rng = np.random.default_rng(int(seed) + _stable_seed_offset(representation))
-        bootstrap_real_minus_matched: list[float] = []
-        bootstrap_matched_minus_no_i: list[float] = []
+        bootstrap_real_minus_optimal: list[float] = []
+        bootstrap_optimal_minus_no_i: list[float] = []
         for _ in range(int(n_bootstrap)):
-            draw = int(rng.choice(draws))
-            one_draw = pivot.loc[pivot["draw"].eq(draw)].sort_values("participant_id")
             index = np.concatenate(
                 [rng.choice(positive, size=len(positive), replace=True), rng.choice(negative, size=len(negative), replace=True)]
             )
-            weak_real = roc_auc_score(labels[index], one_draw["P+I-real"].to_numpy()[index]) - roc_auc_score(labels[index], one_draw["P"].to_numpy()[index])
-            weak_matched = roc_auc_score(labels[index], one_draw["P+I-matched"].to_numpy()[index]) - roc_auc_score(labels[index], one_draw["P"].to_numpy()[index])
-            full_real = roc_auc_score(labels[index], one_draw["full+I-real"].to_numpy()[index]) - roc_auc_score(labels[index], one_draw["full"].to_numpy()[index])
-            full_matched = roc_auc_score(labels[index], one_draw["full+I-matched"].to_numpy()[index]) - roc_auc_score(labels[index], one_draw["full"].to_numpy()[index])
-            bootstrap_real_minus_matched.append(weak_real - weak_matched)
-            bootstrap_matched_minus_no_i.append(weak_matched)
-            _ = full_real - full_matched
-        observed = deltas.loc[
-            (deltas["representation"] == representation) & (deltas["repeat"] == repeat),
-            "real_minus_matched_delta_auc",
-        ].mean()
-        matched_observed = deltas.loc[
-            (deltas["representation"] == representation) & (deltas["repeat"] == repeat),
-            "matched_minus_no_i_delta_auc",
-        ].mean()
+            base = roc_auc_score(labels[index], pivot["P"].to_numpy()[index])
+            real = roc_auc_score(labels[index], pivot["P+I-real"].to_numpy()[index]) - base
+            optimal_delta = roc_auc_score(labels[index], pivot["P+I-optimal_matched"].to_numpy()[index]) - base
+            bootstrap_real_minus_optimal.append(real - optimal_delta)
+            bootstrap_optimal_minus_no_i.append(optimal_delta)
+        observed = float(
+            deltas.loc[
+                (deltas["representation"] == representation)
+                & (deltas["repeat"] == repeat)
+                & deltas["draw_type"].eq("optimal_matched"),
+                "real_minus_matched_delta_auc",
+            ].iloc[0]
+        )
+        matched_observed = float(
+            deltas.loc[
+                (deltas["representation"] == representation)
+                & (deltas["repeat"] == repeat)
+                & deltas["draw_type"].eq("optimal_matched"),
+                "matched_minus_no_i_delta_auc",
+            ].iloc[0]
+        )
         extreme = 0
         for _ in range(int(n_permutations)):
-            draw = int(rng.choice(draws))
-            one_draw = pivot.loc[pivot["draw"].eq(draw)].sort_values("participant_id")
             swap = rng.integers(0, 2, size=len(labels), dtype=np.int8).astype(bool)
-            real = np.where(swap, one_draw["P+I-real"].to_numpy(), one_draw["P+I-matched"].to_numpy())
-            matched = np.where(swap, one_draw["P+I-matched"].to_numpy(), one_draw["P+I-real"].to_numpy())
-            statistic = roc_auc_score(labels, real) - roc_auc_score(labels, matched)
-            extreme += int(abs(statistic) >= abs(float(observed)) - 1e-15)
+            real = np.where(swap, pivot["P+I-real"].to_numpy(), pivot["P+I-optimal_matched"].to_numpy())
+            optimal_prediction = np.where(swap, pivot["P+I-optimal_matched"].to_numpy(), pivot["P+I-real"].to_numpy())
+            statistic = roc_auc_score(labels, real) - roc_auc_score(labels, optimal_prediction)
+            extreme += int(abs(statistic) >= abs(observed) - 1e-15)
         rows.append(
             {
                 "representation": representation,
                 "repeat": int(repeat),
-                "real_minus_matched_delta_auc_observed": float(observed),
-                "matched_minus_no_i_delta_auc_observed": float(matched_observed),
-                "ci_low": float(np.quantile(bootstrap_real_minus_matched, 0.025)),
-                "ci_high": float(np.quantile(bootstrap_real_minus_matched, 0.975)),
+                "draw": 0,
+                "real_minus_matched_delta_auc_observed": observed,
+                "matched_minus_no_i_delta_auc_observed": matched_observed,
+                "ci_low": float(np.quantile(bootstrap_real_minus_optimal, 0.025)),
+                "ci_high": float(np.quantile(bootstrap_real_minus_optimal, 0.975)),
+                "optimal_minus_no_i_ci_low": float(np.quantile(bootstrap_optimal_minus_no_i, 0.025)),
+                "optimal_minus_no_i_ci_high": float(np.quantile(bootstrap_optimal_minus_no_i, 0.975)),
                 "n_bootstrap": int(n_bootstrap),
                 "n_permutations": int(n_permutations),
                 "p_value": float((extreme + 1) / (int(n_permutations) + 1)),
-                "interpretation_scope": "pairing_dependence_not_identified_interaction_effect",
+                "interpretation_scope": "pairing_dependence_real_vs_optimal_matched",
             }
         )
     return pd.DataFrame(rows)
@@ -2324,6 +2933,7 @@ def run_pairing_dependence(
     *,
     representations: Sequence[str],
     repeats: Sequence[int],
+    source_data: Mapping[str, SourceRepresentationData],
     inner_folds: int = INNER_FOLDS,
     c_grid: Sequence[float] = LABEL_C_GRID,
     n_draws: int = PAIRING_DRAWS,
@@ -2331,63 +2941,107 @@ def run_pairing_dependence(
     main_repeat: int = 1,
     n_bootstrap: int = N_BOOTSTRAP,
     n_permutations: int = N_PERMUTATIONS,
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Compare real and structure/D-P matched interviewer source logits."""
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Compare real, one optimal mismatch and random mismatch references."""
 
     match_frame = build_pairing_match_frame(inputs)
     assignment_rows: list[dict[str, object]] = []
     prediction_rows: list[dict[str, object]] = []
-    balance_rows: list[dict[str, object]] = []
+    quality_rows: list[dict[str, object]] = []
+    pairwise_rows: list[dict[str, object]] = []
+    random_reference_rows: list[dict[str, object]] = []
     metric_rows: list[dict[str, object]] = []
     delta_rows: list[dict[str, object]] = []
     for representation in representations:
+        if representation not in source_data:
+            raise ValueError(f"source-level pairing data is missing {representation}")
         for repeat in sorted(int(value) for value in repeats):
-            for draw in range(1, int(n_draws) + 1):
-                for fold in range(1, 6):
-                    source = source_cache[(representation, repeat, fold)]
-                    train_idx, test_idx = source.train_idx, source.test_idx
-                    train_frame = match_frame.iloc[train_idx].reset_index(drop=True)
-                    test_frame = match_frame.iloc[test_idx].reset_index(drop=True)
-                    seed = int(base_seed) + repeat * 100_000 + draw * 1_000 + fold + _stable_seed_offset(representation)
-                    train_assignment = make_pairing_assignment(
-                        recipient=train_frame,
-                        donor=train_frame,
-                        fit_reference=train_frame,
-                        seed=seed,
-                    )
-                    test_assignment = make_pairing_assignment(
+            for fold in range(1, 6):
+                source = source_cache[(representation, repeat, fold)]
+                train_idx, test_idx = source.train_idx, source.test_idx
+                train_frame = match_frame.iloc[train_idx].reset_index(drop=True)
+                test_frame = match_frame.iloc[test_idx].reset_index(drop=True)
+                fold_seed = int(base_seed) + repeat * 100_000 + fold * 1_000 + _stable_seed_offset(representation)
+                random_test_assignments: dict[int, pd.DataFrame] = {}
+                random_distances: list[float] = []
+                for draw in range(1, int(n_draws) + 1):
+                    random_assignment = make_random_derangement_assignment(
                         recipient=test_frame,
                         donor=test_frame,
                         fit_reference=train_frame,
-                        seed=seed + 1,
+                        seed=fold_seed + draw,
                     )
-                    for partition, assignment in (("train", train_assignment), ("test", test_assignment)):
-                        for assignment_row in assignment.to_dict("records"):
-                            assignment_rows.append(
-                                {
-                                    "representation": representation,
-                                    "repeat": int(repeat),
-                                    "outer_fold": int(fold),
-                                    "draw": int(draw),
-                                    "partition": partition,
-                                    **assignment_row,
-                                }
-                            )
-                    balance_rows.extend(
-                        pairing_balance_rows(
-                            recipient=train_frame,
-                            donor=train_frame,
-                            assignment=train_assignment,
-                            representation=representation,
-                            repeat=repeat,
-                            outer_fold=fold,
-                            draw=draw,
-                            partition="train",
-                            fit_reference=train_frame,
+                    random_test_assignments[draw] = random_assignment
+                    random_quality = pairing_quality_summary(
+                        recipient=test_frame,
+                        donor=test_frame,
+                        assignment=random_assignment,
+                        fit_reference=train_frame,
+                        random_distance_reference=None,
+                        assignment_type="random_mismatch",
+                    )
+                    random_distances.append(float(random_quality["mean_distance"]))
+                    random_reference_rows.append(
+                        {
+                            "record_type": "random_reference",
+                            "representation": representation,
+                            "repeat": int(repeat),
+                            "outer_fold": int(fold),
+                            "partition": "outer_test",
+                            "draw": int(draw),
+                            "assignment_type": "random_mismatch",
+                            **{key: value for key, value in random_quality.items() if key not in {"feature_mean_abs_standardized_paired_difference", "feature_median_abs_standardized_paired_difference", "feature_q95_abs_standardized_paired_difference", "feature_mean_signed_standardized_paired_difference"}},
+                        }
+                    )
+                optimal_test_assignment = make_pairing_assignment(
+                    recipient=test_frame,
+                    donor=test_frame,
+                    fit_reference=train_frame,
+                    seed=fold_seed,
+                )
+                draw_specs: list[tuple[int, str, pd.DataFrame]] = [(0, "optimal_matched", optimal_test_assignment)]
+                draw_specs.extend((draw, "random_mismatch", assignment) for draw, assignment in random_test_assignments.items())
+                for draw, draw_type, test_assignment in draw_specs:
+                    matched_train_i, matched_test_i, source_audit = build_fold_contained_matched_source_logits(
+                        representation=representation,
+                        source_data=source_data[representation],
+                        labels=inputs.labels,
+                        participant_ids=inputs.participant_ids,
+                        match_frame=match_frame,
+                        train_idx=train_idx,
+                        test_idx=test_idx,
+                        outer_test_assignment=test_assignment,
+                        inner_folds=inner_folds,
+                        c_grid=DEFAULT_C_GRID,
+                        seed=fold_seed + draw * 10_000,
+                        assignment_mode=draw_type,
+                    )
+                    for audit_row in source_audit.to_dict("records"):
+                        assignment_rows.append(
+                            {
+                                "record_type": "source_level_assignment",
+                                "representation": representation,
+                                "repeat": int(repeat),
+                                "outer_fold": int(fold),
+                                "draw": int(draw),
+                                "draw_type": draw_type,
+                                **audit_row,
+                            }
                         )
+                    quality = pairing_quality_summary(
+                        recipient=test_frame,
+                        donor=test_frame,
+                        assignment=test_assignment,
+                        fit_reference=train_frame,
+                        random_distance_reference=random_distances,
+                        assignment_type=draw_type,
                     )
-                    balance_rows.extend(
-                        pairing_balance_rows(
+                    quality_rows.extend(
+                        {
+                            "record_type": "quality",
+                            **row,
+                        }
+                        for row in pairing_balance_rows(
                             recipient=test_frame,
                             donor=test_frame,
                             assignment=test_assignment,
@@ -2395,39 +3049,60 @@ def run_pairing_dependence(
                             repeat=repeat,
                             outer_fold=fold,
                             draw=draw,
-                            partition="test",
+                            partition="outer_test",
                             fit_reference=train_frame,
+                            assignment_type=draw_type,
+                            random_distance_reference=random_distances,
                         )
                     )
-                    matched_train_i = _assigned_source_scores(source.interviewer_train_logit, train_assignment, train_frame["participant_id"].to_numpy())
-                    matched_test_i = _assigned_source_scores(source.interviewer_test_logit, test_assignment, test_frame["participant_id"].to_numpy())
-                    designs: dict[str, tuple[np.ndarray, np.ndarray]] = {
-                        "P": (
-                            _subset_design("P", participant_logits=source.participant_train_logit, block_matrices=inputs.block_matrices, indices=train_idx),
-                            _subset_design("P", participant_logits=source.participant_test_logit, block_matrices=inputs.block_matrices, indices=test_idx),
-                        ),
-                        "P+I-real": (
-                            np.column_stack([_subset_design("P", participant_logits=source.participant_train_logit, block_matrices=inputs.block_matrices, indices=train_idx), source.interviewer_train_logit]),
-                            np.column_stack([_subset_design("P", participant_logits=source.participant_test_logit, block_matrices=inputs.block_matrices, indices=test_idx), source.interviewer_test_logit]),
-                        ),
-                        "P+I-matched": (
-                            np.column_stack([_subset_design("P", participant_logits=source.participant_train_logit, block_matrices=inputs.block_matrices, indices=train_idx), matched_train_i]),
-                            np.column_stack([_subset_design("P", participant_logits=source.participant_test_logit, block_matrices=inputs.block_matrices, indices=test_idx), matched_test_i]),
-                        ),
-                    }
+                    pairwise_rows.extend(
+                        pairing_pairwise_rows(
+                            recipient=test_frame,
+                            donor=test_frame,
+                            assignment=test_assignment,
+                            fit_reference=train_frame,
+                            representation=representation,
+                            repeat=repeat,
+                            outer_fold=fold,
+                            draw=draw,
+                            partition="outer_test",
+                            assignment_type=draw_type,
+                        )
+                    )
+                    for assignment_row in test_assignment.to_dict("records"):
+                        assignment_rows.append(
+                            {
+                                "record_type": "outer_test_assignment",
+                                "representation": representation,
+                                "repeat": int(repeat),
+                                "outer_fold": int(fold),
+                                "draw": int(draw),
+                                "draw_type": draw_type,
+                                "partition": "outer_test",
+                                **assignment_row,
+                            }
+                        )
+                    p_train = _subset_design("P", participant_logits=source.participant_train_logit, block_matrices=inputs.block_matrices, indices=train_idx)
+                    p_test = _subset_design("P", participant_logits=source.participant_test_logit, block_matrices=inputs.block_matrices, indices=test_idx)
                     full_train = _subset_design("P+Q+R+D", participant_logits=source.participant_train_logit, block_matrices=inputs.block_matrices, indices=train_idx)
                     full_test = _subset_design("P+Q+R+D", participant_logits=source.participant_test_logit, block_matrices=inputs.block_matrices, indices=test_idx)
-                    designs["full"] = (full_train, full_test)
-                    designs["full+I-real"] = (np.column_stack([full_train, source.interviewer_train_logit]), np.column_stack([full_test, source.interviewer_test_logit]))
-                    designs["full+I-matched"] = (np.column_stack([full_train, matched_train_i]), np.column_stack([full_test, matched_test_i]))
-                    for model_name, (X_train, X_test) in designs.items():
+                    matched_prefix = "optimal_matched" if draw_type == "optimal_matched" else "random_mismatch"
+                    designs: dict[str, tuple[np.ndarray, np.ndarray]] = {
+                        "P": (p_train, p_test),
+                        "P+I-real": (np.column_stack([p_train, source.interviewer_train_logit]), np.column_stack([p_test, source.interviewer_test_logit])),
+                        f"P+I-{matched_prefix}": (np.column_stack([p_train, matched_train_i]), np.column_stack([p_test, matched_test_i])),
+                        "full": (full_train, full_test),
+                        "full+I-real": (np.column_stack([full_train, source.interviewer_train_logit]), np.column_stack([full_test, source.interviewer_test_logit])),
+                        f"full+I-{matched_prefix}": (np.column_stack([full_train, matched_train_i]), np.column_stack([full_test, matched_test_i])),
+                    }
+                    for model_index, (model_name, (X_train, X_test)) in enumerate(designs.items()):
                         probability, selected, _ = fit_label_outer(
                             X_train,
                             inputs.labels[train_idx],
                             X_test,
                             inner_folds=inner_folds,
                             c_grid=c_grid,
-                            seed=seed + list(designs).index(model_name) * 100,
+                            seed=fold_seed + draw * 100 + model_index,
                         )
                         for local_index, global_index in enumerate(test_idx):
                             prediction_rows.append(
@@ -2438,73 +3113,111 @@ def run_pairing_dependence(
                                     "repeat": int(repeat),
                                     "outer_fold": int(fold),
                                     "draw": int(draw),
+                                    "draw_type": draw_type,
                                     "model_name": model_name,
                                     "probability": float(probability[local_index]),
                                     "selected_C": float(selected),
                                 }
                             )
-                # Fold-complete draw metrics are computed below from participant OOF rows.
-            # The next grouping block creates one delta row per draw.
-            current = pd.DataFrame(prediction_rows)
-            current = current.loc[(current["representation"] == representation) & (current["repeat"] == repeat)]
-            for draw, draw_frame in current.groupby("draw", sort=True):
-                wide = draw_frame.pivot(index=["participant_id", "label"], columns="model_name", values="probability")
-                metrics_by_model = {model: _classification_metrics(wide.index.get_level_values("label").to_numpy(dtype=int), wide[model].to_numpy(dtype=float)) for model in wide.columns}
-                for model_name, metrics in metrics_by_model.items():
-                    metric_rows.append({"representation": representation, "repeat": int(repeat), "draw": int(draw), "model_name": model_name, **metrics, "interpretation_scope": "pairing_dependence"})
-                base_weak = metrics_by_model["P"]["roc_auc"]
-                base_full = metrics_by_model["full"]["roc_auc"]
-                weak_real = metrics_by_model["P+I-real"]["roc_auc"] - base_weak
-                weak_matched = metrics_by_model["P+I-matched"]["roc_auc"] - base_weak
-                full_real = metrics_by_model["full+I-real"]["roc_auc"] - base_full
-                full_matched = metrics_by_model["full+I-matched"]["roc_auc"] - base_full
-                delta_rows.append(
-                    {
-                        "representation": representation,
-                        "repeat": int(repeat),
-                        "draw": int(draw),
-                        "weak_real_delta_auc": weak_real,
-                        "weak_matched_delta_auc": weak_matched,
-                        "full_real_delta_auc": full_real,
-                        "full_matched_delta_auc": full_matched,
-                        "real_minus_matched_delta_auc": weak_real - weak_matched,
-                        "matched_minus_no_i_delta_auc": weak_matched,
-                        "real_minus_matched_full_delta_auc": full_real - full_matched,
-                        "mean_abs_probability_change_weak": float(np.mean(np.abs(wide["P+I-real"] - wide["P+I-matched"]))),
-                        "mean_abs_probability_change_full": float(np.mean(np.abs(wide["full+I-real"] - wide["full+I-matched"]))),
-                        "interpretation_scope": "pairing_dependence_not_identified_interaction_effect",
-                    }
-                )
     predictions = pd.DataFrame(prediction_rows)
+    for (representation, repeat, draw), draw_frame in predictions.groupby(["representation", "repeat", "draw"], sort=True):
+        wide = draw_frame.pivot(index=["participant_id", "label"], columns="model_name", values="probability")
+        draw_type = str(draw_frame["draw_type"].iloc[0])
+        matched_name = f"P+I-{draw_type}"
+        full_matched_name = f"full+I-{draw_type}"
+        labels = wide.index.get_level_values("label").to_numpy(dtype=int)
+        metrics_by_model = {
+            model: _classification_metrics(labels, wide[model].to_numpy(dtype=float))
+            for model in wide.columns
+        }
+        for model_name, model_metrics in metrics_by_model.items():
+            metric_rows.append(
+                {
+                    "representation": representation,
+                    "repeat": int(repeat),
+                    "draw": int(draw),
+                    "draw_type": draw_type,
+                    "model_name": model_name,
+                    **model_metrics,
+                    "interpretation_scope": "pairing_dependence",
+                }
+            )
+        weak_real = metrics_by_model["P+I-real"]["roc_auc"] - metrics_by_model["P"]["roc_auc"]
+        weak_matched = metrics_by_model[matched_name]["roc_auc"] - metrics_by_model["P"]["roc_auc"]
+        full_real = metrics_by_model["full+I-real"]["roc_auc"] - metrics_by_model["full"]["roc_auc"]
+        full_matched = metrics_by_model[full_matched_name]["roc_auc"] - metrics_by_model["full"]["roc_auc"]
+        delta_rows.append(
+            {
+                "representation": representation,
+                "repeat": int(repeat),
+                "draw": int(draw),
+                "draw_type": draw_type,
+                "matched_model_name": matched_name,
+                "weak_real_delta_auc": weak_real,
+                "weak_matched_delta_auc": weak_matched,
+                "full_real_delta_auc": full_real,
+                "full_matched_delta_auc": full_matched,
+                "real_minus_matched_delta_auc": weak_real - weak_matched,
+                "matched_minus_no_i_delta_auc": weak_matched,
+                "real_minus_optimal_delta_auc": weak_real - weak_matched if draw_type == "optimal_matched" else float("nan"),
+                "real_minus_random_delta_auc": weak_real - weak_matched if draw_type == "random_mismatch" else float("nan"),
+                "optimal_minus_no_i_delta_auc": weak_matched if draw_type == "optimal_matched" else float("nan"),
+                "random_minus_no_i_delta_auc": weak_matched if draw_type == "random_mismatch" else float("nan"),
+                "real_minus_matched_full_delta_auc": full_real - full_matched,
+                "mean_abs_probability_change_weak": float(np.mean(np.abs(wide["P+I-real"] - wide[matched_name]))),
+                "mean_abs_probability_change_full": float(np.mean(np.abs(wide["full+I-real"] - wide[full_matched_name]))),
+                "interpretation_scope": "pairing_dependence_not_identified_interaction_effect",
+            }
+        )
+    predictions = predictions.sort_values(["representation", "repeat", "draw", "participant_id", "model_name"], kind="stable").reset_index(drop=True)
     metrics = pd.DataFrame(metric_rows)
     deltas = pd.DataFrame(delta_rows)
-    balance = pd.DataFrame(balance_rows)
     draw_inference = _pairing_draw_inference(
         predictions,
         deltas,
+        main_repeat=main_repeat,
         n_bootstrap=n_bootstrap,
         n_permutations=n_permutations,
         seed=base_seed + 960_000,
     )
     if not draw_inference.empty:
-        deltas = deltas.merge(draw_inference, on=["representation", "repeat"], how="left")
+        deltas = deltas.merge(draw_inference, on=["representation", "repeat", "draw"], how="left")
+    quality = pd.DataFrame(quality_rows)
+    pairwise = pd.DataFrame(pairwise_rows)
+    random_reference = pd.DataFrame(random_reference_rows)
     stability_rows: list[dict[str, object]] = []
     for (representation, repeat), group in deltas.groupby(["representation", "repeat"], sort=True):
-        balance_group = balance.loc[(balance["representation"] == representation) & (balance["repeat"] == repeat)]
+        optimal = group.loc[group["draw_type"].eq("optimal_matched")]
+        random = group.loc[group["draw_type"].eq("random_mismatch")]
+        quality_group = quality.loc[
+            quality["representation"].eq(representation)
+            & quality["repeat"].eq(int(repeat))
+            & quality["assignment_type"].eq("optimal_matched")
+        ]
         stability_rows.append(
             {
                 "representation": representation,
                 "repeat": int(repeat),
-                "n_draws": int(group["draw"].nunique()),
-                "real_minus_matched_delta_auc_mean": float(group["real_minus_matched_delta_auc"].mean()),
-                "real_minus_matched_delta_auc_sd": float(group["real_minus_matched_delta_auc"].std(ddof=1)),
-                "real_minus_matched_delta_auc_q025": float(group["real_minus_matched_delta_auc"].quantile(0.025)),
-                "real_minus_matched_delta_auc_q975": float(group["real_minus_matched_delta_auc"].quantile(0.975)),
-                "matching_adequate": bool(balance_group["matching_adequate"].all()),
-                "interpretation_scope": "pairing_dependence_draw_stability",
+                "n_random_draws": int(random["draw"].nunique()),
+                "optimal_real_minus_matched_delta_auc": float(optimal["real_minus_matched_delta_auc"].iloc[0]),
+                "random_real_minus_matched_delta_auc_mean": float(random["real_minus_matched_delta_auc"].mean()),
+                "random_real_minus_matched_delta_auc_sd": float(random["real_minus_matched_delta_auc"].std(ddof=1)) if len(random) > 1 else 0.0,
+                "random_real_minus_matched_delta_auc_q025": float(random["real_minus_matched_delta_auc"].quantile(0.025)),
+                "random_real_minus_matched_delta_auc_q975": float(random["real_minus_matched_delta_auc"].quantile(0.975)),
+                "matching_adequate": bool(quality_group["matching_adequate"].all()),
+                "interpretation_scope": "pairing_dependence_optimal_vs_random_reference",
             }
         )
-    return pd.DataFrame(assignment_rows), predictions, balance, metrics, deltas, pd.DataFrame(stability_rows)
+    return (
+        pd.DataFrame(assignment_rows),
+        predictions,
+        quality,
+        pairwise,
+        random_reference,
+        metrics,
+        deltas,
+        pd.DataFrame(stability_rows),
+    )
 
 
 def recoverability_inference(
@@ -2514,6 +3227,7 @@ def recoverability_inference(
     repeat: int,
     subset: str = "P+Q+R+D",
     n_bootstrap: int = N_BOOTSTRAP,
+    n_permutations: int = N_PERMUTATIONS,
     seed: int = BASE_SEED,
 ) -> dict[str, float | int]:
     frame = explanation_predictions.loc[
@@ -2526,18 +3240,37 @@ def recoverability_inference(
     target = frame["interviewer_logit"].to_numpy(dtype=float)
     prediction = frame["predicted_interviewer_logit"].to_numpy(dtype=float)
     null_prediction = frame["outer_train_mean_null_prediction"].to_numpy(dtype=float)
-    observed = relative_r2(target, prediction, null_prediction)
+    null_mse = float(mean_squared_error(target, null_prediction))
+    full_mse = float(mean_squared_error(target, prediction))
+    observed_delta_mse = float(null_mse - full_mse)
+    observed_r2 = float(1.0 - full_mse / null_mse) if null_mse > 1e-15 else float("nan")
     bootstrap = joint_bootstrap_indices(len(frame), n_bootstrap=n_bootstrap, seed=seed + _stable_seed_offset(representation))
     distribution = np.asarray(
-        [relative_r2(target[index], prediction[index], null_prediction[index]) for index in bootstrap],
+        [
+            mean_squared_error(target[index], null_prediction[index])
+            - mean_squared_error(target[index], prediction[index])
+            for index in bootstrap
+        ],
         dtype=float,
     )
+    permutation = paired_prediction_swap_permutation(
+        target,
+        null_prediction,
+        prediction,
+        n_permutations=n_permutations,
+        seed=seed + 1_000_003,
+    )
     return {
-        "estimate_mse_improvement": float(observed),
+        "estimate_mse_improvement": observed_delta_mse,
+        "estimate_r2": observed_r2,
+        "observed_delta_mse": observed_delta_mse,
         "ci_low": float(np.quantile(distribution, 0.025)),
         "ci_high": float(np.quantile(distribution, 0.975)),
-        "p_value": float((np.count_nonzero(distribution <= 0.0) + 1) / (len(distribution) + 1)),
+        "p_value": float(permutation["p_value"]),
+        "permutation_p_value": float(permutation["p_value"]),
         "n_bootstrap": int(n_bootstrap),
+        "n_permutations": int(n_permutations),
+        "ci_metric": "delta_mse",
     }
 
 
@@ -2603,7 +3336,11 @@ def summarise_repeat_stability(
             }
         )
     if not pairing_deltas.empty:
-        pairing_summary = pairing_deltas.groupby(["representation", "repeat"], as_index=False)["real_minus_matched_delta_auc"].mean()
+        pairing_summary = (
+            pairing_deltas.loc[pairing_deltas["draw_type"].eq("optimal_matched")]
+            .groupby(["representation", "repeat"], as_index=False)["real_minus_matched_delta_auc"]
+            .mean()
+        )
         for _, row in pairing_summary.iterrows():
             rows.append(
                 {
@@ -3061,6 +3798,7 @@ def _write_global_fdr(
     *,
     main_repeat: int,
     n_bootstrap: int = N_BOOTSTRAP,
+    n_permutations: int = N_PERMUTATIONS,
 ) -> pd.DataFrame:
     rows: list[dict[str, object]] = []
     representations = sorted(
@@ -3075,6 +3813,7 @@ def _write_global_fdr(
             representation=representation,
             repeat=main_repeat,
             n_bootstrap=n_bootstrap,
+            n_permutations=n_permutations,
             seed=BASE_SEED + _stable_seed_offset(representation),
         )
         residual = residual_deltas.loc[
@@ -3305,6 +4044,8 @@ def run_interviewer_signal_explanation(
         alpha_grid=alpha_grid,
         base_seed=base_seed,
     )
+    recoverability_fold_metrics_table = recoverability_fold_metrics(explanation_predictions)
+    recoverability_scale_sensitivity_table = recoverability_scale_sensitivity(explanation_predictions)
     shapley = run_block_shapley(
         explanation_predictions,
         main_repeat=main_repeat,
@@ -3353,12 +4094,29 @@ def run_interviewer_signal_explanation(
         n_bootstrap=n_bootstrap,
         seed=base_seed,
     )
-    pairing_assignments, pairing_predictions, pairing_balance, pairing_metrics, pairing_deltas, pairing_stability = run_pairing_dependence(
+    pairing_source_data = load_source_representation_data(
+        output_root,
+        inputs.participant_ids,
+        inputs.labels,
+        representations=available_representations,
+        embedding_root=embedding_root,
+    )
+    (
+        pairing_assignments,
+        pairing_predictions,
+        pairing_balance,
+        pairing_pairwise_balance,
+        pairing_random_reference,
+        pairing_metrics,
+        pairing_deltas,
+        pairing_stability,
+    ) = run_pairing_dependence(
         inputs,
         source_cache,
         membership,
         representations=available_representations,
         repeats=repeats,
+        source_data=pairing_source_data,
         inner_folds=inner_folds,
         c_grid=label_c_grid,
         n_draws=pairing_draws,
@@ -3381,6 +4139,7 @@ def run_interviewer_signal_explanation(
         pairing_deltas,
         main_repeat=main_repeat,
         n_bootstrap=n_bootstrap,
+        n_permutations=n_permutations,
     )
 
     tables = {
@@ -3388,6 +4147,8 @@ def run_interviewer_signal_explanation(
         "explanation_oof_predictions.csv": explanation_predictions,
         "explanation_subset_metrics.csv": explanation_metrics_table,
         "explanation_tuning.csv": explanation_tuning,
+        "recoverability_fold_metrics.csv": recoverability_fold_metrics_table,
+        "recoverability_scale_sensitivity.csv": recoverability_scale_sensitivity_table,
         "explanation_block_shapley.csv": shapley,
         "residual_signal_oof_predictions.csv": residual_predictions,
         "residual_signal_metrics.csv": residual_metrics,
@@ -3400,6 +4161,8 @@ def run_interviewer_signal_explanation(
         "fake_domain_summary.csv": fake_summary,
         "pairing_assignments.csv": pairing_assignments,
         "pairing_balance.csv": pairing_balance,
+        "pairing_pairwise_balance.csv": pairing_pairwise_balance,
+        "pairing_random_reference.csv": pairing_random_reference,
         "pairing_oof_predictions.csv": pairing_predictions,
         "pairing_metrics.csv": pairing_metrics,
         "pairing_deltas.csv": pairing_deltas,
@@ -3421,7 +4184,8 @@ def run_interviewer_signal_explanation(
         main_repeat=main_repeat,
     )
 
-    matching_adequate = bool(pairing_balance["matching_adequate"].all()) if not pairing_balance.empty else False
+    optimal_balance = pairing_balance.loc[pairing_balance["assignment_type"].eq("optimal_matched")]
+    matching_adequate = bool(optimal_balance["matching_adequate"].all()) if not optimal_balance.empty else False
     status = "complete" if matching_adequate else "matching_not_adequate_for_primary_interpretation"
     input_hashes = {
         name: availability["inputs"][name].get("sha256", {})
@@ -3458,9 +4222,34 @@ def run_interviewer_signal_explanation(
             "explanation": {"type": "Ridge", "alpha_grid": list(alpha_grid), "inner_folds": int(inner_folds), "scaling": "training_fold_only"},
             "label": {"type": "LogisticRegression", "C_grid": list(label_c_grid), "class_weight": "balanced", "solver": "liblinear", "max_iter": 2000, "scaling": "training_fold_only"},
         },
+        "recoverability_scale": {
+            "raw_and_outer_training_standardized_fold_metrics": True,
+            "participant_logit_scale_fields": [
+                "outer_train_participant_scale_mean",
+                "outer_train_participant_scale_sd",
+                "participant_logit_outer_train_standardized",
+            ],
+            "standardization_fit_scope": "outer_training_source_scores_only",
+        },
         "inference": {"bootstrap_resamples": int(n_bootstrap), "permutation_resamples": int(n_permutations), "primary_fdr_family": "four fixed TF-IDF tests", "main_repeat": int(main_repeat), "stability_repeats": list(repeats)},
         "fake_D": {"draws": int(fake_draws), "rowwise_partition_permutation": True, "label_free": True, "D_definition": "D-P"},
-        "matching": {"draws": int(pairing_draws), "method": "Hungarian standardized Euclidean with forbidden diagonal", "pca_components": 0, "max_abs_post_smd": 0.10, "status": "adequate" if matching_adequate else "matching_not_adequate_for_primary_interpretation"},
+        "matching": {
+            "optimal_draw": 0,
+            "random_reference_draws": int(pairing_draws),
+            "method": "Hungarian standardized Euclidean with forbidden diagonal",
+            "pca_components": 0,
+            "gate": {
+                "optimal_mean_distance_lt_random_q05": True,
+                "minimum_features_mean_abs_pair_difference_lt_0_50": 5,
+                "required_no_self": True,
+                "required_one_to_one": True,
+            },
+            "source_mismatch_stage": "before_source_prediction",
+            "inner_training_source_fit": "inner_training_only",
+            "outer_test_source_fit": "outer_training_only",
+            "precomputed_oof_logit_reassignment": False,
+            "status": "adequate" if matching_adequate else "matching_not_adequate_for_primary_interpretation",
+        },
         "seeds": {"base_seed": int(base_seed), "source_seed_formula": "base + repeat*100000 + fold*1000 + source_offset", "bootstrap": int(base_seed), "permutation": int(base_seed) + 1_000_003},
         "output_file_hashes": output_hashes,
         "output_inventory_sha256": hashlib.sha256(json.dumps(output_hashes, sort_keys=True).encode("utf-8")).hexdigest(),
