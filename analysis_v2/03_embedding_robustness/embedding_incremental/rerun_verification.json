@@ -1,0 +1,23 @@
+{
+  "mismatches": [],
+  "promoted_final": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\03_embedding_robustness\\embedding_incremental\\final",
+  "run_1": "run_1",
+  "run_1_output_file_hashes": {
+    "embedding_incremental_attenuation.csv": "73b76cdb9f3f4da57e2213c3ffcd4c510bb95b9b103b320ecf74131efc990d11",
+    "embedding_incremental_deltas.csv": "0d6532a676a2d4dcca33cd0501c3765a640fca01cf15737a2ecbfb8831d01999",
+    "embedding_incremental_model_metrics.csv": "ff94d601de5b45033f9b765ae4697d472a268174636492fdc7a0644f45e86979",
+    "embedding_incremental_oof_predictions.csv": "b875fe7a281bb483bfc4642747f7757926ae12c8e7d27e257c017b2683791b81",
+    "embedding_incremental_repeat_stability.csv": "4c34d14e2f71a53b9d809f99f99ee48f83fda80db950d5f36d99b6b739025a0d",
+    "embedding_incremental_tuning.csv": "5fd535a4a1f38be6decde19aa0e7fe9a3770042a33563ef5b6ee8f44f2b6fbfa"
+  },
+  "run_2": "run_2",
+  "run_2_output_file_hashes": {
+    "embedding_incremental_attenuation.csv": "73b76cdb9f3f4da57e2213c3ffcd4c510bb95b9b103b320ecf74131efc990d11",
+    "embedding_incremental_deltas.csv": "0d6532a676a2d4dcca33cd0501c3765a640fca01cf15737a2ecbfb8831d01999",
+    "embedding_incremental_model_metrics.csv": "ff94d601de5b45033f9b765ae4697d472a268174636492fdc7a0644f45e86979",
+    "embedding_incremental_oof_predictions.csv": "b875fe7a281bb483bfc4642747f7757926ae12c8e7d27e257c017b2683791b81",
+    "embedding_incremental_repeat_stability.csv": "4c34d14e2f71a53b9d809f99f99ee48f83fda80db950d5f36d99b6b739025a0d",
+    "embedding_incremental_tuning.csv": "5fd535a4a1f38be6decde19aa0e7fe9a3770042a33563ef5b6ee8f44f2b6fbfa"
+  },
+  "status": "verified"
+}

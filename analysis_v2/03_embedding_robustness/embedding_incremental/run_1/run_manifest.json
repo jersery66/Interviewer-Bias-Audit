@@ -1,0 +1,227 @@
+{
+  "analysis_status": "post hoc, analysis-locked supplementary conditional-increment analysis",
+  "classifier": {
+    "class_weight": "balanced",
+    "early_concat_scaling": "frozen embeddings passthrough; R/D standardized inside each training fit",
+    "fit_intercept": true,
+    "late_fusion_scaling": "all second-layer inputs standardized inside each training fit",
+    "max_iter": 2000,
+    "penalty": "l2",
+    "solver": "liblinear"
+  },
+  "code_commit": "e07b2fdd289a88185fd757b46b0ff7be5aeb1d26",
+  "cohort": {
+    "n": 142,
+    "negative": 99,
+    "participant_ids_sha256": "6804d7c3c9c9bceefdbd3abff07ed92a67f656cdd69bd2aca652124f427bc6c6",
+    "positive": 43
+  },
+  "cv": {
+    "C_grid": [
+      0.01,
+      0.1,
+      1.0,
+      10.0
+    ],
+    "base_seed": 20260624,
+    "inner_folds": 3,
+    "main_repeat": 1,
+    "outer_folds": 5,
+    "stability_repeats": 10
+  },
+  "fusion_methods": [
+    "late_fusion",
+    "early_concat"
+  ],
+  "inference": {
+    "bootstrap_resamples": 5000,
+    "delta_direction": {
+      "auc": "augmented - base",
+      "brier": "base - augmented",
+      "log_loss": "base - augmented",
+      "pr_auc": "augmented - base"
+    },
+    "permutation_resamples": 10000,
+    "primary_fdr_family": "late_fusion L4 across MPNet and BGE",
+    "secondary_fdr_family": "all late_fusion L1-L4 delta AUC"
+  },
+  "inputs": {
+    "domain_count": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\04_c5_controls\\domain_count\\input.csv",
+    "domain_features": [
+      "anhedonia_interest",
+      "appetite_weight",
+      "concentration_psychomotor",
+      "depressed_mood",
+      "functioning_impairment",
+      "mental_health_history",
+      "protective_or_absent_symptom",
+      "self_worth_guilt",
+      "sleep_fatigue_energy",
+      "suicide_self_harm"
+    ],
+    "embedding_manifest_registry": {
+      "model_1_all_mpnet_base_v2": {
+        "chunk_words": 200,
+        "embedding_dim": 768,
+        "empty_document_policy": "all-zero vector",
+        "manifest": {
+          "lf": "e3cf5a7806717d8044fb99fc2d8f26bdd489cd731bc2330bc780906bbd5eb313",
+          "raw": "0c5c025e9f3bc926646dea389edbd217b44e3e082310ec1d0f06cc30b43cdedd"
+        },
+        "model_name": "sentence-transformers/all-mpnet-base-v2",
+        "overlap": 50,
+        "pooling": "unweighted mean of normalized chunk embeddings, then document L2 normalization",
+        "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130"
+      },
+      "model_2_bge_large_en_v1_5": {
+        "chunk_words": 200,
+        "embedding_dim": 1024,
+        "empty_document_policy": "all-zero vector",
+        "manifest": {
+          "lf": "7a885a81538a983d1ca82e91e554ac55608ac8cc98be609b9994fa161ad1cf8c",
+          "raw": "7a98e4941323fe14503fa7b194d456d746414883446204e8daad0908d50b729c"
+        },
+        "model_name": "BAAI/bge-large-en-v1.5",
+        "overlap": 50,
+        "pooling": "unweighted mean of normalized chunk embeddings, then document L2 normalization",
+        "revision": "d4aa6901d3a41ba39fb536a557fa166f842b0e09"
+      }
+    },
+    "locked_input_audit": {
+      "hashes": {
+        "domains": {
+          "lf": "1fad85d77a8329992553a420898f7b0c3908b90dbd777da4ebd77bc6e869c134",
+          "raw": "7687c70d3770b7e8902900ec3c117d8a679fc6d718abf1c2a7f8d1361b07ae33"
+        },
+        "feature_dictionary": {
+          "lf": "fe3c56b0ebd51118bffee4ef2091c5088fad0d60a3537ac67c3242f52f97f821",
+          "raw": "fe3c56b0ebd51118bffee4ef2091c5088fad0d60a3537ac67c3242f52f97f821"
+        },
+        "plan": {
+          "lf": "6eeb59774fec44f6c926485e97f19d81ef6600bd6d10694091121458500848f2",
+          "raw": "6eeb59774fec44f6c926485e97f19d81ef6600bd6d10694091121458500848f2"
+        },
+        "splits": {
+          "lf": "e4202fcd4d492a37fa68c579767ea940ca0629b4230374b06ddc8778e32045b3",
+          "raw": "ceaddff172bf9582987cf76ff0522dcfdd0fe90c5b3014565bcfaacf003703ae"
+        },
+        "structural": {
+          "lf": "843871828087b6044b2400d588587a61c252720a15867d8c3cc7d34edf3b90b1",
+          "raw": "70c439c4a78ab7bea2b1106f59d06214ae0fa9bf09540bd24c859350cc2fce4a"
+        }
+      },
+      "paths": {
+        "domains": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\04_c5_controls\\domain_count\\input.csv",
+        "feature_dictionary": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\12_submission_audit\\structural_feature_dictionary.md",
+        "plan": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\03_embedding_robustness\\embedding_incremental_analysis_plan.md",
+        "splits": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\00_splits\\repeated_5fold_splits_10x5.csv",
+        "structural": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\12_submission_audit\\structural_baseline_features.csv"
+      }
+    },
+    "protocol_features": [
+      "protocol_structure__interviewer_question_count",
+      "protocol_structure__clinical_question_count",
+      "protocol_structure__unique_protocol_prompt_count",
+      "protocol_structure__clinical_prompt_coverage_count",
+      "protocol_structure__non_explicit_interviewer_turn_count"
+    ],
+    "split_membership": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\00_splits\\repeated_5fold_splits_10x5.csv",
+    "split_membership_sha256": {
+      "lf": "e4202fcd4d492a37fa68c579767ea940ca0629b4230374b06ddc8778e32045b3",
+      "raw": "ceaddff172bf9582987cf76ff0522dcfdd0fe90c5b3014565bcfaacf003703ae"
+    },
+    "structural_features": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\12_submission_audit\\structural_baseline_features.csv"
+  },
+  "mode": "formal",
+  "model_specifications": {
+    "L1": [
+      "P",
+      "P+I"
+    ],
+    "L2": [
+      "P+R",
+      "P+R+I"
+    ],
+    "L3": [
+      "P+D",
+      "P+D+I"
+    ],
+    "L4": [
+      "P+R+D",
+      "P+R+D+I"
+    ]
+  },
+  "models": [
+    {
+      "cache_files": [
+        {
+          "cache_key": "b369a9ce54810fe37ea9fef1de589c081879280cfa6997a569ff82e76cfe4eb8",
+          "condition": "participant_speech",
+          "path": "embedding_cache/participant_speech_b369a9ce54810fe3.npz",
+          "sha256": "b0c5dcbf13425f8943d5c54550b673d1bc198285883f622d139e7e9f352fa01e"
+        },
+        {
+          "cache_key": "5124d7a5fa6d9cf14f6cbadf59e0fe7faab2b27d5028c6274cd64c7b8d78fa53",
+          "condition": "interviewer_speech",
+          "path": "embedding_cache/interviewer_speech_5124d7a5fa6d9cf1.npz",
+          "sha256": "caaca80c76d4a30b54c6b713c98e28e2f6b80430d6005e9801ef3622360bf9f5"
+        }
+      ],
+      "embedding_dim": 768,
+      "manifest_hashes": {
+        "lf": "e3cf5a7806717d8044fb99fc2d8f26bdd489cd731bc2330bc780906bbd5eb313",
+        "raw": "0c5c025e9f3bc926646dea389edbd217b44e3e082310ec1d0f06cc30b43cdedd"
+      },
+      "name": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "short_name": "all-mpnet-base-v2",
+      "slug": "model_1_all_mpnet_base_v2"
+    },
+    {
+      "cache_files": [
+        {
+          "cache_key": "68319958fc1acf6a4c39b1f180fd43b8a20b3e9d7cf93ceb458b1badecd6bc52",
+          "condition": "participant_speech",
+          "path": "embedding_cache/participant_speech_68319958fc1acf6a.npz",
+          "sha256": "d438811c7f647a0e86933ce4569d1ea07d223a536f0186278b1dee78edff10f3"
+        },
+        {
+          "cache_key": "1fe67174baa4afc138d72d0f64c72b83039629ea4f7bac15c888cdac30e79a91",
+          "condition": "interviewer_speech",
+          "path": "embedding_cache/interviewer_speech_1fe67174baa4afc1.npz",
+          "sha256": "92c676eab68d19ba94838269be251c1540d35f48fa3d78bd8c9d268b653cd4b3"
+        }
+      ],
+      "embedding_dim": 1024,
+      "manifest_hashes": {
+        "lf": "7a885a81538a983d1ca82e91e554ac55608ac8cc98be609b9994fa161ad1cf8c",
+        "raw": "7a98e4941323fe14503fa7b194d456d746414883446204e8daad0908d50b729c"
+      },
+      "name": "BAAI/bge-large-en-v1.5",
+      "revision": "d4aa6901d3a41ba39fb536a557fa166f842b0e09",
+      "short_name": "bge-large-en-v1.5",
+      "slug": "model_2_bge_large_en_v1_5"
+    }
+  ],
+  "output_file_hashes": {
+    "embedding_incremental_attenuation.csv": "73b76cdb9f3f4da57e2213c3ffcd4c510bb95b9b103b320ecf74131efc990d11",
+    "embedding_incremental_deltas.csv": "0d6532a676a2d4dcca33cd0501c3765a640fca01cf15737a2ecbfb8831d01999",
+    "embedding_incremental_model_metrics.csv": "ff94d601de5b45033f9b765ae4697d472a268174636492fdc7a0644f45e86979",
+    "embedding_incremental_oof_predictions.csv": "b875fe7a281bb483bfc4642747f7757926ae12c8e7d27e257c017b2683791b81",
+    "embedding_incremental_repeat_stability.csv": "4c34d14e2f71a53b9d809f99f99ee48f83fda80db950d5f36d99b6b739025a0d",
+    "embedding_incremental_tuning.csv": "5fd535a4a1f38be6decde19aa0e7fe9a3770042a33563ef5b6ee8f44f2b6fbfa"
+  },
+  "output_files": [
+    "embedding_incremental_attenuation.csv",
+    "embedding_incremental_deltas.csv",
+    "embedding_incremental_model_metrics.csv",
+    "embedding_incremental_oof_predictions.csv",
+    "embedding_incremental_repeat_stability.csv",
+    "embedding_incremental_tuning.csv"
+  ],
+  "output_inventory_sha256": "6c29be93a02ec334add34bfe6170e79940fc912173025ba9f1975e9b4619775c",
+  "plan_sha256": "6eeb59774fec44f6c926485e97f19d81ef6600bd6d10694091121458500848f2",
+  "plan_sha256_lf": "6eeb59774fec44f6c926485e97f19d81ef6600bd6d10694091121458500848f2",
+  "run_id": 1,
+  "status": "complete"
+}
