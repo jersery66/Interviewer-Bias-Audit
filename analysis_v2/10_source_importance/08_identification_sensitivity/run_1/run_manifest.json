@@ -1,0 +1,117 @@
+{
+  "status": "complete",
+  "run_class": "formal",
+  "code_commit": "1efd1805c0d42754905b3546464aa18f502b32da",
+  "code_worktree_clean_before_run": true,
+  "analysis": "post_audit_identification_sensitivity",
+  "scope": "D-P; no D-All model",
+  "cohort_n": 142,
+  "positive_n": 43,
+  "repeat": 1,
+  "inner_folds": 3,
+  "c_grid": [
+    0.01,
+    0.1,
+    1.0,
+    10.0
+  ],
+  "pairing_draws": 50,
+  "fake_d_draws": 50,
+  "base_seed": 20260624,
+  "workers": 4,
+  "inputs": {
+    "structural": {
+      "path": "analysis_v2\\12_submission_audit\\structural_baseline_features.csv",
+      "sha256": "70c439c4a78ab7bea2b1106f59d06214ae0fa9bf09540bd24c859350cc2fce4a"
+    },
+    "splits": {
+      "path": "analysis_v2\\00_splits\\repeated_5fold_splits_10x5.csv",
+      "sha256": "ceaddff172bf9582987cf76ff0522dcfdd0fe90c5b3014565bcfaacf003703ae"
+    }
+  },
+  "embedding_root": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\03_embedding_robustness",
+  "embedding_models": {
+    "model_1_all_mpnet_base_v2": {
+      "model_name": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "embedding_dim": 768,
+      "cache_files": [
+        {
+          "condition": "participant_speech",
+          "path": "embedding_cache/participant_speech_b369a9ce54810fe3.npz",
+          "sha256": "b0c5dcbf13425f8943d5c54550b673d1bc198285883f622d139e7e9f352fa01e",
+          "cache_key": "b369a9ce54810fe37ea9fef1de589c081879280cfa6997a569ff82e76cfe4eb8"
+        },
+        {
+          "condition": "interviewer_speech",
+          "path": "embedding_cache/interviewer_speech_5124d7a5fa6d9cf1.npz",
+          "sha256": "caaca80c76d4a30b54c6b713c98e28e2f6b80430d6005e9801ef3622360bf9f5",
+          "cache_key": "5124d7a5fa6d9cf14f6cbadf59e0fe7faab2b27d5028c6274cd64c7b8d78fa53"
+        }
+      ],
+      "manifest_hashes": {
+        "raw": "0c5c025e9f3bc926646dea389edbd217b44e3e082310ec1d0f06cc30b43cdedd",
+        "lf": "e3cf5a7806717d8044fb99fc2d8f26bdd489cd731bc2330bc780906bbd5eb313"
+      }
+    },
+    "model_2_bge_large_en_v1_5": {
+      "model_name": "BAAI/bge-large-en-v1.5",
+      "revision": "d4aa6901d3a41ba39fb536a557fa166f842b0e09",
+      "embedding_dim": 1024,
+      "cache_files": [
+        {
+          "condition": "participant_speech",
+          "path": "embedding_cache/participant_speech_68319958fc1acf6a.npz",
+          "sha256": "d438811c7f647a0e86933ce4569d1ea07d223a536f0186278b1dee78edff10f3",
+          "cache_key": "68319958fc1acf6a4c39b1f180fd43b8a20b3e9d7cf93ceb458b1badecd6bc52"
+        },
+        {
+          "condition": "interviewer_speech",
+          "path": "embedding_cache/interviewer_speech_1fe67174baa4afc1.npz",
+          "sha256": "92c676eab68d19ba94838269be251c1540d35f48fa3d78bd8c9d268b653cd4b3",
+          "cache_key": "1fe67174baa4afc138d72d0f64c72b83039629ea4f7bac15c888cdac30e79a91"
+        }
+      ],
+      "manifest_hashes": {
+        "raw": "7a98e4941323fe14503fa7b194d456d746414883446204e8daad0908d50b729c",
+        "lf": "7a885a81538a983d1ca82e91e554ac55608ac8cc98be609b9994fa161ad1cf8c"
+      }
+    }
+  },
+  "pairing_match_columns": [
+    "length_only__interviewer_word_count",
+    "protocol_structure__interviewer_question_count",
+    "protocol_structure__clinical_question_count",
+    "protocol_structure__unique_protocol_prompt_count",
+    "protocol_structure__clinical_prompt_coverage_count",
+    "protocol_structure__non_explicit_interviewer_turn_count"
+  ],
+  "domain_partition": {
+    "D-PHQ": [
+      "anhedonia_interest",
+      "appetite_weight",
+      "concentration_psychomotor",
+      "depressed_mood",
+      "self_worth_guilt",
+      "sleep_fatigue_energy",
+      "suicide_self_harm"
+    ],
+    "D-Extra": [
+      "functioning_impairment",
+      "mental_health_history",
+      "protective_or_absent_symptom"
+    ]
+  },
+  "output_file_hashes": {
+    "fake_d_ledger.csv": "6f782a4057cee21b8aa68c7e656b32701d3019b5029fbc3ccfaaa2608250eb1f",
+    "fake_d_metrics_by_draw.csv": "5a83967c9c59747d670e6275f293a91a30749df24011d8582ce3df99ed435560",
+    "fake_d_predictions.csv": "4805cf69799ae38acde2ea7566079b31ae3d64d098d1fc06c08fac6c30b2e39d",
+    "fake_d_summary.csv": "de3cf44936a0c9ebc0e8bd2b7ecd136c0fd92ddb58539d332eb93814e2269b30",
+    "pairing_ledger.csv": "8b575efcdc3e5b8e1ecf2091dc3ecf121c15212d37d8d9a68427e41e5178d3e0",
+    "pairing_metrics_by_draw.csv": "c9b218199226e96453b418ad9f1c9b61faeaf1ea4c63568a806ff426e153f847",
+    "pairing_predictions.csv": "c4161c730d32587be914331d6f5e1b8f2613a044727d1529b40e38866ef7010b",
+    "pairing_summary.csv": "c079cab00c4c9028262dd7d0ab30fdc3a2b8b1b93a1ef4311034a8f0cb3d844a",
+    "phq_partition_metrics.csv": "4dcb578fc91f99e69a321f3df33da54cc84b98a08ed99ac0ab0f7faebe6e37cf",
+    "phq_partition_predictions.csv": "f4bd4c1ccc2c48885555d0827754c178dd303fc6d461c38a26be55d828e3d906"
+  }
+}
