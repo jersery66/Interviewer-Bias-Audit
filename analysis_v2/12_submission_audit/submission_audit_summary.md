@@ -7,6 +7,10 @@
 - The existing 10 x 5 repeated cross-validation remains a split-stability supplement.
 - Single-source performance measures predictive sufficiency, not independent contribution, causal bias, or leakage.
 
+## Symptom-domain source boundary
+
+The ten-domain `domain_count` control used in the existing joint and embedding-incremental analyses is **D-P**: all 1,137 reviewed C5 spans reconcile to the frozen count table and match participant language (0 interviewer-only matches). A qualifying full-interview **D-All** table is not present in the committed or audited C5 artifacts. Existing D-P L3/L4 results therefore remain participant-language-derived conditional results; they must not be described as controlling symptom domains extracted from the complete interview. The aggregate provenance audit is `10_source_importance/07_strict_joint_models/domain_source_audit.json`, and the gated comparison contract is `10_source_importance/07_strict_joint_models/domain_source_variants_plan.md`.
+
 ## Analysis-locked source results
 
 - participant_speech: AUC 0.717 (95% CI 0.614-0.811), raw Brier 0.231; nested-threshold sensitivity/specificity 0.488/0.869.

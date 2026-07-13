@@ -1,0 +1,32 @@
+{
+  "status": "complete",
+  "report": "embedding_incremental_reader_facing_tables_and_figures",
+  "n_rows": 16,
+  "global_bh_family": "all 16 embedding x fusion x level AUC deltas",
+  "global_bh_q_column": "global_bh_q16",
+  "result_scope_counts": {
+    "exploratory_early_concat": 8,
+    "late_fusion_sensitivity": 8
+  },
+  "sources": {
+    "deltas": {
+      "path": "analysis_v2/03_embedding_robustness/embedding_incremental/final/embedding_incremental_deltas.csv",
+      "sha256": "0d6532a676a2d4dcca33cd0501c3765a640fca01cf15737a2ecbfb8831d01999"
+    },
+    "metrics": {
+      "path": "analysis_v2/03_embedding_robustness/embedding_incremental/final/embedding_incremental_model_metrics.csv",
+      "sha256": "ff94d601de5b45033f9b765ae4697d472a268174636492fdc7a0644f45e86979"
+    }
+  },
+  "outputs": [
+    "embedding_incremental_auc_trajectory.pdf",
+    "embedding_incremental_auc_trajectory.png",
+    "embedding_incremental_auc_trajectory.svg",
+    "embedding_incremental_delta_forest.pdf",
+    "embedding_incremental_delta_forest.png",
+    "embedding_incremental_delta_forest.svg",
+    "embedding_incremental_main_results.csv",
+    "embedding_incremental_main_results.md",
+    "run_manifest.json"
+  ]
+}

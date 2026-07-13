@@ -17,6 +17,7 @@ The clean manuscript uses one narrative: participant language, interviewer langu
 - **Main analysis:** `12_submission_audit/`, repeat 1 of the existing five-fold participant split fixed as the analysis-locked split before the final post-audit sensitivity run, one cross-fitted prediction per participant. This is not formal preregistration.
 - **Split-stability supplement:** existing 10 x 5 outputs in `02_tfidf_main/` and `10_source_importance/07_strict_joint_models/`.
 - **C5 boundary:** C5 is an LLM-assisted, clinically guided derived representation. It is not a natural source equivalent to raw participant speech.
+- **Domain-control boundary:** the frozen ten-domain count table is D-P, a participant-language-derived control built from reviewed C5 spans. A qualifying full-interview D-All table is not currently available and is not inferred from D-P, protocol variables, or symptom-evidence-only files.
 - **E-DAIC boundary:** module 14 is a small descriptive supplement and is excluded from the title, abstract, core claims, and main figures.
 
 ## Terminology contract
@@ -26,6 +27,8 @@ Allowed: source-dependent predictive signal, protocol-related signal, interactio
 Not supported by this design: interviewer bias as an identified causal effect, label leakage, contamination, inflated performance, clinical diagnosis, reliable screening, biomarker, or clinical deployment.
 
 Single-source performance measures predictive sufficiency. It does not measure independent contribution. Conditional increments require joint comparisons such as M5 versus M3 or M4 versus M3.
+
+Existing L3/L4 results that use `04_c5_controls/domain_count/input.csv` must be reported as conditional results after D-P, not as results after a full-interview symptom-domain control. The source-variant gate and audit record are in [`10_source_importance/07_strict_joint_models/domain_source_variants_plan.md`](10_source_importance/07_strict_joint_models/domain_source_variants_plan.md) and [`10_source_importance/07_strict_joint_models/domain_source_audit.json`](10_source_importance/07_strict_joint_models/domain_source_audit.json).
 
 ## Reproducibility levels
 

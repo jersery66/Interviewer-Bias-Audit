@@ -1,0 +1,54 @@
+{
+  "d_all": {
+    "ready_for_modeling": false,
+    "reason": "no frozen full_transcript D-All input was supplied",
+    "status": "missing"
+  },
+  "d_p": {
+    "count_mismatch_cell_n": 0,
+    "count_reconciliation": "matched",
+    "definition": "domain counts derived from reviewed C5 spans matched to participant language",
+    "domain_columns": [
+      "anhedonia_interest",
+      "appetite_weight",
+      "concentration_psychomotor",
+      "depressed_mood",
+      "functioning_impairment",
+      "mental_health_history",
+      "protective_or_absent_symptom",
+      "self_worth_guilt",
+      "sleep_fatigue_energy",
+      "suicide_self_harm"
+    ],
+    "domain_count_sha256": {
+      "lf": "1fad85d77a8329992553a420898f7b0c3908b90dbd777da4ebd77bc6e869c134",
+      "raw": "7687c70d3770b7e8902900ec3c117d8a679fc6d718abf1c2a7f8d1361b07ae33"
+    },
+    "full_match_n": 566,
+    "full_only_quote_n": 0,
+    "full_text_sha256": {
+      "lf": "ec3fcfe37b529fc9fe7c63cd767386fbb29d5312c29ff71504b8e61d61721d95",
+      "raw": "06168c609f34caafb58e690bdae334469668647a0400d6dbbebf3b757341206e"
+    },
+    "interviewer_match_n": 0,
+    "interviewer_only_quote_n": 0,
+    "interviewer_text_sha256": {
+      "lf": "c2626ea7ef46b6d84fc4fcdc07de6414b6e3be54a3bc7b950c91a6cfd53ce8b2",
+      "raw": "cf1278335dd4e7ee27dbff13bb792a7c1875341dd9412900c0f72a69f06c5e48"
+    },
+    "matching_quote_n": 1137,
+    "n_participants": 142,
+    "participant_text_sha256": {
+      "lf": "12ad337fa97e0ce352be80ce46148e824eb625c4ffd4ca07591e59b9488f73a8",
+      "raw": "c520c713922e671431b40382238d64d0b07779ad5e77d905c9224a6f66b4ec9b"
+    },
+    "ready_for_modeling": true,
+    "span_n": 1137,
+    "spans_sha256": {
+      "lf": "fbc20ec4455a8551918db94e8338dd03c5a484b8a1686c20eb6525510c8a6ab0",
+      "raw": "794d7b43ebd95d57ac4a90a4217953a9bea27e98ff91b13c31b0a06f9aa48c7e"
+    },
+    "status": "confirmed",
+    "unmatched_quote_n": 0
+  }
+}

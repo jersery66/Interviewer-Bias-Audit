@@ -1,5 +1,11 @@
 # Manuscript review and revision log
 
+## 2026-07-13 domain-source audit amendment
+
+The post-review D-variable audit confirms that the frozen ten-domain count control is D-P, not D-All: all 1,137 reviewed spans match participant language, no span is interviewer-only, and the count table reconciles exactly. A search of the available C5 artifacts found no qualifying full-transcript D-All input; symptom-evidence-only files are not relabelled. The clean manuscript, audit summary and claim matrix now state this boundary. A gated D-P/D-All contract records the required full-transcript provenance and prevents a D-All comparison from being generated until that input is frozen.
+
+The formal embedding-incremental outputs were not changed. A reader-facing report now derives a 16-row paired table with the locked FDR columns plus a separate all-16 global-BH sensitivity column, and generates a delta forest plot and L1–L4 trajectory plot. The table and figures are derived from the immutable `final/` outputs and do not add a new model or alter the primary family.
+
 ## 2026-07-12 reader-facing manuscript restructure
 
 The technical audit draft is now preserved as `manuscript_submission_zh.md`, while the submission-oriented text is a separate clean manuscript at `main_text/manuscript_restructured_zh.md`. The new document is organized as a standard paper rather than an analysis checklist: one title and abstract, four natural Introduction paragraphs, four Method subsections, three reader-facing Results subsections, and one five-paragraph Discussion. Internal labels, audit timeline language, and exhaustive output details remain in the audit底稿 or supplement.

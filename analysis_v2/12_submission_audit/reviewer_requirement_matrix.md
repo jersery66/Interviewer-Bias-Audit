@@ -2,6 +2,8 @@
 
 | Requirement | Status | Evidence or action |
 |---|---|---|
+| Separate participant-derived D-P from full-interview D-All | **D-P confirmed; D-All pending** | `domain_source_audit.json` reconciles 1,137 reviewed spans to participant language and records 0 interviewer-only matches. No qualifying full-transcript D-All input was found; no D-All comparison is claimed. |
+| Re-run conditional increments under D-P with explicit provenance | Complete for existing frozen embedding analysis | Formal MPNet/BGE L3/L4 outputs use the locked `domain_count/input.csv`; their interpretation is now explicitly limited to D-P. |
 | Replace bias framing with source-signal audit | Complete | New title, locked claim, three RQs, terminology contract |
 | Separate source sufficiency from independent contribution | Complete | Single-source results and M5-M3/M4-M3 conditional increments reported separately |
 | Add pure structural baseline | Complete | Length, interaction, protocol, and combined structural models in locked five-fold CV |
