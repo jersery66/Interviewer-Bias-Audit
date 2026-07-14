@@ -4,13 +4,13 @@
 
 This study audits the sources of PHQ-8 label-predictive signals in semi-structured interviews and tests whether full-transcript performance can be attributed directly to participant language alone.
 
-The reader-facing Chinese manuscript is [`06_tables_figures/main_text/manuscript_restructured_zh.md`](06_tables_figures/main_text/manuscript_restructured_zh.md). The earlier [`06_tables_figures/manuscript_submission_zh.md`](06_tables_figures/manuscript_submission_zh.md) is retained as the technical audit底稿; other manuscript files are retained for audit history and are not submission-authoritative.
+The authoritative Chinese manuscript is [`06_tables_figures/manuscript_submission_zh.md`](06_tables_figures/manuscript_submission_zh.md). The companion [`06_tables_figures/main_text/manuscript_restructured_zh.md`](06_tables_figures/main_text/manuscript_restructured_zh.md) is its four-group structure index; older drafts are audit history only.
 
 The data-only snapshot is [`12_submission_audit/frozen_data_summary.md`](12_submission_audit/frozen_data_summary.md).
 
 ## Reader-facing narrative
 
-The clean manuscript uses one narrative: participant language, interviewer language and the complete transcript all contain label-related information; interviewer language has limited detectable conditional increment after joint controls; and source contrasts remain sensitive to protocol structure, text budget and window position. Calibration and retained-span source alignment are supporting analyses that bound interpretation rather than competing main stories.
+The manuscript uses four result groups: single-source predictability; conditional increments; interviewer-score recoverability and residual label increment; and formal pairing destruction/Fake-D identification sensitivity. Real pairing retains extra ranking information, while the negative Fake-D contrast prevents a simple claim that D-P symptom content uniquely absorbs interviewer information.
 
 ## Evidence hierarchy
 
@@ -19,6 +19,8 @@ The clean manuscript uses one narrative: participant language, interviewer langu
 - **C5 boundary:** C5 is an LLM-assisted, clinically guided derived representation. It is not a natural source equivalent to raw participant speech.
 - **Domain-control boundary:** the frozen ten-domain count table is D-P, a participant-language-derived control built from reviewed C5 spans. A qualifying full-interview D-All table is not currently available and is not inferred from D-P, protocol variables, or symptom-evidence-only files.
 - **E-DAIC boundary:** module 14 is a small descriptive supplement and is excluded from the title, abstract, core claims, and main figures.
+- **Formal identification boundary:** `10_source_importance/08_identification_sensitivity/run_formal_10x/` contains the frozen ten-repeat MPNet/BGE early-concat pairing and Fake-D outputs; late fusion and PHQ partition remain supplemental.
+- **D-P manual boundary:** `04_c5_controls/blind_quality_audit/packet_1/` contains a 30-person blinded packet. Reviewer files are blank, so no human agreement or consensus metrics are claimed.
 
 ## Terminology contract
 

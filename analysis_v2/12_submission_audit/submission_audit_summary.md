@@ -1,105 +1,74 @@
-# Submission audit: analysis-locked main analysis and post-audit sensitivity checks
+# Submission audit closeout summary（2026-07-14）
 
-## Timeline and claim boundary
+## Status
 
-- Main estimates use frozen repeat 1 of the existing participant-level five-fold split; every participant contributes one cross-fitted prediction.
-- Repeat 1 was locked before the post-audit sensitivity run to prevent further split selection. This is not formal preregistration and is not described as prospectively prespecified.
-- The existing 10 x 5 repeated cross-validation remains a split-stability supplement.
-- Single-source performance measures predictive sufficiency, not independent contribution, causal bias, or leakage.
+The post-audit formal outputs are frozen. The closeout now has three separate evidence layers:
 
-## Symptom-domain source boundary
+1. the analysis-locked source and conditional results;
+2. the module-15 interviewer-score explanation result, whose manifest status is `training_match_quality_limited`;
+3. the new ten-repeat early-concat pairing/Fake-D sensitivity result.
 
-The ten-domain `domain_count` control used in the existing joint and embedding-incremental analyses is **D-P**: all 1,137 reviewed C5 spans reconcile to the frozen count table and match participant language (0 interviewer-only matches). A qualifying full-interview **D-All** table is not present in the committed or audited C5 artifacts. Existing D-P L3/L4 results therefore remain participant-language-derived conditional results; they must not be described as controlling symptom domains extracted from the complete interview. The aggregate provenance audit is `10_source_importance/07_strict_joint_models/domain_source_audit.json`, and the gated comparison contract is `10_source_importance/07_strict_joint_models/domain_source_variants_plan.md`.
+The D-P manual quality question is not silently treated as solved. A 30-person blinded packet is prepared, but reviewer A/B sheets are blank and no agreement, kappa or consensus F1 is reported.
 
 ## Analysis-locked source results
 
-- participant_speech: AUC 0.717 (95% CI 0.614-0.811), raw Brier 0.231; nested-threshold sensitivity/specificity 0.488/0.869.
-- interviewer_speech: AUC 0.808 (95% CI 0.729-0.879), raw Brier 0.196; nested-threshold sensitivity/specificity 0.674/0.778.
-- full_transcript: AUC 0.760 (95% CI 0.670-0.844), raw Brier 0.217; nested-threshold sensitivity/specificity 0.581/0.727.
-- participant_symptom_evidence: AUC 0.735 (95% CI 0.640-0.819), raw Brier 0.224; nested-threshold sensitivity/specificity 0.535/0.818.
+The locked five-fold outer-test estimates are:
 
-## Brier no-skill baselines
-
-The formal no-skill comparator assigns each outer-test participant the positive prevalence from that outer-training fold. The fixed 43/142 cohort prevalence is descriptive only. Raw, Platt, and isotonic values use the same outer cross-fitted predictions; no calibrator is refit on pooled OOF predictions.
-
-| Condition | Variant | Brier | Train-fold null | BSS | 95% BSS CI | Descriptive cohort-null BSS |
-|---|---|---:|---:|---:|---:|---:|
-| participant_speech | raw | 0.231 | 0.211 | -0.092 | -0.105 to -0.080 | -0.093 |
-| participant_speech | platt | 0.179 | 0.211 | 0.152 | 0.047 to 0.249 | 0.151 |
-| participant_speech | isotonic | 0.176 | 0.211 | 0.165 | 0.026 to 0.301 | 0.164 |
-| interviewer_speech | raw | 0.196 | 0.211 | 0.073 | -0.001 to 0.145 | 0.072 |
-| interviewer_speech | platt | 0.159 | 0.211 | 0.246 | 0.093 to 0.386 | 0.245 |
-| interviewer_speech | isotonic | 0.172 | 0.211 | 0.187 | 0.010 to 0.348 | 0.186 |
-| full_transcript | raw | 0.217 | 0.211 | -0.029 | -0.065 to 0.007 | -0.030 |
-| full_transcript | platt | 0.175 | 0.211 | 0.171 | 0.049 to 0.287 | 0.170 |
-| full_transcript | isotonic | 0.184 | 0.211 | 0.131 | -0.041 to 0.289 | 0.130 |
-| participant_symptom_evidence | raw | 0.224 | 0.211 | -0.063 | -0.093 to -0.031 | -0.063 |
-| participant_symptom_evidence | platt | 0.186 | 0.211 | 0.117 | -0.007 to 0.232 | 0.117 |
-| participant_symptom_evidence | isotonic | 0.196 | 0.211 | 0.071 | -0.095 to 0.229 | 0.071 |
-
-Isotonic fold-level Brier values are retained as a stability audit (range 0.108-0.275); no calibration method is declared best from one aggregate estimate.
-
-## Structural and text-quantity controls
-
-- S_length: AUC 0.569 (95% CI 0.468-0.669).
-- S_interaction: AUC 0.573 (95% CI 0.469-0.675).
-- S_protocol: AUC 0.675 (95% CI 0.573-0.773).
-- S_all: AUC 0.729 (95% CI 0.634-0.821).
-Interaction-only uncertainty includes 0.5; protocol-only and all-structure estimates are reported separately and are not collapsed into a claim that all structure families clearly predict above chance.
-- Longer-source-to-shorter-source-length participant_matched: mean AUC 0.651 (participant + random-window 95% CI 0.514-0.780).
-- Longer-source-to-shorter-source-length interviewer_matched: mean AUC 0.808 (participant + random-window 95% CI 0.726-0.882).
-- Existing control asymmetry: participant/interviewer truncated n=132/10; mean retained fraction among non-empty texts=0.459/0.987.
-- Symmetric half-min participant_matched: mean AUC 0.588 (participant + random-window 95% CI 0.440-0.737).
-- Symmetric half-min interviewer_matched: mean AUC 0.706 (participant + random-window 95% CI 0.563-0.824).
-- Symmetric half-min interviewer-minus-participant mean Delta AUC 0.1174 (joint 95% CI -0.0691-0.2953; raw p=0.0039, BH q=0.0039); median shared target=250, zero targets=2, targets below 10=2.
-
-Deterministic early, middle, and late windows use the identical half-min budget for both sources:
-
-| Position | Source | AUC | PR-AUC | Brier |
-|---|---|---:|---:|---:|
-| early | participant_matched | 0.435 | 0.295 | 0.240 |
-| early | interviewer_matched | 0.698 | 0.471 | 0.222 |
-| middle | participant_matched | 0.763 | 0.591 | 0.223 |
-| middle | interviewer_matched | 0.738 | 0.585 | 0.205 |
-| late | participant_matched | 0.726 | 0.572 | 0.228 |
-| late | interviewer_matched | 0.818 | 0.649 | 0.187 |
-
-Position-paired interviewer-minus-participant Delta AUCs were early 0.2638 (95% CI 0.1440-0.3794; raw p=0.0001, BH q=0.0003); middle -0.0244 (95% CI -0.1259-0.0756; raw p=0.6693, BH q=0.6693); late 0.0928 (95% CI -0.0246-0.2100; raw p=0.1196, BH q=0.1794).
-
-The two token controls answer different questions. The original longer-to-shorter control was strongly asymmetric. Under a common half-min information budget, the source contrast attenuated and its window-inclusive joint interval included zero. The fixed-draw paired-swap p/q is a separate post-audit test and does not replace that interval; the magnitude and direction also varied by window position. The evidence therefore does not rule out text-budget or position effects and does not identify semantics or a causal mechanism.
-
-## Original analysis-locked paired comparisons
-
-Bootstrap confidence intervals and paired permutation p-values are different calculations. The five comparisons retain their original BH family.
-
-| Comparison | Scope | Delta AUC | Participant-bootstrap 95% CI | Raw p | BH q |
-|---|---|---:|---:|---:|---:|
-| full_transcript vs participant_speech | source_sufficiency_not_independent_contribution | 0.0430 | -0.0395 to 0.1301 | 0.3611 | 0.4731 |
-| interviewer_speech vs participant_speech | source_sufficiency_not_independent_contribution | 0.0909 | -0.0004 to 0.1898 | 0.0876 | 0.4380 |
-| participant_symptom_evidence vs participant_speech | derived_representation_vs_raw_source | 0.0181 | -0.0790 to 0.1069 | 0.7273 | 0.7273 |
-| M5 vs M3 | conditional_interviewer_increment | 0.0028 | -0.0040 to 0.0101 | 0.3785 | 0.4731 |
-| M4 vs M3 | conditional_evidence_representation_increment | 0.0035 | -0.0038 to 0.0114 | 0.2499 | 0.4731 |
-
-## C5 retained-span source-alignment sensitivity
-
-Among 1143 candidates, 1102 were direct source matches (96.4%), 35 were source-alignment revisions, and 6 were excluded. All 1137/1137 retained spans are traceable after review. The final traceability rate is not extraction accuracy.
-The retained-span sensitivity holds span inclusion, source order, domain, and polarity fixed and changes quote text only. The 35 revisions involve 24 participants; 24 participant representations change and total whitespace-token count changes by +103. It cannot reconstruct the six excluded candidates or a complete pre-review representation.
-
-| Representation | AUC | PR-AUC | Brier |
+| Source | AUC | 95% CI | Raw Brier |
 |---|---:|---:|---:|
-| original_retained | 0.739 | 0.557 | 0.224 |
-| aligned_retained | 0.735 | 0.558 | 0.224 |
+| participant speech | 0.717 | 0.614–0.811 | 0.231 |
+| interviewer speech | 0.808 | 0.729–0.879 | 0.196 |
+| full transcript | 0.760 | 0.670–0.844 | 0.217 |
+| participant symptom evidence | 0.735 | 0.640–0.819 | 0.224 |
 
-| Metric | Aligned minus original | Participant-bootstrap 95% CI | Raw p | BH q |
-|---|---:|---:|---:|---:|
-| roc_auc | -0.0042 | -0.0148 to 0.0049 | 0.3160 | 0.4740 |
-| pr_auc | 0.0011 | -0.0147 to 0.0173 | 0.8573 | 0.8573 |
-| brier | 0.0003 | -0.0002 to 0.0008 | 0.2714 | 0.4740 |
+The paired interviewer-minus-participant source difference crosses zero. Adding interviewer text to the P+Q+R+D-P strong baseline gives ΔAUC=0.0028 (95% CI −0.0040–0.0101, q=0.473). This is a conditional residual statement, not an absolute statement about interviewer information.
 
-Absolute participant probability change: median 0.0012, 95th percentile 0.0048, maximum 0.0158; n>=0.01: 3, n>=0.05: 0.
+## Formal ten-repeat pairing/Fake-D result
 
-The available review table contains PHQ-8 fields and lacks rater identities or independent double review. Outcome blinding and inter-rater reliability cannot be claimed.
+Formal output directory:
 
-## E-DAIC boundary
+`analysis_v2/10_source_importance/08_identification_sensitivity/run_formal_10x/`
 
-Module 14 remains a small descriptive supplement only. It does not establish generalizability or an independent error mechanism.
+The run uses the two frozen embeddings, early concat only, repeats 1–10, 50 Random draws, 50 Matched draws and 50 Fake-D draws per repeat. Each draw completes the full five-fold model. Repeat means, not 50 draw rows, are the inferential units. Six primary rows receive BH correction.
+
+| Embedding | Contrast | Mean | 95% CI | Direction | p | q |
+|---|---|---:|---:|---:|---:|---:|
+| MPNet | Real−Matched | 0.0401 | 0.0287–0.0509 | 10/10 positive | 0.001953 | 0.001953 |
+| MPNet | Real−Random | 0.0555 | 0.0430–0.0679 | 10/10 positive | 0.001953 | 0.001953 |
+| MPNet | Real D-P ΔAUC−Fake-D ΔAUC | −0.0373 | −0.0514–−0.0237 | 10/10 negative | 0.001953 | 0.001953 |
+| BGE | Real−Matched | 0.0592 | 0.0509–0.0687 | 10/10 positive | 0.001953 | 0.001953 |
+| BGE | Real−Random | 0.0826 | 0.0722–0.0936 | 10/10 positive | 0.001953 | 0.001953 |
+| BGE | Real D-P ΔAUC−Fake-D ΔAUC | −0.0729 | −0.0871–−0.0589 | 10/10 negative | 0.001953 | 0.001953 |
+
+The positive Real−Matched and Real−Random contrasts indicate additional ranking difference in real pairing under this operationalization. The negative Real-D-P-versus-Fake-D contrast does not support a simple symptom-specific absorption explanation; it is compatible with feature engineering, label alignment, high-dimensional competition or representation/model interaction.
+
+## Module 15 interviewer-score explanation
+
+Formal `final/` exists and its output hashes match its manifest. The manifest status is `training_match_quality_limited`; matching-based results are therefore not promoted to primary causal or interaction evidence.
+
+Repeat-1 score recoverability R² for the full P+Q+R+D-P block is 0.780 (TF-IDF), 0.297 (MPNet) and 0.424 (BGE). The R block has the largest descriptive block-Shapley estimate in all three representations: 0.491, 0.144 and 0.289 respectively. These are statistical recoverability summaries, not signal percentages.
+
+Repeat-1 residual label increments after the full block are TF-IDF −0.0242 (CI −0.0517–−0.0005, p=0.0460), MPNet −0.0216 (CI −0.0524–0.0059, p=0.1400), and BGE +0.0139 (CI −0.0099–0.0390, p=0.3032). The mixed directions are reported as representation sensitivity; they are not a universal null claim.
+
+## C5 and D-P audit boundary
+
+C5 alignment is named `retained-span source-alignment sensitivity analysis`. It compares only the 1,137 retained evidence spans. Thirty-five quote alignments were revised and 24 participants' retained-span representations changed; the aligned-minus-original AUC difference was −0.0042 (95% CI −0.0148–0.0049). This cannot be described as a full pre-review versus post-review comparison.
+
+The D-P blinded quality packet is at:
+
+`analysis_v2/04_c5_controls/blind_quality_audit/packet_1/`
+
+It contains 30 blinded cases, two blank reviewer forms, an owner-only sample key and a scoring reference. No reviewer result is present. If only one reviewer returns a form, the output must be labelled a single-reviewer content-validity sample; no kappa or consensus metric may be inferred.
+
+## Reproducibility boundary
+
+Public CI may verify unit tests, synthetic fixtures, parameter/schema checks, path independence, figure executability and hashes of committed derived results. It does not claim full data-to-result reproduction. The latter requires restricted DAIC-WOZ inputs and the private C5 source audit.
+
+## Authoritative files
+
+- Main manuscript: `analysis_v2/06_tables_figures/manuscript_submission_zh.md`
+- Claim gate: `analysis_v2/12_submission_audit/claim_evidence_matrix.md`
+- Formal pairing/Fake-D: `analysis_v2/10_source_importance/08_identification_sensitivity/run_formal_10x/`
+- Module-15 final: `analysis_v2/15_interviewer_signal_explanation/final/`
+- D-P blind packet: `analysis_v2/04_c5_controls/blind_quality_audit/packet_1/`
+- Formal plan and timing contract: `analysis_v2/12_submission_audit/post_submission_audit_sensitivity_plan.md`

@@ -243,3 +243,19 @@ The half-min comparison is a one-comparison post-audit family, so its BH-adjuste
 ### 11.2 Recalculation and portability evidence
 
 Two complete restricted-input reruns will be compared over the frozen core numerical outputs. A committed `recomputation_verification.json` will record the two run identifiers, file set, normalized SHA-256 values, and equality verdict. Text artifact hashes normalize CRLF to LF so that public integrity verification is invariant to Git newline conversion; binary artifacts remain byte-hashed. This portability correction must not change numerical CSV content.
+
+## 12 Closeout amendment: formal pairing and Fake-D identification sensitivity (2026-07-14)
+
+The repeat-1 exploratory pairing/Fake-D run is superseded for primary presentation by a locked ten-repeat analysis. It uses only MPNet and BGE early concat, the ten existing repeats, and 50 label-blind Random, 50 structure-matched Matched and 50 Fake-D draws per repeat. Draw IDs and seeds are shared across embeddings; every draw completes the full five-fold model. The three primary contrasts are Real−Matched, Real−Random, and Real D-P ΔAUC−Fake-D ΔAUC. Inference is based on ten repeat-level contrasts: 5,000-repeat bootstrap percentile intervals, exact two-sided sign-flip p-values and BH-FDR over six embedding-by-contrast rows. Late fusion and PHQ partition remain supplemental.
+
+The formal runner and immutable outputs are:
+
+`reanalysis_v2/identification_formal.py`, `scripts/run_identification_sensitivity_formal.py`, and `analysis_v2/10_source_importance/08_identification_sensitivity/run_formal_10x/`.
+
+The negative-control contrast is not assigned a favourable direction in advance. Its observed negative values are reported as data and prevent a claim that D-P uniquely absorbs interviewer information.
+
+## 13 Closeout amendment: D-P blind content-validity packet (2026-07-14)
+
+The manual audit is a separate human-review task, not a computational substitute. Thirty participants are sampled by label and participant word-count tertile (five per cell, seed `20260714`). Reviewer A and reviewer B receive only participant text and blank ten-domain forms. The owner-only key retains labels, participant IDs, lengths and frozen D-P counts. Until independent forms and an explicit consensus/adjudication table are returned, no domain agreement, Cohen’s κ, precision, recall or F1 is computed.
+
+Packet path: `analysis_v2/04_c5_controls/blind_quality_audit/packet_1/`. If reviewer B is unavailable, the result must be called a single-reviewer content-validity sample and must not contain inter-rater or consensus metrics.
