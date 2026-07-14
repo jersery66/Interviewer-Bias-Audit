@@ -53,6 +53,6 @@
     "training_reviewer_A_blank.csv": "51f5fd49d223313fcca2c3dce80b3de264f280f48ea1942f9638b898781b2de0",
     "training_reviewer_B_blank.csv": "76007f0f268b7986e2cfe7942a8715d466bc3ab74c8bda0dda710cf0bdc2a67f"
   },
-  "code_commit": "d030a6531dddd4f179d2510a3c22c7bdf65e6662",
+  "code_commit": "c0bca05c97f91ee8d0b5fd4ca8c23cf06810fb6a",
   "fallback_if_reviewer_b_missing": "single-reviewer blinded content-validity sample only; no kappa, inter-rater agreement, or consensus metrics"
 }
