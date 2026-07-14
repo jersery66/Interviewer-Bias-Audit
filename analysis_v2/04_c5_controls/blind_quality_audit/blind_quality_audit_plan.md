@@ -1,5 +1,9 @@
 # D-P blind manual quality audit contract
 
+> The complete two-reviewer workflow is now locked in
+> [`blind_quality_audit_plan_v2.md`](blind_quality_audit_plan_v2.md) and
+> `packet_2/`. This file is retained as the historical packet-1 contract.
+
 **Lock date:** 2026-07-14  
 **Status:** post-audit content-validity check; not preregistered  
 **Scope:** the frozen participant-derived D-P domain counts only

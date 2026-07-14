@@ -20,7 +20,7 @@ The manuscript uses four result groups: single-source predictability; conditiona
 - **Domain-control boundary:** the frozen ten-domain count table is D-P, a participant-language-derived control built from reviewed C5 spans. A qualifying full-interview D-All table is not currently available and is not inferred from D-P, protocol variables, or symptom-evidence-only files.
 - **E-DAIC boundary:** module 14 is a small descriptive supplement and is excluded from the title, abstract, core claims, and main figures.
 - **Formal identification boundary:** `10_source_importance/08_identification_sensitivity/run_formal_10x/` contains the frozen ten-repeat MPNet/BGE early-concat pairing and Fake-D outputs; late fusion and PHQ partition remain supplemental.
-- **D-P manual boundary:** `04_c5_controls/blind_quality_audit/packet_1/` contains a 30-person blinded packet. Reviewer files are blank, so no human agreement or consensus metrics are claimed.
+- **D-P manual boundary:** `04_c5_controls/blind_quality_audit/packet_2/` is the locked two-reviewer packet: five excluded training cases, 30 formal cases, 300 cells, line-indexed text, count bins, polarity, and NS handling. Owner keys and returned reviewer files are kept under the ignored `blind_quality_audit/private/` directory. Until both formal files are returned, no human agreement, consensus, or D-P validity metrics are claimed. `packet_1/` is retained as the historical preparation packet.
 
 ## Terminology contract
 

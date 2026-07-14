@@ -17,6 +17,13 @@ FORMAL_IDENTIFICATION_DIR = (
     / "08_identification_sensitivity"
     / "run_formal_10x"
 )
+BLIND_AUDIT_PACKET_DIR = (
+    ROOT
+    / "analysis_v2"
+    / "04_c5_controls"
+    / "blind_quality_audit"
+    / "packet_2"
+)
 TEXT_SUFFIXES = {".csv", ".json", ".md", ".svg", ".tsv", ".txt", ".yaml", ".yml"}
 ACCEPTED_PLAN_STATUSES = {
     "frozen_before_sensitivity_results",
@@ -188,6 +195,85 @@ def verify_formal_identification_output(formal_dir: Path) -> list[str]:
     return errors
 
 
+def verify_blind_audit_packet(packet_dir: Path) -> list[str]:
+    """Verify the public preparation packet without reading owner-only files."""
+
+    errors: list[str] = []
+    manifest_path = packet_dir / "packet_manifest.json"
+    if not manifest_path.is_file():
+        return ["D-P blind-audit packet manifest missing"]
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"D-P blind-audit packet manifest invalid: {exc}"]
+    if manifest.get("status") != "pending_reviewer_input":
+        errors.append("D-P blind-audit packet is not pending reviewer input")
+    if manifest.get("formal_sample_n") != 30 or manifest.get("formal_cells") != 300:
+        errors.append("D-P blind-audit formal sample/cell count changed")
+    if manifest.get("training_sample_n") != 5 or not manifest.get("training_excluded_from_statistics"):
+        errors.append("D-P blind-audit training contract changed")
+    expected_public = {
+        "blind_audit_protocol.md",
+        "blind_cases.csv",
+        "blind_case_lines.csv",
+        "blind_codebook.md",
+        "evidence_review_template.csv",
+        "README.md",
+        "reviewer_A_blank.csv",
+        "reviewer_B_blank.csv",
+        "training_cases.csv",
+        "training_case_lines.csv",
+        "training_reviewer_A_blank.csv",
+        "training_reviewer_B_blank.csv",
+    }
+    if set(manifest.get("public_output_hashes", {})) != expected_public:
+        errors.append("D-P blind-audit public hash inventory changed")
+    for name in sorted(expected_public):
+        path = packet_dir / name
+        if not path.is_file():
+            errors.append(f"D-P blind-audit public output missing: {name}")
+        elif str(manifest.get("public_output_hashes", {}).get(name, "")) not in hash_candidates(path):
+            errors.append(f"D-P blind-audit public output hash mismatch: {name}")
+
+    try:
+        cases = pd.read_csv(packet_dir / "blind_cases.csv")
+        lines = pd.read_csv(packet_dir / "blind_case_lines.csv")
+        training = pd.read_csv(packet_dir / "training_cases.csv")
+        form_a = pd.read_csv(packet_dir / "reviewer_A_blank.csv")
+        form_b = pd.read_csv(packet_dir / "reviewer_B_blank.csv")
+    except (OSError, pd.errors.ParserError, ValueError) as exc:
+        errors.append(f"D-P blind-audit public CSV invalid: {exc}")
+        return errors
+    if list(cases.columns) != ["blind_id", "participant_text"] or len(cases) != 30:
+        errors.append("D-P blind-audit cases schema or count invalid")
+    if list(training.columns) != ["blind_id", "participant_text"] or len(training) != 5:
+        errors.append("D-P blind-audit training cases schema or count invalid")
+    if list(lines.columns) != ["blind_id", "line_number", "participant_text_line"]:
+        errors.append("D-P blind-audit line index schema invalid")
+    expected_form_columns = [
+        "reviewer_id", "blind_id", "domain", "domain_label", "count_bin",
+        "evidence_quote", "line_number", "polarity", "uncertainty_reason",
+    ]
+    for name, frame in (("A", form_a), ("B", form_b)):
+        if list(frame.columns) != expected_form_columns or len(frame) != 300:
+            errors.append(f"D-P blind-audit reviewer {name} form schema/count invalid")
+        if frame["domain_label"].notna().any() or frame["count_bin"].notna().any():
+            errors.append(f"D-P blind-audit reviewer {name} form is not blank")
+    if set(form_a["blind_id"]) != set(cases["blind_id"]) or set(form_b["blind_id"]) != set(cases["blind_id"]):
+        errors.append("D-P blind-audit reviewer case sets differ from formal cases")
+    if set(form_a["domain"]) != set(form_b["domain"]):
+        errors.append("D-P blind-audit reviewer domain sets differ")
+    leaked_names = {"participant_id", "paper_label_phq8_ge10", "paper_phq8_score", "label", "existing_dp", "model_probability", "interviewer_text"}
+    for name, frame in (("cases", cases), ("lines", lines), ("reviewer_A", form_a), ("reviewer_B", form_b)):
+        leaked = leaked_names.intersection(column.lower() for column in frame.columns)
+        if leaked:
+            errors.append(f"D-P blind-audit {name} exposes forbidden columns: {sorted(leaked)}")
+    for forbidden in ("blind_id_key.csv", "scoring_reference_owner_only.csv", "training_id_key.csv"):
+        if (packet_dir / forbidden).exists():
+            errors.append(f"D-P blind-audit owner-only file is in public packet: {forbidden}")
+    return errors
+
+
 def verify() -> list[str]:
     errors: list[str] = []
     inventory_path = AUDIT_DIR / "output_manifest_sha256.csv"
@@ -228,6 +314,7 @@ def verify() -> list[str]:
     if missing_required:
         errors.append(f"required outputs missing: {missing_required}")
     errors.extend(verify_formal_identification_output(FORMAL_IDENTIFICATION_DIR))
+    errors.extend(verify_blind_audit_packet(BLIND_AUDIT_PACKET_DIR))
     return errors
 
 

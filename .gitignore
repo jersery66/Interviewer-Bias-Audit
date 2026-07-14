@@ -20,3 +20,13 @@ _append_main.py
 # Windows artifacts
 NUL
 *_trend.json
+
+# D-P blinded audit owner key and returned human-review files
+analysis_v2/04_c5_controls/blind_quality_audit/private/
+analysis_v2/04_c5_controls/blind_quality_audit/packet_2/*_frozen.csv
+analysis_v2/04_c5_controls/blind_quality_audit/packet_2/consensus_labels.csv
+analysis_v2/04_c5_controls/blind_quality_audit/packet_2/interrater_metrics.csv
+analysis_v2/04_c5_controls/blind_quality_audit/packet_2/domain_confusion_tables.csv
+analysis_v2/04_c5_controls/blind_quality_audit/packet_2/disagreement_sheet.csv
+analysis_v2/04_c5_controls/blind_quality_audit/packet_2/dp_vs_consensus_metrics.csv
+analysis_v2/04_c5_controls/blind_quality_audit/packet_2/evidence_validity_results.csv
