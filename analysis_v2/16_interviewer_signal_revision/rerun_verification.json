@@ -1,0 +1,13 @@
+{
+  "analysis_code_commit": "7bfddc45a4f43fec005f898f14b5b21acbebce02",
+  "final_file_count": 18,
+  "final_inventory_matches_run_2": true,
+  "final_inventory_sha256": "f94a8e0723de9bfcaf3b1f6f7ed234960e1b9087edb82540ced252b5deadb862",
+  "promotion_source": "run_2",
+  "promotion_status": "complete",
+  "promotion_tool_commit": "7bfddc45a4f43fec005f898f14b5b21acbebce02",
+  "run_1_inventory_sha256": "f94a8e0723de9bfcaf3b1f6f7ed234960e1b9087edb82540ced252b5deadb862",
+  "run_1_run_2_identical": true,
+  "run_2_inventory_sha256": "f94a8e0723de9bfcaf3b1f6f7ed234960e1b9087edb82540ced252b5deadb862",
+  "status": "verified"
+}
