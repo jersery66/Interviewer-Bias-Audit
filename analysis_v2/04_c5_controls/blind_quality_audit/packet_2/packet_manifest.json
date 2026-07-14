@@ -1,0 +1,58 @@
+{
+  "status": "pending_reviewer_input",
+  "analysis": "d_p_blinded_manual_quality_audit_v2",
+  "formal_sample_n": 30,
+  "formal_cells": 300,
+  "training_sample_n": 5,
+  "training_excluded_from_statistics": true,
+  "reviewers_complete_case_requirement": true,
+  "sampling_seed": 20260714,
+  "training_seed": 20260715,
+  "reviewer_order_seeds": {
+    "A": 202607141,
+    "B": 202607142
+  },
+  "domains": [
+    "anhedonia_interest",
+    "appetite_weight",
+    "concentration_psychomotor",
+    "depressed_mood",
+    "functioning_impairment",
+    "mental_health_history",
+    "protective_or_absent_symptom",
+    "self_worth_guilt",
+    "sleep_fatigue_energy",
+    "suicide_self_harm"
+  ],
+  "inputs": {
+    "participant_speech": {
+      "path": "analysis_v2\\01_inputs\\c2_participant_speech.csv",
+      "sha256": "c520c713922e671431b40382238d64d0b07779ad5e77d905c9224a6f66b4ec9b"
+    },
+    "domain_count": {
+      "path": "analysis_v2\\04_c5_controls\\domain_count\\input.csv",
+      "sha256": "7687c70d3770b7e8902900ec3c117d8a679fc6d718abf1c2a7f8d1361b07ae33"
+    }
+  },
+  "private_owner_files": {
+    "blind_id_key.csv": "855efa59ade6446cf3b652ba2305b68b785f8db63fec5bbd3938b00409d9bd71",
+    "training_id_key.csv": "903785a3cbf6f87c195f69fe95edcedf7bb8da0ecb47f17fa3b31b7947d848ee",
+    "scoring_reference_owner_only.csv": "cc817f220125b90a4c082cc40b1421ad4c327ff30a49274121b94e3029ba1e8f"
+  },
+  "public_output_hashes": {
+    "blind_audit_protocol.md": "3fca975407ad2292cb5036222fe71449883853dadeeffadbe595105d80c8aac5",
+    "blind_case_lines.csv": "0da73960400e680882f598649f77293470d8480c9d21f08f4db9077849c06cfd",
+    "blind_cases.csv": "d6d506fc4fded70655ed479c6076b2ae3c9235648976a6083fdfb0bef8949eae",
+    "blind_codebook.md": "18c2cf93969c29e4c44e710f101a80b746d1f5e12d44980b255cb225edc28120",
+    "evidence_review_template.csv": "9027458d669021d4a8073990f61090271631b51c03dfb1fff99d79b558164474",
+    "README.md": "b6dd9a907129aec52423b3c6e9433cd912728eef3b27d2461731a5ca9351d635",
+    "reviewer_A_blank.csv": "b1d71bc951773e6ac496f99c894ca3e4cd8407fc54289d2ec09158f686ca1e9a",
+    "reviewer_B_blank.csv": "8e84e251b462b946fa3595c1c6dccaf8c0f6e75de075241ec5ba89b3fccf8033",
+    "training_case_lines.csv": "1416c77993b204f8c3a4523a887ec923d201c09473e01cca242226639d2bef05",
+    "training_cases.csv": "258c15c6e9618faf13f6f55b7cfacc1deb6d348c27ecc8d040ac025ac5ded052",
+    "training_reviewer_A_blank.csv": "51f5fd49d223313fcca2c3dce80b3de264f280f48ea1942f9638b898781b2de0",
+    "training_reviewer_B_blank.csv": "76007f0f268b7986e2cfe7942a8715d466bc3ab74c8bda0dda710cf0bdc2a67f"
+  },
+  "code_commit": "d030a6531dddd4f179d2510a3c22c7bdf65e6662",
+  "fallback_if_reviewer_b_missing": "single-reviewer blinded content-validity sample only; no kappa, inter-rater agreement, or consensus metrics"
+}
