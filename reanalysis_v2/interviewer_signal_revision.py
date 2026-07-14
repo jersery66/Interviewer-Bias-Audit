@@ -3,8 +3,8 @@
 This module is deliberately separate from the locked formal explanation
 analysis.  It reads frozen inputs and writes only below
 ``analysis_v2/16_interviewer_signal_revision`` (or an explicitly supplied
-result directory).  The C5 artifact is a human-validation candidate file:
-model fields are retained, while all human fields are blank.
+result directory).  C5 review material is split between an owner-only model
+crosswalk and blinded reviewer packets with blank human fields.
 """
 
 from __future__ import annotations
@@ -14,14 +14,17 @@ import datetime as dt
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
+import warnings
 import zipfile
 from pathlib import Path
 from collections.abc import Mapping, Sequence
 
 import numpy as np
 import pandas as pd
+from sklearn.exceptions import UndefinedMetricWarning
 from sklearn.metrics import cohen_kappa_score, f1_score
 
 from .embedding_incremental import DEFAULT_C_GRID
@@ -51,6 +54,42 @@ C5_CANONICAL_RELATIVE = Path(
     "04_c5_evidence_sources/c5_quotes_only_v3_gpt55_reviewed_spans_official142.csv"
 )
 C5_CANONICAL_SHA256 = "794d7b43ebd95d57ac4a90a4217953a9bea27e98ff91b13c31b0a06f9aa48c7e"
+LOCKED_REVISION_INPUT_HASHES = {
+    "formal_explanation_subset_metrics": "a550ba89d14e0f470d87327002bc7e5cf2c3f8cb9c5f5e691de3fefe72c1b726",
+    "formal_source_score_crossfit": "01ba43c969ec0e2cbbec8214b8dc90e6869cd1118339a237f4914a79e9d3dd80",
+    "formal_run_manifest": "e665d0b003bd4ed22e1880901720d02ea7d58c198c3b3879bdb6c807f0533394",
+    "formal_fake_domain_explanation_results": "682da41d7c873d3b3fef75e764961cc351e769edc9a9a0b264c451d552c50df0",
+    "formal_fake_domain_residual_results": "6ac82cb7eb5af954d8cda70e082f2aca8edc8e93d30b3f0fa7648691990950f3",
+    "c5_traceability_audit": "2a11e33d8996c98b6ba3f40ca406e67188ed77b8f09117d1bde4490e3649b186",
+    "canonical_c5_spans": C5_CANONICAL_SHA256,
+}
+LOCKED_REVISION_INPUT_PATHS: dict[str, tuple[str, Path]] = {
+    "formal_explanation_subset_metrics": (
+        "output_root",
+        Path("15_interviewer_signal_explanation/final/explanation_subset_metrics.csv"),
+    ),
+    "formal_source_score_crossfit": (
+        "output_root",
+        Path("15_interviewer_signal_explanation/final/source_score_crossfit.csv"),
+    ),
+    "formal_run_manifest": (
+        "output_root",
+        Path("15_interviewer_signal_explanation/final/run_manifest.json"),
+    ),
+    "formal_fake_domain_explanation_results": (
+        "output_root",
+        Path("15_interviewer_signal_explanation/final/fake_domain_explanation_results.csv"),
+    ),
+    "formal_fake_domain_residual_results": (
+        "output_root",
+        Path("15_interviewer_signal_explanation/final/fake_domain_residual_results.csv"),
+    ),
+    "c5_traceability_audit": (
+        "output_root",
+        Path("12_submission_audit/c5_traceability_audit_no_quotes.csv"),
+    ),
+    "canonical_c5_spans": ("project_root", C5_CANONICAL_RELATIVE),
+}
 C5_HUMAN_FIELDS = (
     "human_span_valid",
     "human_domain",
@@ -60,6 +99,45 @@ C5_HUMAN_FIELDS = (
     "rater_id",
     "notes",
 )
+C5_REVIEWER_FIELDS = (
+    "review_case_id",
+    "deidentified_quote",
+    "local_context_reference",
+    "human_span_valid",
+    "human_domain",
+    "human_polarity",
+    "rater_id",
+    "notes",
+)
+C5_MISSING_EVIDENCE_FIELDS = (
+    "fulltext_review_case_id",
+    "local_context_reference",
+    "human_missing_evidence",
+    "missing_evidence_quote",
+    "rater_id",
+    "notes",
+)
+C5_REVIEWER_PROHIBITED_FIELDS = {
+    "participant_id",
+    "label",
+    "span_id",
+    "source_order",
+    "model",
+    "model_domain",
+    "model_polarity",
+    "model_exact_quote",
+    "model_match_status",
+    "model_review_status",
+    "model_original_quote",
+    "source_split_reference",
+    "source_sha256",
+    "source_text_sha256",
+    "quote_sha256",
+    "canonical_input_sha256",
+    "candidate_scope",
+    "human_false_positive",
+    "human_missing_evidence",
+}
 C5_MODEL_FIELDS = (
     "participant_id",
     "label",
@@ -153,6 +231,56 @@ def find_c5_canonical_source(project_root: str | Path) -> Path:
     )
 
 
+def validate_locked_revision_inputs(
+    output_root: str | Path,
+    project_root: str | Path,
+) -> dict[str, str]:
+    """Verify every frozen Stage 15 and C5 input before formal output exists."""
+
+    roots = {
+        "output_root": Path(output_root).resolve(),
+        "project_root": Path(project_root).resolve(),
+    }
+    observed_hashes: dict[str, str] = {}
+    for name, expected in LOCKED_REVISION_INPUT_HASHES.items():
+        if name not in LOCKED_REVISION_INPUT_PATHS:
+            raise ValueError(f"locked revision input path is not configured: {name}")
+        root_name, relative_path = LOCKED_REVISION_INPUT_PATHS[name]
+        if root_name not in roots:
+            raise ValueError(f"locked revision input has unsupported root {root_name!r}: {name}")
+        path = roots[root_name] / relative_path
+        if not path.exists():
+            raise FileNotFoundError(f"locked revision input not found for {name}: {path}")
+        observed = sha256_file(path)
+        if observed != expected:
+            raise ValueError(
+                "locked revision input hash mismatch for "
+                f"{name}: expected={expected}, observed={observed}, path={path}"
+            )
+        observed_hashes[name] = observed
+    return observed_hashes
+
+
+def resolve_revision_project_root(
+    output_root: str | Path,
+    project_root: str | Path | None = None,
+) -> Path:
+    """Locate the repository-level canonical C5 source from a linked worktree."""
+
+    if project_root is not None:
+        candidates = [Path(project_root).resolve()]
+    else:
+        output = Path(output_root).resolve()
+        candidates = [output.parent, *output.parent.parents]
+    for candidate in candidates:
+        if (candidate / C5_CANONICAL_RELATIVE).exists():
+            return candidate
+    raise FileNotFoundError(
+        "could not locate the canonical C5 span source from the revision worktree; "
+        f"checked={[str(candidate / C5_CANONICAL_RELATIVE) for candidate in candidates]}"
+    )
+
+
 def _tertile(values: pd.Series) -> pd.Series:
     numeric = pd.to_numeric(values, errors="raise").astype(float)
     ranks = numeric.rank(method="first")
@@ -216,7 +344,8 @@ def select_c5_validation_participants(
     result.insert(0, "selection_order", np.arange(1, len(result) + 1, dtype=int))
     result["selection_rule"] = (
         "deterministic round-robin over label, participant-word-count tertile, "
-        "and D-P domain-breadth tertile; no model correctness or source score"
+        "D-P domain-breadth tertile, and C5 evidence-count tertile; "
+        "no model correctness or source score"
     )
     return result[
         [
@@ -241,7 +370,7 @@ def build_c5_human_validation_dataset(
     source_sha256: str,
     traceability: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
-    """Build a review sheet with model evidence and entirely blank human fields."""
+    """Build the owner-only candidate sheet with model evidence and blank human fields."""
 
     required = {"participant_id", "exact_quote", "domain", "polarity"}
     missing = sorted(required.difference(spans.columns))
@@ -323,6 +452,117 @@ def build_c5_human_validation_dataset(
     return result
 
 
+def _opaque_c5_review_id(prefix: str, *parts: object) -> str:
+    return f"{prefix}-{_stable_json_hash([_clean(part) for part in parts])[:16]}"
+
+
+def _deidentify_c5_quote(quote: object) -> str:
+    """Apply limited deterministic redaction before a quote enters a rater packet."""
+
+    value = _clean(quote)
+    value = re.sub(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b", "[EMAIL]", value)
+    value = re.sub(r"\b(?:\+?\d{1,2}[ .-]?)?(?:\(?\d{3}\)?[ .-]?)\d{3}[ .-]?\d{4}\b", "[PHONE]", value)
+    value = re.sub(r"(?i)\b(my name is|i am|i'm)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?", r"\1 [NAME]", value)
+    value = re.sub(r"\b\d{3,}\b", "[NUMBER]", value)
+    return re.sub(r"\s+", " ", value).strip()
+
+
+def build_c5_owner_crosswalk(
+    spans: pd.DataFrame,
+    roster: pd.DataFrame,
+    *,
+    source_sha256: str,
+    traceability: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Build the restricted owner-only C5 linkage and model-reference table."""
+
+    owner = build_c5_human_validation_dataset(
+        spans,
+        roster,
+        source_sha256=source_sha256,
+        traceability=traceability,
+    ).copy()
+    owner.insert(
+        0,
+        "review_case_id",
+        [
+            _opaque_c5_review_id(
+                "c5-review",
+                source_sha256,
+                row.participant_id,
+                row.span_id,
+                row.quote_sha256,
+            )
+            for row in owner.itertuples(index=False)
+        ],
+    )
+    owner.insert(
+        1,
+        "fulltext_review_case_id",
+        [
+            _opaque_c5_review_id("c5-fulltext", source_sha256, participant_id)
+            for participant_id in owner["participant_id"]
+        ],
+    )
+    if owner["review_case_id"].duplicated().any():
+        raise AssertionError("C5 owner crosswalk generated duplicate review_case_id values")
+    return owner
+
+
+def build_c5_blinded_reviewer_packet(owner_crosswalk: pd.DataFrame) -> pd.DataFrame:
+    """Build a blinded candidate-span packet without participant or model labels."""
+
+    required = {"review_case_id", "fulltext_review_case_id", "model_exact_quote"}
+    missing = sorted(required.difference(owner_crosswalk.columns))
+    if missing:
+        raise ValueError(f"C5 owner crosswalk is missing blinded-packet fields: {missing}")
+    candidates = owner_crosswalk.loc[
+        owner_crosswalk["model_exact_quote"].astype(str).str.strip().ne("")
+    ].copy()
+    packet = pd.DataFrame(
+        {
+            "review_case_id": candidates["review_case_id"].astype(str),
+            "deidentified_quote": candidates["model_exact_quote"].map(_deidentify_c5_quote),
+            "local_context_reference": "restricted-fulltext/" + candidates["fulltext_review_case_id"].astype(str),
+            "human_span_valid": "",
+            "human_domain": "",
+            "human_polarity": "",
+            "rater_id": "",
+            "notes": "",
+        }
+    )
+    if packet["review_case_id"].duplicated().any():
+        raise AssertionError("C5 reviewer packet generated duplicate review_case_id values")
+    if C5_REVIEWER_PROHIBITED_FIELDS.intersection(packet.columns):
+        raise AssertionError("C5 reviewer packet contains a prohibited owner/model field")
+    return packet.loc[:, list(C5_REVIEWER_FIELDS)].reset_index(drop=True)
+
+
+def build_c5_missing_evidence_audit_form(owner_crosswalk: pd.DataFrame) -> pd.DataFrame:
+    """Build a separate participant-level full-text missing-evidence form."""
+
+    required = {"fulltext_review_case_id"}
+    missing = sorted(required.difference(owner_crosswalk.columns))
+    if missing:
+        raise ValueError(f"C5 owner crosswalk is missing full-text audit fields: {missing}")
+    cases = owner_crosswalk[["fulltext_review_case_id"]].drop_duplicates().sort_values(
+        "fulltext_review_case_id", kind="stable"
+    )
+    form = pd.DataFrame(
+        {
+            "fulltext_review_case_id": cases["fulltext_review_case_id"].astype(str).to_numpy(),
+            "local_context_reference": (
+                "restricted-fulltext/" + cases["fulltext_review_case_id"].astype(str)
+            ).to_numpy(),
+            "human_missing_evidence": "",
+            "missing_evidence_quote": "",
+            "rater_id": "",
+            "notes": "",
+        }
+    )
+    return form.loc[:, list(C5_MISSING_EVIDENCE_FIELDS)]
+
+
 def _parse_human_binary(series: pd.Series, *, field: str) -> np.ndarray:
     normalized = series.astype(str).str.strip().str.lower()
     mapping = {
@@ -343,47 +583,93 @@ def _parse_human_binary(series: pd.Series, *, field: str) -> np.ndarray:
     return values.to_numpy(dtype=int)
 
 
-def _require_complete_c5_human_labels(frame: pd.DataFrame, *, name: str) -> None:
-    required = {
-        "participant_id",
-        "span_id",
-        "model_exact_quote",
-        "model_domain",
-        "model_polarity",
-        "human_span_valid",
-        "human_domain",
-        "human_polarity",
-        "human_false_positive",
-        "human_missing_evidence",
-    }
+def _prepare_completed_c5_rater(frame: pd.DataFrame, *, name: str) -> pd.DataFrame:
+    required = {"review_case_id", "human_span_valid", "human_domain", "human_polarity"}
     missing = sorted(required.difference(frame.columns))
     if missing:
-        raise ValueError(f"{name} is missing C5 human-validation fields: {missing}")
-    for field in ("human_span_valid", "human_domain", "human_polarity", "human_false_positive", "human_missing_evidence"):
-        if frame[field].isna().any() or frame[field].astype(str).str.strip().eq("").any():
-            raise ValueError(f"{name} has incomplete human labels; cannot compute kappa or F1")
+        raise ValueError(f"{name} is missing blinded C5 human-validation fields: {missing}")
+    result = frame.copy()
+    if result["review_case_id"].isna().any() or result["review_case_id"].astype(str).str.strip().eq("").any():
+        raise ValueError(f"{name} has blank review_case_id values")
+    if result["review_case_id"].duplicated().any():
+        raise ValueError(f"{name} has duplicate review_case_id rows")
+    try:
+        result["_human_span_valid"] = _parse_human_binary(
+            result["human_span_valid"], field="human_span_valid"
+        )
+    except ValueError as exc:
+        raise ValueError(f"{name} has incomplete human labels; cannot compute kappa or F1") from exc
+    for field in ("human_domain", "human_polarity"):
+        result[field] = result[field].map(_clean).str.strip()
+    missing_valid_details = result["_human_span_valid"].eq(1) & (
+        result["human_domain"].eq("") | result["human_polarity"].eq("")
+    )
+    if missing_valid_details.any():
+        raise ValueError(f"{name} has a valid span without domain/polarity labels")
+    return result.sort_values("review_case_id", kind="stable").reset_index(drop=True)
+
+
+def _prepare_c5_owner_crosswalk(owner_crosswalk: pd.DataFrame, review_case_ids: pd.Series) -> pd.DataFrame:
+    required = {"review_case_id", "model_exact_quote", "model_domain", "model_polarity"}
+    missing = sorted(required.difference(owner_crosswalk.columns))
+    if missing:
+        raise ValueError(f"owner_crosswalk is missing model-reference fields: {missing}")
+    owner = owner_crosswalk.copy()
+    if owner["review_case_id"].duplicated().any():
+        raise ValueError("owner_crosswalk has duplicate review_case_id rows")
+    owner = owner.set_index("review_case_id", drop=False)
+    missing_cases = sorted(set(review_case_ids.astype(str)).difference(owner.index.astype(str)))
+    if missing_cases:
+        raise ValueError(f"owner_crosswalk is missing rater review_case_id values: {missing_cases[:5]}")
+    return owner.loc[review_case_ids.astype(str)].reset_index(drop=True)
+
+
+def _safe_cohen_kappa(left: Sequence[object], right: Sequence[object]) -> float:
+    left_values = np.asarray(list(left))
+    right_values = np.asarray(list(right))
+    if len(left_values) < 2 or len(right_values) < 2:
+        return float("nan")
+    labels = set(left_values.tolist()).union(right_values.tolist())
+    if len(labels) < 2:
+        return float("nan")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=UndefinedMetricWarning)
+        warnings.simplefilter("ignore", category=UserWarning)
+        return float(cohen_kappa_score(left_values, right_values))
+
+
+def _safe_f1(
+    left: Sequence[object],
+    right: Sequence[object],
+    *,
+    average: str | None = None,
+) -> float:
+    left_values = np.asarray(list(left))
+    right_values = np.asarray(list(right))
+    if len(left_values) == 0 or len(right_values) == 0:
+        return float("nan")
+    kwargs: dict[str, object] = {"zero_division": 0}
+    if average is not None:
+        kwargs["average"] = average
+        kwargs["labels"] = sorted(set(left_values.tolist()).union(right_values.tolist()))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=UndefinedMetricWarning)
+        warnings.simplefilter("ignore", category=UserWarning)
+        return float(f1_score(left_values, right_values, **kwargs))
 
 
 def compute_c5_human_machine_agreement(
     rater_a: pd.DataFrame,
     rater_b: pd.DataFrame,
+    *,
+    owner_crosswalk: pd.DataFrame | None = None,
+    consensus: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
-    """Compute C5 machine-versus-human and human-versus-human agreement.
+    """Compute blinded C5 agreement under the locked candidate-span contract."""
 
-    This function intentionally refuses to calculate kappa/F1 until both
-    independent human files have complete labels.  Metrics are restricted to
-    the sampled candidate spans and are not a full transcript recall estimate.
-    """
-
-    _require_complete_c5_human_labels(rater_a, name="rater_a")
-    _require_complete_c5_human_labels(rater_b, name="rater_b")
-    keys = ["participant_id", "span_id"]
-    left = rater_a.copy()
-    right = rater_b.copy()
-    if left.duplicated(keys).any() or right.duplicated(keys).any():
-        raise ValueError("C5 rater files must have unique participant_id/span_id rows")
-    merged = left.merge(right, on=keys, how="outer", suffixes=("_a", "_b"), indicator=True)
-    if not merged["_merge"].eq("both").all():
+    left = _prepare_completed_c5_rater(rater_a, name="rater_a")
+    right = _prepare_completed_c5_rater(rater_b, name="rater_b")
+    if not left["review_case_id"].eq(right["review_case_id"]).all():
         raise ValueError("C5 rater files do not contain the same candidate spans")
     rows: list[dict[str, object]] = []
 
@@ -398,61 +684,79 @@ def compute_c5_human_machine_agreement(
             }
         )
 
-    model_present = left["model_exact_quote"].astype(str).str.strip().ne("").to_numpy(dtype=int)
-    human_valid_a = _parse_human_binary(left["human_span_valid"], field="human_span_valid")
     append_metric(
-        "model_vs_rater_a",
-        "span_valid_f1",
-        f1_score(human_valid_a, model_present, zero_division=0),
-        len(left),
-        "sampled_candidate_span_presence_not_full_transcript_recall",
-    )
-    append_metric(
-        "model_vs_rater_a",
+        "rater_a_vs_rater_b",
         "span_valid_cohen_kappa",
-        cohen_kappa_score(human_valid_a, model_present),
+        _safe_cohen_kappa(left["_human_span_valid"], right["_human_span_valid"]),
         len(left),
-        "sampled_candidate_span_presence_not_full_transcript_recall",
+        "all_candidate_spans_independent_human_rater_agreement",
     )
-    for field, metric_name in (("domain", "domain"), ("polarity", "polarity")):
-        valid = human_valid_a == 1
-        model_values = left.loc[valid, f"model_{field}"].astype(str)
-        human_values = left.loc[valid, f"human_{field}"].astype(str)
-        if len(model_values) == 0:
-            raise ValueError(f"C5 has no valid human spans for {field} agreement")
-        append_metric(
-            "model_vs_rater_a",
-            f"{metric_name}_macro_f1",
-            f1_score(human_values, model_values, average="macro", zero_division=0),
-            len(model_values),
-            "human_valid_candidate_spans",
-        )
-        append_metric(
-            "model_vs_rater_a",
-            f"{metric_name}_cohen_kappa",
-            cohen_kappa_score(human_values, model_values),
-            len(model_values),
-            "human_valid_candidate_spans",
-        )
-
-    for field, metric_name, binary in (
-        ("human_span_valid", "span_valid", True),
-        ("human_domain", "domain", False),
-        ("human_polarity", "polarity", False),
-    ):
-        if binary:
-            values_a = _parse_human_binary(left[field], field=field)
-            values_b = _parse_human_binary(right[field], field=field)
-        else:
-            values_a = left[field].astype(str).to_numpy()
-            values_b = right[field].astype(str).to_numpy()
+    jointly_valid = left["_human_span_valid"].eq(1) & right["_human_span_valid"].eq(1)
+    for field, metric_name in (("human_domain", "domain"), ("human_polarity", "polarity")):
+        if int(jointly_valid.sum()) == 0:
+            continue
         append_metric(
             "rater_a_vs_rater_b",
             f"{metric_name}_cohen_kappa",
-            cohen_kappa_score(values_a, values_b),
-            len(values_a),
-            "independent_human_rater_agreement",
+            _safe_cohen_kappa(
+                left.loc[jointly_valid, field],
+                right.loc[jointly_valid, field],
+            ),
+            int(jointly_valid.sum()),
+            "candidate_spans_valid_by_both_human_raters",
         )
+
+    if owner_crosswalk is None:
+        if consensus is not None:
+            raise ValueError("owner_crosswalk is required for model-versus-consensus agreement")
+        return pd.DataFrame(rows)
+    owner = _prepare_c5_owner_crosswalk(owner_crosswalk, left["review_case_id"])
+
+    def append_model_metrics(comparison: str, human: pd.DataFrame, rater_scope: str) -> None:
+        model_present = owner["model_exact_quote"].map(_clean).str.strip().ne("").to_numpy(dtype=int)
+        human_valid = human["_human_span_valid"].to_numpy(dtype=int)
+        append_metric(
+            comparison,
+            "span_valid_f1",
+            _safe_f1(human_valid, model_present),
+            len(human),
+            "sampled_candidate_span_presence_not_full_transcript_recall",
+        )
+        append_metric(
+            comparison,
+            "span_valid_cohen_kappa",
+            _safe_cohen_kappa(human_valid, model_present),
+            len(human),
+            "sampled_candidate_span_presence_not_full_transcript_recall",
+        )
+        valid = human["_human_span_valid"].eq(1)
+        for field, metric_name in (("domain", "domain"), ("polarity", "polarity")):
+            if int(valid.sum()) == 0:
+                continue
+            model_values = owner.loc[valid, f"model_{field}"].map(_clean).str.strip()
+            human_values = human.loc[valid, f"human_{field}"]
+            append_metric(
+                comparison,
+                f"{metric_name}_macro_f1",
+                _safe_f1(human_values, model_values, average="macro"),
+                int(valid.sum()),
+                rater_scope,
+            )
+            append_metric(
+                comparison,
+                f"{metric_name}_cohen_kappa",
+                _safe_cohen_kappa(human_values, model_values),
+                int(valid.sum()),
+                rater_scope,
+            )
+
+    append_model_metrics("model_vs_rater_a", left, "rater_a_valid_candidate_spans")
+    append_model_metrics("model_vs_rater_b", right, "rater_b_valid_candidate_spans")
+    if consensus is not None:
+        consensus_frame = _prepare_completed_c5_rater(consensus, name="consensus")
+        if not left["review_case_id"].eq(consensus_frame["review_case_id"]).all():
+            raise ValueError("C5 consensus file does not contain the same candidate spans")
+        append_model_metrics("model_vs_consensus", consensus_frame, "consensus_valid_candidate_spans")
     return pd.DataFrame(rows)
 
 
@@ -886,14 +1190,6 @@ def _stratified_fake_summary(
     residual_distribution = np.asarray(residual_distribution, dtype=float)
     observed_r2 = real_r2 - float(fake_r2.mean())
     observed_residual = float(real_residual_delta - fake_residual_delta.mean())
-    r2_p = float((np.count_nonzero(np.abs(r2_distribution) >= abs(observed_r2)) + 1) / (len(r2_distribution) + 1))
-    residual_p = float((np.count_nonzero(np.abs(residual_distribution) >= abs(observed_residual)) + 1) / (len(residual_distribution) + 1))
-    # The two targeted comparisons form a new, separate two-test BH family.
-    ordered = np.argsort([r2_p, residual_p])
-    raw = np.asarray([r2_p, residual_p], dtype=float)[ordered]
-    adjusted = np.minimum.accumulate((raw * 2 / np.arange(1, 3))[::-1])[::-1]
-    q_values = np.empty(2, dtype=float)
-    q_values[ordered] = np.clip(adjusted, 0.0, 1.0)
     nonstrat_r2 = float("nan")
     nonstrat_delta = float("nan")
     if non_stratified_explanation_results is not None and not non_stratified_explanation_results.empty:
@@ -922,8 +1218,6 @@ def _stratified_fake_summary(
                 "real_minus_stratified_fake_D_r2": observed_r2,
                 "real_minus_stratified_fake_D_r2_ci_low": float(np.quantile(r2_distribution, 0.025)),
                 "real_minus_stratified_fake_D_r2_ci_high": float(np.quantile(r2_distribution, 0.975)),
-                "real_minus_stratified_fake_D_r2_p_value": r2_p,
-                "real_minus_stratified_fake_D_r2_q_value": float(q_values[0]),
                 "real_D_residual_delta_auc": float(real_residual_delta),
                 "non_stratified_fake_D_residual_delta_auc_mean": nonstrat_delta,
                 "stratified_fake_D_residual_delta_auc_mean": float(fake_residual_delta.mean()),
@@ -933,15 +1227,30 @@ def _stratified_fake_summary(
                 "real_minus_stratified_fake_D_residual_delta_auc": observed_residual,
                 "real_minus_stratified_fake_D_residual_delta_auc_ci_low": float(np.quantile(residual_distribution, 0.025)),
                 "real_minus_stratified_fake_D_residual_delta_auc_ci_high": float(np.quantile(residual_distribution, 0.975)),
-                "real_minus_stratified_fake_D_residual_delta_auc_p_value": residual_p,
-                "real_minus_stratified_fake_D_residual_delta_auc_q_value": float(q_values[1]),
                 "n_draws": int(len(draws)),
                 "n_bootstrap": int(n_bootstrap),
-                "fdr_family": "targeted_post_result_sensitivity_two_tests",
-                "interpretation_scope": "targeted_post_result_sensitivity_not_primary_FDR",
+                "inference": "effect estimates and participant-and-draw bootstrap intervals only",
+                "interpretation_scope": "targeted_negative_control_sensitivity",
             }
         ]
     )
+
+
+def targeted_fake_d_manifest_contract() -> dict[str, object]:
+    """Return the locked non-inferential contract for label-stratified Fake-D."""
+
+    return {
+        "draws": 100,
+        "partition_scope": "outer_train_and_outer_test_separately",
+        "label_scope": "within_label_0_and_within_label_1",
+        "rowwise_derangement": True,
+        "cross_partition": False,
+        "status": "targeted_post_result_sensitivity",
+        "targeted_negative_control_sensitivity": True,
+        "modifies_frozen_primary_FDR_family": False,
+        "new_targeted_sensitivity_FDR_family": False,
+        "inference": "effect estimates and participant-and-draw bootstrap intervals only",
+    }
 
 
 def run_stratified_fake_domain_controls(
@@ -1479,6 +1788,41 @@ def _write_deterministic_xlsx(table: pd.DataFrame, path: Path) -> None:
     temporary.unlink(missing_ok=True)
 
 
+def write_c5_blinded_review_package(
+    owner_crosswalk: pd.DataFrame,
+    *,
+    reviewer_dir: str | Path,
+    owner_dir: str | Path,
+) -> dict[str, Path]:
+    """Write two blinded rater sheets and a separate restricted owner crosswalk."""
+
+    reviewer_root = Path(reviewer_dir).resolve()
+    owner_root = Path(owner_dir).resolve()
+    if reviewer_root == owner_root or reviewer_root in owner_root.parents or owner_root in reviewer_root.parents:
+        raise ValueError("reviewer_dir and owner_dir must be separate non-nested restricted directories")
+    reviewer_root.mkdir(parents=True, exist_ok=True)
+    owner_root.mkdir(parents=True, exist_ok=True)
+    packet = build_c5_blinded_reviewer_packet(owner_crosswalk)
+    missing_evidence = build_c5_missing_evidence_audit_form(owner_crosswalk)
+    paths = {
+        "reviewer_a_csv": reviewer_root / "c5_reviewer_a_blank.csv",
+        "reviewer_b_csv": reviewer_root / "c5_reviewer_b_blank.csv",
+        "reviewer_a_xlsx": reviewer_root / "c5_reviewer_a_blank.xlsx",
+        "reviewer_b_xlsx": reviewer_root / "c5_reviewer_b_blank.xlsx",
+        "missing_evidence_csv": reviewer_root / "c5_missing_evidence_audit_blank.csv",
+        "owner_crosswalk_csv": owner_root / "c5_owner_crosswalk.csv",
+        "owner_crosswalk_xlsx": owner_root / "c5_owner_crosswalk.xlsx",
+    }
+    atomic_write_csv(packet, paths["reviewer_a_csv"])
+    atomic_write_csv(packet, paths["reviewer_b_csv"])
+    _write_deterministic_xlsx(packet, paths["reviewer_a_xlsx"])
+    _write_deterministic_xlsx(packet, paths["reviewer_b_xlsx"])
+    atomic_write_csv(missing_evidence, paths["missing_evidence_csv"])
+    atomic_write_csv(owner_crosswalk, paths["owner_crosswalk_csv"])
+    _write_deterministic_xlsx(owner_crosswalk, paths["owner_crosswalk_xlsx"])
+    return paths
+
+
 def _recursive_inventory(root: Path) -> dict[str, str]:
     return {
         path.relative_to(root).as_posix(): sha256_file(path)
@@ -1494,7 +1838,13 @@ def _write_preparation_outputs(
     output_root: Path,
     inputs: object,
     restricted_review_dir: Path | None = None,
+    restricted_owner_dir: Path | None = None,
 ) -> dict[str, object]:
+    if (restricted_review_dir is None) != (restricted_owner_dir is None):
+        raise ValueError(
+            "restricted_review_dir and restricted_owner_dir must be supplied together "
+            "for a blinded C5 package"
+        )
     canonical = find_c5_canonical_source(project_root)
     spans = pd.read_csv(canonical)
     trace_path = output_root / "12_submission_audit/c5_traceability_audit_no_quotes.csv"
@@ -1510,36 +1860,35 @@ def _write_preparation_outputs(
     (result_dir / "c5_human_validation_field_dictionary.md").write_text(
         "# C5 human-validation field dictionary\n\n"
         "The public revision output contains only the deterministic sampling roster, "
-        "field definitions, and source hashes. Model exact quotes and blank human "
-        "coding fields are restricted review artifacts and are not written here.\n\n"
+        "field definitions, and source hashes. Reviewer packets and owner linkage "
+        "are restricted artifacts and are not written here.\n\n"
         "| Field | Meaning |\n|---|---|\n"
-        "| `participant_id` | Frozen participant identifier |\n"
-        "| `label` | Frozen binary label; retain only in the restricted local template if blinding is required |\n"
-        "| `span_id` | Stable participant-local model-evidence row identifier |\n"
-        "| `model_exact_quote` | Model-produced evidence span for local review |\n"
-        "| `model_domain` | Model-assigned C5 domain |\n"
-        "| `model_polarity` | Model-assigned polarity |\n"
+        "| `review_case_id` | Opaque candidate-span review identifier |\n"
+        "| `deidentified_quote` | Limited deterministic deidentification of the candidate quote |\n"
+        "| `local_context_reference` | Opaque restricted full-text review reference |\n"
         "| `human_span_valid` | Independent human validity judgment; blank before review |\n"
         "| `human_domain` | Independent human domain judgment; blank before review |\n"
         "| `human_polarity` | Independent human polarity judgment; blank before review |\n"
-        "| `human_false_positive` | Independent human false-positive judgment; blank before review |\n"
-        "| `human_missing_evidence` | Independent human missed-evidence judgment; blank before review |\n"
         "| `rater_id` | Human coder identifier; blank before review |\n"
-        "| `notes` | Human coder notes; blank before review |\n",
+        "| `notes` | Human coder notes; blank before review |\n"
+        "| `fulltext_review_case_id` | Opaque participant-level missing-evidence audit identifier |\n"
+        "| `human_missing_evidence` | Separate full-text audit judgment, not candidate-span agreement |\n",
         encoding="utf-8",
     )
     candidate_rows = 0
     if restricted_review_dir is not None:
-        restricted_review_dir.mkdir(parents=True, exist_ok=True)
-        candidate = build_c5_human_validation_dataset(
+        owner_crosswalk = build_c5_owner_crosswalk(
             spans,
             roster,
             source_sha256=sha256_file(canonical),
             traceability=traceability,
         )
-        atomic_write_csv(candidate, restricted_review_dir / "c5_human_validation_template.csv")
-        _write_deterministic_xlsx(candidate, restricted_review_dir / "c5_human_validation_template.xlsx")
-        candidate_rows = len(candidate)
+        write_c5_blinded_review_package(
+            owner_crosswalk,
+            reviewer_dir=restricted_review_dir,
+            owner_dir=restricted_owner_dir,
+        )
+        candidate_rows = len(build_c5_blinded_reviewer_packet(owner_crosswalk))
     source_table = build_feature_block_source_table(inputs)
     atomic_write_csv(source_table, result_dir / "feature_block_source_table.csv")
     frozen_metrics_path = output_root / "15_interviewer_signal_explanation/final/explanation_subset_metrics.csv"
@@ -1562,9 +1911,13 @@ def _write_preparation_outputs(
             "validation_roster_n": int(len(roster)),
             "validation_candidate_rows_restricted": int(candidate_rows),
             "restricted_review_dir_used": restricted_review_dir is not None,
+            "restricted_owner_dir_used": restricted_owner_dir is not None,
+            "reviewer_packet_blinded": restricted_review_dir is not None,
+            "owner_crosswalk_separate_and_restricted": restricted_owner_dir is not None,
+            "missing_evidence_audit_scope": "separate_participant_level_full_text_review",
             "independent_human_labels_present": False,
             "c4_human_machine_agreement_reused": False,
-            "c5_human_machine_agreement_status": "not_available; candidate sheet only",
+            "c5_human_machine_agreement_status": "not_available; blinded packet and owner crosswalk prepared",
             "traceability_input_sha256": sha256_file(trace_path) if trace_path.exists() else None,
             "frozen_source_score_sha256": sha256_file(frozen_source_scores_path),
             "formal_15_unchanged": True,
@@ -1578,6 +1931,7 @@ def _write_preparation_outputs(
         "roster_n": len(roster),
         "candidate_rows": int(candidate_rows),
         "source_score_sha256": sha256_file(frozen_source_scores_path),
+        "restricted_package_written": restricted_review_dir is not None,
     }
 
 
@@ -1592,6 +1946,7 @@ def run_revision_analysis(
     inner_folds: int = 3,
     base_seed: int = BASE_SEED,
     restricted_review_dir: str | Path | None = None,
+    restricted_owner_dir: str | Path | None = None,
 ) -> dict[str, object]:
     """Prepare C5 material and run the locked TF-IDF repeat-1 R sensitivity."""
 
@@ -1599,22 +1954,18 @@ def run_revision_analysis(
     result_dir = Path(result_dir).resolve()
     if result_dir.exists():
         raise FileExistsError(f"result directory already exists: {result_dir}")
-    result_dir.mkdir(parents=True)
     repo_root = output_root.parent
-    if project_root is None:
-        project = next(
-            (candidate for candidate in [repo_root, *repo_root.parents] if (candidate / "processed_research").exists()),
-            repo_root,
-        )
-    else:
-        project = Path(project_root).resolve()
+    project = resolve_revision_project_root(output_root, project_root)
+    locked_input_hashes = validate_locked_revision_inputs(output_root, project)
     inputs, membership = load_explanation_inputs(output_root, expected_n=142, expected_repeats=10, validate_hashes=True)
+    result_dir.mkdir(parents=True)
     preparation = _write_preparation_outputs(
         result_dir,
         project_root=project,
         output_root=output_root,
         inputs=inputs,
         restricted_review_dir=Path(restricted_review_dir).resolve() if restricted_review_dir is not None else None,
+        restricted_owner_dir=Path(restricted_owner_dir).resolve() if restricted_owner_dir is not None else None,
     )
     source_scores, source_cache, source_tuning = run_source_score_crossfit(
         inputs,
@@ -1680,13 +2031,10 @@ def run_revision_analysis(
     atomic_write_csv(stratified_explanation_oof, result_dir / "stratified_fake_domain_explanation_oof.csv")
     atomic_write_csv(stratified_residual_oof, result_dir / "stratified_fake_domain_residual_oof.csv")
     input_hashes = {
-        "formal_explanation_subset_metrics": sha256_file(output_root / "15_interviewer_signal_explanation/final/explanation_subset_metrics.csv"),
+        **locked_input_hashes,
         "splits": sha256_file(output_root / "00_splits/repeated_5fold_splits_10x5.csv"),
         "structural": sha256_file(output_root / "12_submission_audit/structural_baseline_features.csv"),
         "domain_count_D_P": sha256_file(output_root / "04_c5_controls/domain_count/input.csv"),
-        "c5_canonical_spans": preparation["canonical_sha256"],
-        "frozen_source_scores": preparation["source_score_sha256"],
-        "non_stratified_fake_domain_results": sha256_file(non_stratified_explanation_path),
     }
     output_hashes = _recursive_inventory(result_dir)
     manifest = {
@@ -1705,21 +2053,23 @@ def run_revision_analysis(
             "repeat_1_bootstrap": 5000,
             "repeat_summary": "mean_sd_median_min_max; no repeat-level significance test",
         },
-        "stratified_fake_D": {
-            "draws": 100,
-            "partition_scope": "outer_train_and_outer_test_separately",
-            "label_scope": "within_label_0_and_within_label_1",
-            "rowwise_derangement": True,
-            "cross_partition": False,
-            "fdr_family": "targeted_post_result_sensitivity_two_tests",
-            "status": "targeted_post_result_sensitivity",
-        },
+        "stratified_fake_D": targeted_fake_d_manifest_contract(),
         "models": {
             "explanation": {"type": "Ridge", "alpha_grid": list(RIDGE_ALPHAS), "inner_folds": int(inner_folds), "training_scaling": True},
             "label": {"type": "balanced L2 LogisticRegression", "C_grid": list(LABEL_C_GRID), "solver": "liblinear", "max_iter": 2000, "training_scaling": True},
         },
-        "inference": {"new_FDR_family": False, "scope": "exploratory_sensitivity_outside_frozen_four_test_family"},
-        "c5": {"canonical_sha256": preparation["canonical_sha256"], "independent_human_labels_present": False, "transcript_text_copied": False, "review_template_restricted_by_default": True},
+        "inference": {
+            "scope": "exploratory_sensitivity_outside_frozen_four_test_family",
+            "formal_hypothesis_tests": False,
+        },
+        "c5": {
+            "canonical_sha256": preparation["canonical_sha256"],
+            "independent_human_labels_present": False,
+            "transcript_text_copied": False,
+            "reviewer_packet_blinded_by_default": True,
+            "owner_crosswalk_separate_and_restricted": True,
+            "missing_evidence_scope": "separate_participant_level_full_text_review",
+        },
         "input_hashes": input_hashes,
         "output_file_hashes": output_hashes,
         "output_inventory_sha256": _stable_json_hash(output_hashes),
@@ -1794,6 +2144,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--representation", choices=("tfidf",), default="tfidf")
     parser.add_argument("--repeat", type=int, default=1)
     parser.add_argument("--restricted-review-dir", type=Path, default=None)
+    parser.add_argument("--restricted-owner-dir", type=Path, default=None)
     parser.add_argument("--verify-runs", action="store_true")
     return parser
 
@@ -1815,6 +2166,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         representation=args.representation,
         repeat=args.repeat,
         restricted_review_dir=args.restricted_review_dir,
+        restricted_owner_dir=args.restricted_owner_dir,
     )
     return 0
 

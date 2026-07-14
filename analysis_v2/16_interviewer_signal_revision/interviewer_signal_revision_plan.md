@@ -26,12 +26,15 @@ The current formal traceability audit contains 1,137 rows for 141
 participants, ten model-assigned domains, polarity, source/quote hashes, and
 post-hoc correction status.
 
-The organized validation dataset will contain the model span fields and blank
-human fields only. It will include a deterministic 24-participant sampling
-roster stratified by frozen binary label, participant speech length tertile,
-and D-P domain breadth. Selection cannot use model correctness, source score,
-or any result. Participant transcript text remains an external review
-reference and is not copied into the public output.
+The restricted owner-only crosswalk will contain model span fields, linkage,
+and blank human fields. Separate blinded reviewer packets will contain only an
+opaque review case ID, deidentified quote, opaque local-context reference, and
+blank human coding fields. The deterministic 24-participant sampling roster is
+stratified by frozen binary label, participant speech length tertile, D-P
+domain breadth, and C5 evidence-count tertile. Selection cannot use model
+correctness, source score, or any result. Participant transcript text remains
+an external restricted review reference and is not copied into the public
+output.
 
 ## R block source and descriptive increments
 
@@ -106,7 +109,14 @@ Material organization:
 - `c5_human_validation_sampling_roster.csv`
 - `c5_human_validation_field_dictionary.md`
 - `c5_human_validation_source_hash.json`
-- `c5_human_validation_template.csv` and `c5_human_validation_template.xlsx` only in an explicitly supplied restricted review directory
+- no C5 quotes, reviewer packets, or owner linkage in the public result tree
+
+Only when two explicitly separate restricted directories are supplied:
+
+- reviewer directory: `c5_reviewer_a_blank.csv/.xlsx`,
+  `c5_reviewer_b_blank.csv/.xlsx`, and
+  `c5_missing_evidence_audit_blank.csv`
+- owner directory: `c5_owner_crosswalk.csv/.xlsx`
 
 R analyses:
 
@@ -141,20 +151,124 @@ The original non-stratified Fake-D output remains unchanged. A separate
 outer training and outer test partition, complete D-P rows are deranged within
 label 0 and within label 1. A label stratum with fewer than two participants
 raises an availability error; the implementation never falls back to the
-non-stratified control. The two comparisons (real versus label-stratified
-Fake-D R2 and residual delta AUC) form a separate two-test BH family and do
-not enter the frozen four-test primary FDR family.
+non-stratified control. It retains effect estimates, the 100-draw Fake-D
+reference distribution, and participant-plus-draw bootstrap 95% confidence
+intervals only. It does not calculate, store, or interpret `p_value`,
+`q_value`, or BH adjustment, and it enters no FDR family.
 
 ## C5 human-validation boundary
 
 The 24-person roster covers the frozen binary label, participant speech-length
-tertile, D-P domain-breadth tertile, and (when available) model-evidence-count
-tertile. It is not selected using model correctness, source scores, residuals,
-or mismatch status. The public result tree contains no exact quote. The local
-review template preserves the requested model fields and blank human fields,
-but is written only when `--restricted-review-dir` is explicitly supplied.
-The agreement script refuses to calculate kappa or F1 when either rater file
-has missing human labels.
+tertile, D-P domain-breadth tertile, and model-evidence-count tertile. It is
+not selected using model correctness, source scores, residuals, or mismatch
+status. The public result tree contains no exact quote. In an explicitly
+supplied restricted review directory, each rater receives a blinded packet
+with a deidentified review case ID, quote, local review reference, and blank
+human fields only. A separate owner-only crosswalk retains participant IDs,
+labels, model fields, traceability, and the review-case mapping. The agreement
+script refuses to calculate candidate-span agreement when either rater file
+has incomplete validity labels.
+
+## Stage A.5 locked implementation correction
+
+This Stage A.5 revision changes only revision-module implementation, tests,
+and this plan. It does not modify `analysis_v2/15`, any frozen input, the
+feature blocks, CV partitions, models, hyperparameters, seeds, draw counts,
+or the Stage B analysis design. It does not create `run_1/`, `run_2/`, or
+`final/`.
+
+### Frozen-input gate before any result-directory creation
+
+Before a future `run_1` directory can be created, the runner must verify the
+following exact SHA-256 values. Any missing file or mismatch raises an error
+before `mkdir`, so no partial formal output is created.
+
+| Locked input | SHA-256 |
+| --- | --- |
+| Stage 15 explanation subset metrics | `a550ba89d14e0f470d87327002bc7e5cf2c3f8cb9c5f5e691de3fefe72c1b726` |
+| Stage 15 source score crossfit | `01ba43c969ec0e2cbbec8214b8dc90e6869cd1118339a237f4914a79e9d3dd80` |
+| Stage 15 formal manifest | `e665d0b003bd4ed22e1880901720d02ea7d58c198c3b3879bdb6c807f0533394` |
+| Stage 15 original Fake-D explanation results | `682da41d7c873d3b3fef75e764961cc351e769edc9a9a0b264c451d552c50df0` |
+| Stage 15 original Fake-D residual results | `6ac82cb7eb5af954d8cda70e082f2aca8edc8e93d30b3f0fa7648691990950f3` |
+| C5 traceability audit | `2a11e33d8996c98b6ba3f40ca406e67188ed77b8f09117d1bde4490e3649b186` |
+| Canonical official-142 C5 spans | `794d7b43ebd95d57ac4a90a4217953a9bea27e98ff91b13c31b0a06f9aa48c7e` |
+
+The manifest will record the verified input-hash map. This gate is an input
+integrity check, not a new analytical decision. When the linked worktree does
+not contain the untracked canonical C5 source, the runner resolves the nearest
+ancestor repository root that contains the locked canonical path, then applies
+the same SHA-256 gate before creating any result directory.
+
+### Targeted label-stratified Fake-D negative control
+
+The existing real-D result and 100 within-label, within-partition Fake-D
+draws remain unchanged. The result retains effect estimates, the 100-draw
+Fake-D reference distribution, and 5,000 participant-plus-draw bootstrap
+95% confidence intervals. It does not calculate, store, or interpret
+`p_value`, `q_value`, or BH adjustment. The revision manifest must state:
+
+```text
+targeted_negative_control_sensitivity = true
+modifies_frozen_primary_FDR_family = false
+new_targeted_sensitivity_FDR_family = false
+inference = effect estimates and participant-and-draw bootstrap intervals only
+```
+
+This is a targeted post-result negative-control sensitivity, not a new FDR
+family. The roster `selection_rule` explicitly includes the C5 evidence-count
+tertile as well as label, speech-length tertile, and D-P-breadth tertile.
+
+### C5 blinded review packet and owner-only linkage
+
+Candidate spans are first assembled into an owner-only crosswalk. It retains
+the frozen participant identifier, label, model evidence fields, traceability
+fields, and deterministic `review_case_id`. It is written only under an
+explicit restricted owner directory and is never part of public revision
+output.
+
+Each reviewer receives a separate blind file with only:
+
+```text
+review_case_id
+deidentified_quote
+local_context_reference
+human_span_valid
+human_domain
+human_polarity
+rater_id
+notes
+```
+
+The reviewer packet must not expose participant ID, label, model domain,
+model polarity, model review/correction status, model correctness, or an
+identifying transcript reference. A separate participant-level full-text
+missing-evidence audit form is used for `human_missing_evidence`; it is not
+mixed into candidate-span agreement.
+
+### C5 scoring contract after independent coding
+
+The agreement function accepts two blinded rater sheets plus the owner-only
+crosswalk for model comparisons. It calculates A-versus-B validity Cohen's
+kappa across all candidate spans. Domain and polarity agreement are calculated
+only on spans marked valid by both raters. Model-versus-rater metrics are
+reported separately for rater A and rater B. Model-versus-consensus metrics
+are absent unless a distinct consensus table is explicitly supplied.
+
+Invalid candidate spans may leave `human_domain` and `human_polarity` blank.
+Valid candidate spans must supply both values. Candidate-span validity is not
+a full-transcript recall estimate; missing-evidence review remains a separate
+participant-level full-text check.
+
+### Stage A.5 verification contract
+
+Tests must cover the frozen-input gate before result creation; the absence of
+Fake-D p/q/FDR fields while retaining bootstrap intervals; blind reviewer
+column exclusion and owner linkage retention; the updated agreement scopes;
+the evidence-count selection rule; and all existing Stage 16 safety tests.
+Before a code-only commit, run the targeted revision tests, the full test
+suite, `python -m py_compile reanalysis_v2/interviewer_signal_revision.py`,
+and `git diff --check`. Confirm that no Stage 16 formal result directory was
+created.
 
 ## Permitted conclusions
 

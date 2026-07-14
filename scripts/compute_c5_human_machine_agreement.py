@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compute C5 human-machine and inter-rater agreement after manual coding."""
+"""Compute blinded C5 agreement with a separate owner-only model crosswalk."""
 
 from __future__ import annotations
 
@@ -18,15 +18,25 @@ from reanalysis_v2.interviewer_signal_revision import compute_c5_human_machine_a
 from reanalysis_v2.io import atomic_write_csv
 
 
+def _read_coding_table(path: Path) -> pd.DataFrame:
+    if path.suffix.lower() in {".xlsx", ".xls"}:
+        return pd.read_excel(path)
+    return pd.read_csv(path)
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Compute C5 agreement from two completed rater sheets")
+    parser = argparse.ArgumentParser(description="Compute blinded C5 agreement from two completed rater sheets")
     parser.add_argument("--rater-a", type=Path, required=True)
     parser.add_argument("--rater-b", type=Path, required=True)
+    parser.add_argument("--owner-crosswalk", type=Path, required=True)
+    parser.add_argument("--consensus", type=Path, default=None)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     metrics = compute_c5_human_machine_agreement(
-        pd.read_csv(args.rater_a),
-        pd.read_csv(args.rater_b),
+        _read_coding_table(args.rater_a),
+        _read_coding_table(args.rater_b),
+        owner_crosswalk=_read_coding_table(args.owner_crosswalk),
+        consensus=_read_coding_table(args.consensus) if args.consensus is not None else None,
     )
     atomic_write_csv(metrics, args.output)
     return 0
