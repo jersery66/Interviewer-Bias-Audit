@@ -312,6 +312,12 @@ def _hash_outputs(output_dir: Path) -> dict[str, str]:
     }
 
 
+def _manifest_path(path: Path) -> str:
+    """Serialize filesystem paths with forward slashes for valid portable JSON."""
+
+    return Path(path).as_posix()
+
+
 def run_analysis(
     *,
     output_root: Path,
@@ -438,14 +444,14 @@ def run_analysis(
         "workers": int(workers),
         "code_commit": head,
         "inputs": {
-            "structural": {"path": str(structural_path), "sha256": _sha256(structural_path)},
-            "splits": {"path": str(membership_path), "sha256": _sha256(membership_path)},
+            "structural": {"path": _manifest_path(structural_path), "sha256": _sha256(structural_path)},
+            "splits": {"path": _manifest_path(membership_path), "sha256": _sha256(membership_path)},
             "domain_count": {
-                "path": str(output_root / "04_c5_controls" / "domain_count" / "input.csv"),
+                "path": _manifest_path(output_root / "04_c5_controls" / "domain_count" / "input.csv"),
                 "sha256": _sha256(output_root / "04_c5_controls" / "domain_count" / "input.csv"),
             },
         },
-        "embedding_root": str(embedding_root),
+        "embedding_root": _manifest_path(embedding_root),
         "embedding_manifests": {
             slug: {
                 "model_name": pair.model_name,
