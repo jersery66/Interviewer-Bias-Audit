@@ -103,20 +103,58 @@ Material organization:
 - `c5_agreement_material_inventory.csv`
 - `c5_agreement_material_inventory.md`
 - `c5_agreement_data_gap.md`
-- `c5_human_validation_candidate_dataset.csv`
-- `c5_human_validation_template.xlsx`
+- `c5_human_validation_sampling_roster.csv`
+- `c5_human_validation_field_dictionary.md`
+- `c5_human_validation_source_hash.json`
+- `c5_human_validation_template.csv` and `c5_human_validation_template.xlsx` only in an explicitly supplied restricted review directory
 
 R analyses:
 
 - `feature_block_source_table.csv`
 - `block_increment_contrasts.csv`
+- `source_model_performance_by_repeat.csv`
+- `source_model_performance_summary.csv`
 - `r_absorption_sensitivity_oof.csv`
 - `r_absorption_sensitivity_metrics.csv`
+- `stratified_fake_domain_assignments.csv`
+- `stratified_fake_domain_explanation_results.csv`
+- `stratified_fake_domain_residual_results.csv`
+- `stratified_fake_domain_summary.csv`
 - `run_manifest.json`
 
 Formal execution uses separate `run_1/` and `run_2/` directories. A
 `final/` directory is created only after every core output hash is identical
 between the two runs.
+
+## Required source benchmark and targeted Fake-D sensitivity
+
+Before a formal run, the frozen
+`analysis_v2/15_interviewer_signal_explanation/final/source_score_crossfit.csv`
+is summarized directly; participant-only (`P`) and interviewer-only (`I`)
+probabilities are not refit. Repeat 1 receives a 5,000-draw label-stratified
+participant bootstrap for descriptive 95% intervals. Repeats 1--10 are
+reported with mean, SD, median, minimum, and maximum. Repeats are not treated
+as independent observations and no repeat-level significance test is run.
+
+The original non-stratified Fake-D output remains unchanged. A separate
+`targeted_post_result_sensitivity` uses 100 TF-IDF/repeat-1 draws. In each
+outer training and outer test partition, complete D-P rows are deranged within
+label 0 and within label 1. A label stratum with fewer than two participants
+raises an availability error; the implementation never falls back to the
+non-stratified control. The two comparisons (real versus label-stratified
+Fake-D R2 and residual delta AUC) form a separate two-test BH family and do
+not enter the frozen four-test primary FDR family.
+
+## C5 human-validation boundary
+
+The 24-person roster covers the frozen binary label, participant speech-length
+tertile, D-P domain-breadth tertile, and (when available) model-evidence-count
+tertile. It is not selected using model correctness, source scores, residuals,
+or mismatch status. The public result tree contains no exact quote. The local
+review template preserves the requested model fields and blank human fields,
+but is written only when `--restricted-review-dir` is explicitly supplied.
+The agreement script refuses to calculate kappa or F1 when either rater file
+has missing human labels.
 
 ## Permitted conclusions
 

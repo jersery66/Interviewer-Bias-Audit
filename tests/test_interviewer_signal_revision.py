@@ -12,8 +12,12 @@ from reanalysis_v2.interviewer_signal_revision import (
     build_block_increment_contrasts,
     build_c5_human_validation_dataset,
     build_feature_block_source_table,
+    apply_stratified_fake_domain_permutation,
+    compute_c5_human_machine_agreement,
     run_r_absorption_sensitivity,
     select_c5_validation_participants,
+    source_model_performance_by_repeat,
+    source_model_performance_summary,
 )
 from reanalysis_v2.interviewer_signal_explanation import (
     D_P_FEATURES,
@@ -82,6 +86,15 @@ def test_c5_candidate_contains_model_fields_and_blank_human_fields() -> None:
         assert candidate[field].fillna("").eq("").all(), field
     assert "transcript" not in " ".join(candidate.columns).lower()
     assert candidate["source_sha256"].eq("source-hash").all()
+    assert list(candidate.loc[:, ["participant_id", "label", "span_id", "model_exact_quote", "model_domain", "model_polarity", *C5_HUMAN_FIELDS]].columns) == [
+        "participant_id",
+        "label",
+        "span_id",
+        "model_exact_quote",
+        "model_domain",
+        "model_polarity",
+        *C5_HUMAN_FIELDS,
+    ]
     assert not set(candidate.columns).intersection(
         {"exact_quote", "original_model_quote", "speaker_text", "transcript_text"}
     )
@@ -103,11 +116,13 @@ def test_c5_candidate_is_deterministic_and_does_not_infer_human_labels() -> None
 
 def test_c5_sampling_is_deterministic_and_label_stratified_without_model_fields() -> None:
     structural, domains = _synthetic_sampling_inputs()
-    first = select_c5_validation_participants(structural, domains, n=12)
-    second = select_c5_validation_participants(structural, domains, n=12)
+    evidence_counts = pd.Series(np.arange(len(structural)) % 7 + 1, index=structural["participant_id"])
+    first = select_c5_validation_participants(structural, domains, n=12, evidence_counts=evidence_counts)
+    second = select_c5_validation_participants(structural, domains, n=12, evidence_counts=evidence_counts)
     pd.testing.assert_frame_equal(first, second)
     assert len(first) == 12
     assert set(first["label"]) == {0, 1}
+    assert set(first["evidence_count_tertile"]) >= {1, 2, 3}
     assert "model_correct" not in first.columns
     assert "source_score" not in first.columns
 
@@ -237,3 +252,93 @@ def test_r_absorption_uses_fold_local_residuals_and_reports_locked_models() -> N
         oof["residual_full"],
         oof["interviewer_logit"] - oof["predicted_interviewer_logit_full"],
     )
+
+
+def test_source_model_performance_uses_complete_outer_test_cohort_and_stratified_ci() -> None:
+    ids = np.arange(142)
+    labels = np.asarray([0] * 99 + [1] * 43)
+    rows = []
+    for representation in ("tfidf", "mpnet", "bge"):
+        for repeat in range(1, 11):
+            for participant_id, label in zip(ids, labels):
+                base = float(label) * 0.8 + (participant_id % 11) / 1000.0
+                rows.append(
+                    {
+                        "participant_id": int(participant_id),
+                        "label": int(label),
+                        "representation": representation,
+                        "repeat": repeat,
+                        "participant_probability": base,
+                        "interviewer_probability": min(0.99, base + 0.05),
+                    }
+                )
+    source_scores = pd.DataFrame(rows)
+    by_repeat = source_model_performance_by_repeat(
+        source_scores, n_bootstrap=20, expected_n=142, expected_repeats=10, seed=5
+    )
+    assert len(by_repeat) == 60
+    repeat_one = by_repeat.loc[by_repeat["repeat"].eq(1)]
+    assert repeat_one["n_participants"].eq(142).all()
+    assert repeat_one["n_positive"].eq(43).all()
+    assert repeat_one["n_negative"].eq(99).all()
+    assert repeat_one["roc_auc_ci_low"].notna().all()
+    summary = source_model_performance_summary(by_repeat)
+    assert len(summary) == 6
+    assert summary["repeat_n"].eq(10).all()
+    assert summary["roc_auc_mean"].notna().all()
+
+
+def test_stratified_fake_d_is_label_safe_partition_safe_rowwise_and_reproducible() -> None:
+    ids = np.arange(20)
+    labels = np.asarray([0, 1] * 10)
+    domains = np.arange(60, dtype=float).reshape(20, 3)
+    train_idx = np.arange(0, 12)
+    test_idx = np.arange(12, 20)
+    first_domains, first_ledger = apply_stratified_fake_domain_permutation(
+        participant_ids=ids,
+        labels=labels,
+        domains=domains,
+        train_idx=train_idx,
+        test_idx=test_idx,
+        draw=7,
+        seed=101,
+    )
+    second_domains, second_ledger = apply_stratified_fake_domain_permutation(
+        participant_ids=ids,
+        labels=labels,
+        domains=domains,
+        train_idx=train_idx,
+        test_idx=test_idx,
+        draw=7,
+        seed=101,
+    )
+    np.testing.assert_array_equal(first_domains, second_domains)
+    pd.testing.assert_frame_equal(first_ledger, second_ledger)
+    assert not first_ledger["self_match"].any()
+    assert first_ledger["same_label"].all()
+    assert first_ledger["one_to_one"].all()
+    train_donors = set(first_ledger.loc[first_ledger["partition"].eq("train"), "donor_id"])
+    test_donors = set(first_ledger.loc[first_ledger["partition"].eq("test"), "donor_id"])
+    assert train_donors.isdisjoint(test_donors)
+    for row in first_ledger.itertuples(index=False):
+        np.testing.assert_array_equal(first_domains[int(row.recipient_index)], domains[int(row.donor_index)])
+
+
+def test_c5_agreement_refuses_missing_human_labels_and_computes_after_completion() -> None:
+    roster = pd.DataFrame({"participant_id": [101, 102]})
+    candidate = build_c5_human_validation_dataset(
+        _synthetic_c5_spans(), roster, source_sha256="source-hash"
+    )
+    with pytest.raises(ValueError, match="cannot compute kappa or F1"):
+        compute_c5_human_machine_agreement(candidate, candidate)
+    completed_a = candidate.copy()
+    completed_b = candidate.copy()
+    completed_a["human_span_valid"] = ["yes", "yes", "no"]
+    completed_b["human_span_valid"] = ["yes", "no", "no"]
+    for frame in (completed_a, completed_b):
+        frame["human_domain"] = ["sleep_fatigue_energy", "self_worth_guilt", "protective_or_absent_symptom"]
+        frame["human_polarity"] = ["present", "present", "absent"]
+        frame["human_false_positive"] = ["no", "no", "yes"]
+        frame["human_missing_evidence"] = ["no", "no", "no"]
+    metrics = compute_c5_human_machine_agreement(completed_a, completed_b)
+    assert metrics["metric"].str.contains("kappa|f1").any()

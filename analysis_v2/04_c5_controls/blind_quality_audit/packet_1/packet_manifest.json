@@ -1,0 +1,36 @@
+{
+  "status": "pending_reviewer_input",
+  "analysis": "d_p_blind_manual_quality_audit",
+  "sample_n": 30,
+  "n_per_label_length_cell": 5,
+  "strata": "paper label x participant word-count tertile",
+  "seed": 20260714,
+  "reviewers": [
+    "reviewer_a",
+    "reviewer_b"
+  ],
+  "fallback_if_reviewer_b_missing": "single-reviewer content-validity sample only; no kappa or consensus metrics",
+  "inputs": {
+    "participant_speech": {
+      "path": "analysis_v2\\01_inputs\\c2_participant_speech.csv",
+      "sha256": "c520c713922e671431b40382238d64d0b07779ad5e77d905c9224a6f66b4ec9b"
+    },
+    "domain_count": {
+      "path": "analysis_v2\\04_c5_controls\\domain_count\\input.csv",
+      "sha256": "7687c70d3770b7e8902900ec3c117d8a679fc6d718abf1c2a7f8d1361b07ae33"
+    }
+  },
+  "code_commit": "57288192715a958f5743501e71fa2e142c05a0a5",
+  "blind_case_columns": [
+    "audit_case_id",
+    "participant_text"
+  ],
+  "output_file_hashes": {
+    "blind_cases.csv": "8c80b71ce678dca5cc0131df52380efd9f111603bbf888c6df991244781ecc3c",
+    "README.md": "1561d99279225caf6c58c3342336423d2acfd537efc870b8020dc1d0ddd6db85",
+    "reviewer_a_blank.csv": "db7eab1fc08015897846af60a73734f8552d0957e960584bc15ff8e36049c9db",
+    "reviewer_b_blank.csv": "0c0b98c43d445560d4c54a68433ad42c43685c92a9a3a72941e21eaac1fa5c88",
+    "sample_key_owner_only.csv": "43929e9eadfcc247644b6da275d9a29f39d0bce5839991e0e7846c88632747d0",
+    "scoring_reference_owner_only.csv": "9c133cb569885a55fbbfe5f477f6b7fa349cfcae4297d4e9bd0c782452a32733"
+  }
+}
