@@ -69,6 +69,13 @@ NEAR_ZERO_DOMINANT_FRACTION = 0.95
 RECOVERABILITY_HIGH_R2_THRESHOLD = 0.50
 RECOVERABILITY_NEAR_ZERO_R2_THRESHOLD = 0.05
 PRIMARY_REPRESENTATION = "tfidf"
+VALID_FORMAL_COMPLETION_STATUSES = frozenset(
+    {
+        "complete",
+        "matching_not_adequate_for_primary_interpretation",
+        "training_match_quality_limited",
+    }
+)
 
 D_P_FEATURES = (
     "anhedonia_interest",
@@ -935,6 +942,37 @@ def public_output_columns_are_safe(columns: Sequence[object]) -> None:
         raise ValueError(f"public output contains source text columns: {unsafe}")
 
 
+def _recursive_file_hashes(root: Path) -> dict[str, str]:
+    return {
+        path.relative_to(root).as_posix(): sha256_file(path)
+        for path in sorted(root.rglob("*"))
+        if path.is_file()
+    }
+
+
+def _inventory_sha256(inventory: Mapping[str, str]) -> str:
+    payload = [
+        {"path": path, "sha256": inventory[path]}
+        for path in sorted(inventory)
+    ]
+    return hashlib.sha256(
+        json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+
+
+def _current_git_commit() -> str:
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    commit = result.stdout.strip()
+    if not commit:
+        raise RuntimeError("git rev-parse HEAD returned an empty commit")
+    return commit
+
+
 def _manifest_hashes(run_dir: Path) -> dict[str, str]:
     manifest_path = run_dir / "run_manifest.json"
     if not manifest_path.exists():
@@ -954,6 +992,20 @@ def _manifest_hashes(run_dir: Path) -> dict[str, str]:
                 f"manifest output hash mismatch for {path.name}: "
                 f"expected={expected}, observed={observed}"
             )
+    excluded = {"run_manifest.json", "rerun_verification.json"}
+    actual = {
+        name: digest
+        for name, digest in _recursive_file_hashes(run_dir).items()
+        if Path(name).name not in excluded
+    }
+    if actual != result:
+        missing = sorted(set(result) - set(actual))
+        extra = sorted(set(actual) - set(result))
+        mismatched = sorted(name for name in set(result) & set(actual) if result[name] != actual[name])
+        raise ValueError(
+            f"manifest recursive output inventory mismatch for {run_dir}: "
+            f"missing={missing}, extra={extra}, mismatched={mismatched}"
+        )
     return result
 
 
@@ -963,8 +1015,9 @@ def verify_explanation_reruns(
     run_1: str = "run_1",
     run_2: str = "run_2",
     promote_final: bool = False,
+    promotion_tool_commit: str | None = None,
 ) -> dict[str, object]:
-    """Verify two immutable runs and optionally copy only an exact match."""
+    """Verify two immutable runs and optionally promote an exact recursive tree."""
 
     output_base = Path(output_base)
     first_dir = output_base / run_1
@@ -985,6 +1038,10 @@ def verify_explanation_reruns(
     for field in ("code_commit", "plan_sha256", "analysis"):
         if first_manifest.get(field) != second_manifest.get(field):
             mismatches.append(field)
+    for run_name, manifest in ((run_1, first_manifest), (run_2, second_manifest)):
+        completion_status = manifest.get("completion_status", manifest.get("status"))
+        if completion_status not in VALID_FORMAL_COMPLETION_STATUSES:
+            mismatches.append(f"{run_name}:completion_status")
     status = "verified" if not mismatches else "failed"
     record: dict[str, object] = {
         "status": status,
@@ -995,13 +1052,64 @@ def verify_explanation_reruns(
         "run_2_output_file_hashes": second_hashes,
     }
     if status == "verified" and promote_final:
+        analysis_code_commit = str(first_manifest["code_commit"])
+        promotion_commit = promotion_tool_commit or _current_git_commit()
         final_dir = output_base / "final"
+        second_inventory = _recursive_file_hashes(second_dir)
+        final_was_complete = False
         if final_dir.exists():
-            raise FileExistsError(f"final output already exists: {final_dir}")
-        final_dir.mkdir(parents=True)
-        for path in second_dir.iterdir():
-            if path.is_file():
-                shutil.copy2(path, final_dir / path.name)
+            if not final_dir.is_dir():
+                raise ValueError(f"existing final is not a directory: {final_dir}")
+            final_inventory = _recursive_file_hashes(final_dir)
+            if final_inventory == second_inventory:
+                final_was_complete = True
+            elif (
+                len(final_inventory) < len(second_inventory)
+                and set(final_inventory).issubset(second_inventory)
+                and all(final_inventory[name] == second_inventory[name] for name in final_inventory)
+            ):
+                shutil.rmtree(final_dir)
+            else:
+                raise ValueError(
+                    f"existing final is not a verified strict subset of run_2: {final_dir}"
+                )
+
+        if not final_was_complete:
+            staging_dir = output_base / "final.staging"
+            if staging_dir.exists():
+                raise FileExistsError(f"promotion staging directory already exists: {staging_dir}")
+            final_created = False
+            try:
+                shutil.copytree(second_dir, staging_dir, copy_function=shutil.copy2)
+                staging_inventory = _recursive_file_hashes(staging_dir)
+                if staging_inventory != second_inventory:
+                    raise ValueError("staging recursive inventory does not match run_2")
+                staging_dir.replace(final_dir)
+                final_created = True
+                final_inventory = _recursive_file_hashes(final_dir)
+                if final_inventory != second_inventory:
+                    raise ValueError("promoted final recursive inventory does not match run_2")
+            except Exception:
+                if staging_dir.exists():
+                    shutil.rmtree(staging_dir)
+                if final_created and final_dir.exists():
+                    shutil.rmtree(final_dir)
+                raise
+        else:
+            final_inventory = second_inventory
+
+        record.update(
+            {
+                "promotion_status": "complete",
+                "promotion_mode": "recursive_verified_tree_copy",
+                "promotion_source": run_2,
+                "final_inventory_matches_run_2": final_inventory == second_inventory,
+                "final_file_count": len(final_inventory),
+                "final_inventory_sha256": _inventory_sha256(final_inventory),
+                "analysis_code_commit": analysis_code_commit,
+                "promotion_tool_commit": promotion_commit,
+            }
+        )
         record["promoted_final"] = str(final_dir)
     atomic_write_json(record, output_base / "rerun_verification.json")
     return record

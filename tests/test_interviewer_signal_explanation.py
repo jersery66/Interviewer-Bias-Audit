@@ -1092,7 +1092,16 @@ def test_rerun_verification_requires_identical_core_hashes_and_code_contract(tmp
         output.write_text("a,b\n1,2\n", encoding="utf-8")
         digest = __import__("hashlib").sha256(output.read_bytes()).hexdigest()
         (run / "run_manifest.json").write_text(
-            json.dumps({"code_commit": "stage-a", "plan_sha256": "plan", "output_file_hashes": {"metrics.csv": digest}}),
+            json.dumps(
+                {
+                    "analysis": "test-analysis",
+                    "code_commit": "stage-a",
+                    "completion_status": "complete",
+                    "plan_sha256": "plan",
+                    "status": "complete",
+                    "output_file_hashes": {"metrics.csv": digest},
+                }
+            ),
             encoding="utf-8",
         )
 
@@ -1101,6 +1110,165 @@ def test_rerun_verification_requires_identical_core_hashes_and_code_contract(tmp
     (base / "run_2" / "metrics.csv").write_text("a,b\n9,9\n", encoding="utf-8")
     failed = verify_explanation_reruns(base)
     assert failed["status"] == "failed"
+
+
+def _promotion_inventory(root: Path) -> dict[str, str]:
+    return {
+        path.relative_to(root).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in sorted(root.rglob("*"))
+        if path.is_file()
+    }
+
+
+def _write_verified_promotion_pair(base: Path) -> None:
+    for run_name in ("run_1", "run_2"):
+        run = base / run_name
+        (run / "figures" / "nested").mkdir(parents=True)
+        (run / "metrics.csv").write_text("a,b\n1,2\n", encoding="utf-8")
+        (run / "metadata.json").write_text('{"ok": true}\n', encoding="utf-8")
+        (run / "figures" / "plot.png").write_bytes(b"png-payload")
+        (run / "figures" / "nested" / "plot.svg").write_bytes(b"svg-payload")
+        output_hashes = _promotion_inventory(run)
+        manifest = {
+            "analysis": "test-analysis",
+            "code_commit": "analysis-code-commit",
+            "completion_status": "complete",
+            "plan_sha256": "plan",
+            "status": "complete",
+            "output_file_hashes": output_hashes,
+        }
+        (run / "run_manifest.json").write_text(json.dumps(manifest, sort_keys=True), encoding="utf-8")
+
+
+def test_promotion_recursively_copies_nested_figures(tmp_path: Path) -> None:
+    base = tmp_path / "analysis"
+    _write_verified_promotion_pair(base)
+
+    result = verify_explanation_reruns(
+        base,
+        promote_final=True,
+        promotion_tool_commit="promotion-hotfix",
+    )
+
+    assert result["status"] == "verified"
+    assert result["promotion_status"] == "complete"
+    assert (base / "final" / "figures" / "plot.png").is_file()
+    assert (base / "final" / "figures" / "nested" / "plot.svg").is_file()
+
+
+def test_promotion_final_tree_matches_run_two_recursively(tmp_path: Path) -> None:
+    base = tmp_path / "analysis"
+    _write_verified_promotion_pair(base)
+
+    verify_explanation_reruns(base, promote_final=True, promotion_tool_commit="promotion-hotfix")
+
+    assert _promotion_inventory(base / "final") == _promotion_inventory(base / "run_2")
+
+
+def test_incomplete_final_strict_subset_is_safely_repaired(tmp_path: Path) -> None:
+    base = tmp_path / "analysis"
+    _write_verified_promotion_pair(base)
+    final = base / "final"
+    final.mkdir()
+    for name in ("metrics.csv", "run_manifest.json"):
+        (final / name).write_bytes((base / "run_2" / name).read_bytes())
+
+    result = verify_explanation_reruns(base, promote_final=True, promotion_tool_commit="promotion-hotfix")
+
+    assert result["promotion_status"] == "complete"
+    assert _promotion_inventory(final) == _promotion_inventory(base / "run_2")
+
+
+def test_promotion_rejects_final_hash_mismatch_without_overwrite(tmp_path: Path) -> None:
+    base = tmp_path / "analysis"
+    _write_verified_promotion_pair(base)
+    final = base / "final"
+    final.mkdir()
+    (final / "metrics.csv").write_text("corrupt\n", encoding="utf-8")
+    (final / "run_manifest.json").write_bytes((base / "run_2" / "run_manifest.json").read_bytes())
+
+    with pytest.raises(ValueError, match="final"):
+        verify_explanation_reruns(base, promote_final=True, promotion_tool_commit="promotion-hotfix")
+
+    assert (final / "metrics.csv").read_text(encoding="utf-8") == "corrupt\n"
+
+
+def test_promotion_rejects_final_extra_file_without_overwrite(tmp_path: Path) -> None:
+    base = tmp_path / "analysis"
+    _write_verified_promotion_pair(base)
+    final = base / "final"
+    final.mkdir()
+    (final / "metrics.csv").write_bytes((base / "run_2" / "metrics.csv").read_bytes())
+    (final / "run_manifest.json").write_bytes((base / "run_2" / "run_manifest.json").read_bytes())
+    (final / "unrelated.txt").write_text("do not overwrite", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="final"):
+        verify_explanation_reruns(base, promote_final=True, promotion_tool_commit="promotion-hotfix")
+
+    assert (final / "unrelated.txt").read_text(encoding="utf-8") == "do not overwrite"
+
+
+def test_staging_hash_failure_does_not_create_final(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    base = tmp_path / "analysis"
+    _write_verified_promotion_pair(base)
+    original_copytree = explanation_module.shutil.copytree
+
+    def corrupt_copytree(source: Path, destination: Path, *args: object, **kwargs: object) -> Path:
+        result = original_copytree(source, destination, *args, **kwargs)
+        (Path(destination) / "metrics.csv").write_text("corrupt staging\n", encoding="utf-8")
+        return result
+
+    monkeypatch.setattr(explanation_module.shutil, "copytree", corrupt_copytree)
+
+    with pytest.raises(ValueError, match="staging"):
+        verify_explanation_reruns(base, promote_final=True, promotion_tool_commit="promotion-hotfix")
+
+    assert not (base / "final").exists()
+    assert not (base / "final.staging").exists()
+
+
+def test_run_mismatch_prevents_promotion(tmp_path: Path) -> None:
+    base = tmp_path / "analysis"
+    _write_verified_promotion_pair(base)
+    (base / "run_2" / "figures" / "plot.png").write_bytes(b"changed")
+
+    result = verify_explanation_reruns(base, promote_final=True, promotion_tool_commit="promotion-hotfix")
+
+    assert result["status"] == "failed"
+    assert not (base / "final").exists()
+
+
+def test_promotion_does_not_modify_run_trees(tmp_path: Path) -> None:
+    base = tmp_path / "analysis"
+    _write_verified_promotion_pair(base)
+    before_run_1 = _promotion_inventory(base / "run_1")
+    before_run_2 = _promotion_inventory(base / "run_2")
+
+    verify_explanation_reruns(base, promote_final=True, promotion_tool_commit="promotion-hotfix")
+
+    assert _promotion_inventory(base / "run_1") == before_run_1
+    assert _promotion_inventory(base / "run_2") == before_run_2
+
+
+def test_final_manifest_preserves_analysis_code_commit(tmp_path: Path) -> None:
+    base = tmp_path / "analysis"
+    _write_verified_promotion_pair(base)
+
+    result = verify_explanation_reruns(base, promote_final=True, promotion_tool_commit="promotion-hotfix")
+    final_manifest = json.loads((base / "final" / "run_manifest.json").read_text(encoding="utf-8"))
+
+    assert final_manifest["code_commit"] == "analysis-code-commit"
+    assert result["analysis_code_commit"] == "analysis-code-commit"
+
+
+def test_promotion_tool_commit_is_separate_from_analysis_code_commit(tmp_path: Path) -> None:
+    base = tmp_path / "analysis"
+    _write_verified_promotion_pair(base)
+
+    result = verify_explanation_reruns(base, promote_final=True, promotion_tool_commit="promotion-hotfix")
+
+    assert result["promotion_tool_commit"] == "promotion-hotfix"
+    assert result["promotion_tool_commit"] != result["analysis_code_commit"]
 
 
 def test_direct_explanation_runs_all_subsets_and_crossfits_full_training_predictions() -> None:
