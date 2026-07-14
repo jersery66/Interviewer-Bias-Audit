@@ -4474,14 +4474,27 @@ def fake_domain_summary(
 
 def _save_figure_all_formats(fig: plt.Figure, stem: Path) -> None:
     stem.parent.mkdir(parents=True, exist_ok=True)
-    metadata = {
-        "Creator": "DAIC-WOZ interviewer signal explanation",
-        "Title": stem.name,
+    creator = "DAIC-WOZ interviewer signal explanation"
+    title = stem.name
+    png_metadata = {
+        "Software": creator,
+        "Title": title,
+    }
+    svg_metadata = {
+        "Creator": creator,
+        "Title": title,
+        "Date": None,
+    }
+    pdf_metadata = {
+        "Creator": creator,
+        "Title": title,
         "CreationDate": None,
         "ModDate": None,
     }
-    for extension in ("png", "svg", "pdf"):
-        fig.savefig(stem.with_suffix(f".{extension}"), dpi=300, metadata=metadata)
+    fig.savefig(stem.with_suffix(".png"), dpi=300, metadata=png_metadata)
+    with matplotlib.rc_context({"svg.hashsalt": "daic-woz-interviewer-signal-explanation-v1"}):
+        fig.savefig(stem.with_suffix(".svg"), dpi=300, metadata=svg_metadata)
+    fig.savefig(stem.with_suffix(".pdf"), dpi=300, metadata=pdf_metadata)
     plt.close(fig)
 
 

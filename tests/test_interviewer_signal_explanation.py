@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import replace
 from pathlib import Path
 
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytest
@@ -16,6 +20,7 @@ from reanalysis_v2.interviewer_signal_explanation import (
     SourceRepresentationData,
     SourceFoldCache,
     _pairing_draw_inference,
+    _save_figure_all_formats,
     _write_global_fdr,
     PAIRING_MATCH_FEATURES,
     add_label_conditioned_interpretation_flags,
@@ -29,6 +34,7 @@ from reanalysis_v2.interviewer_signal_explanation import (
     fake_domain_draws_for_configuration,
     fake_domain_summary,
     fit_ridge_pipeline,
+    generate_analysis_figures,
     joint_bootstrap_indices,
     make_random_derangement_assignment,
     make_pairing_assignment,
@@ -53,6 +59,140 @@ from reanalysis_v2.interviewer_signal_explanation import (
 )
 from reanalysis_v2.splits import make_repeated_split_membership
 from reanalysis_v2.splits import split_indices
+
+
+def _write_deterministic_test_figure(stem: Path) -> None:
+    fig, ax = plt.subplots(figsize=(3, 2))
+    ax.plot([0.0, 1.0, 2.0], [0.0, 1.0, 0.5], color="black", linewidth=1.0)
+    ax.set_title("deterministic figure")
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    _save_figure_all_formats(fig, stem)
+
+
+def _figure_hashes(directory: Path, stem_name: str = "figure") -> dict[str, str]:
+    return {
+        extension: hashlib.sha256(
+            (directory / f"{stem_name}.{extension}").read_bytes()
+        ).hexdigest()
+        for extension in ("png", "svg", "pdf")
+    }
+
+
+def test_save_figure_all_formats_writes_three_nonempty_files(tmp_path: Path) -> None:
+    stem = tmp_path / "figure"
+    _write_deterministic_test_figure(stem)
+
+    for extension in ("png", "svg", "pdf"):
+        output = stem.with_suffix(f".{extension}")
+        assert output.exists()
+        assert output.stat().st_size > 0
+
+
+def test_save_figure_all_formats_is_hash_deterministic_across_independent_figures(
+    tmp_path: Path,
+) -> None:
+    first_dir = tmp_path / "first"
+    second_dir = tmp_path / "second"
+    first_dir.mkdir()
+    second_dir.mkdir()
+
+    _write_deterministic_test_figure(first_dir / "figure")
+    _write_deterministic_test_figure(second_dir / "figure")
+
+    assert _figure_hashes(first_dir) == _figure_hashes(second_dir)
+
+
+def test_save_figure_all_formats_omits_dynamic_date_metadata(tmp_path: Path) -> None:
+    stem = tmp_path / "figure"
+    _write_deterministic_test_figure(stem)
+
+    svg_text = stem.with_suffix(".svg").read_text(encoding="utf-8").lower()
+    pdf_bytes = stem.with_suffix(".pdf").read_bytes()
+    assert "<dc:date" not in svg_text
+    assert b"/CreationDate" not in pdf_bytes
+    assert b"/ModDate" not in pdf_bytes
+
+
+def test_generate_analysis_figures_writes_all_five_figure_families(
+    tmp_path: Path,
+) -> None:
+    explanation_metrics = pd.DataFrame(
+        {
+            "representation": ["tfidf"],
+            "repeat": [1],
+            "subset": ["P+Q+R+D"],
+            "r2": [0.25],
+        }
+    )
+    shapley = pd.DataFrame(
+        {
+            "representation": ["tfidf"] * 4,
+            "block": ["P", "Q", "R", "D"],
+            "estimate_delta_r2": [0.1, 0.05, 0.03, 0.02],
+            "ci_low": [0.0, -0.01, -0.02, -0.03],
+            "ci_high": [0.2, 0.11, 0.08, 0.07],
+        }
+    )
+    residual = pd.DataFrame(
+        {
+            "representation": ["tfidf"],
+            "repeat": [1],
+            "delta_auc": [0.01],
+            "ci_low": [-0.02],
+            "ci_high": [0.04],
+        }
+    )
+    pairing = pd.DataFrame(
+        {
+            "representation": ["tfidf"],
+            "repeat": [1],
+            "model_name": ["full+I-real"],
+            "roc_auc": [0.62],
+        }
+    )
+    fake = pd.DataFrame(
+        {
+            "representation": ["tfidf", "tfidf"],
+            "domain_type": ["real", "fake"],
+            "r2": [0.25, 0.01],
+        }
+    )
+    first = generate_analysis_figures(
+        tmp_path / "first",
+        explanation_metrics_table=explanation_metrics,
+        shapley_table=shapley,
+        residual_deltas=residual,
+        pairing_metrics=pairing,
+        fake_explanation_results=fake,
+        main_repeat=1,
+    )
+    second = generate_analysis_figures(
+        tmp_path / "second",
+        explanation_metrics_table=explanation_metrics,
+        shapley_table=shapley,
+        residual_deltas=residual,
+        pairing_metrics=pairing,
+        fake_explanation_results=fake,
+        main_repeat=1,
+    )
+
+    assert len(first) == 15
+    assert len(second) == 15
+    first_hashes = {}
+    second_hashes = {}
+    for path_text in first:
+        path = Path(path_text)
+        assert path.exists()
+        assert path.stat().st_size > 0
+        first_hashes[path.name] = hashlib.sha256(path.read_bytes()).hexdigest()
+    for path_text in second:
+        path = Path(path_text)
+        assert path.exists()
+        assert path.stat().st_size > 0
+        second_hashes[path.name] = hashlib.sha256(path.read_bytes()).hexdigest()
+    assert sorted(first_hashes) == sorted(second_hashes)
+    assert first_hashes == second_hashes
 
 
 def _synthetic_explanation_inputs_and_cache() -> tuple[ExplanationInputs, pd.DataFrame, dict[tuple[str, int, int], SourceFoldCache]]:

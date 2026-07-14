@@ -135,6 +135,16 @@ random-prediction draw scope, the Fake-D draw scope, and the resulting fitting
 configuration. These are workload controls only and do not alter scientific
 interpretation.
 
+### Stage A.4 transparent rendering compatibility record
+
+The four frozen embedding caches were restored from an older worktree and
+passed the original manifest SHA-256 checks; one formal-run attempt was stopped
+before formal results were accepted because the SVG backend rejected the
+shared `CreationDate`/`ModDate` metadata; the failed directory was removed,
+and no `run_2` or `final/` was generated. Stage A.4 only fixes backend-specific
+figure output compatibility and file determinism; it does not modify any
+analysis definition or statistical decision.
+
 ## 3. Frozen inputs and hashes
 
 The following files were present at inspection and are the only authoritative
