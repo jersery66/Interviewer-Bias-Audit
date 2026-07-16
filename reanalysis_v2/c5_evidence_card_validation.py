@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -46,6 +47,64 @@ REQUIRED_SPAN_COLUMNS = (
     "exact_quote",
     "source_order",
 )
+REVIEWER_COLUMNS = (
+    "review_case_id",
+    "evidence_quote",
+    "context_before",
+    "context_after",
+    "human_span_valid",
+    "human_domain",
+    "human_polarity",
+    "notes",
+)
+PROHIBITED_REVIEWER_COLUMNS = frozenset(
+    {
+        "participant_id",
+        "label",
+        "phq",
+        "phq8",
+        "phq8_binary",
+        "phq8_label",
+        "phq8_score",
+        "paper_label_phq8_ge10",
+        "paper_phq8_score",
+        "model_prediction",
+        "model_domain",
+        "model_polarity",
+        "domain",
+        "polarity",
+        "source_order",
+        "candidate_key",
+    }
+)
+
+_REQUIRED_REVIEW_COLUMNS = (
+    "candidate_key",
+    "participant_id",
+    "source_order",
+    "domain",
+    "polarity",
+    "exact_quote",
+)
+_OWNER_COLUMNS = (
+    "review_case_id",
+    "participant_id",
+    "source_order",
+    "candidate_key",
+    "model_domain",
+    "model_polarity",
+    "model_exact_quote",
+    "evidence_quote",
+    "context_before",
+    "context_after",
+    "sample_scope",
+)
+_VALID_SAMPLE_SCOPES = frozenset({"training", "formal"})
+_TRAINING_PER_DOMAIN = 1
+_FORMAL_PER_DOMAIN = 12
+_MIN_ELIGIBLE_PER_DOMAIN = _TRAINING_PER_DOMAIN + _FORMAL_PER_DOMAIN
+_MAX_FORMAL_PARTICIPANT_REUSE = 2
+_MAX_SELECTION_ATTEMPTS = 2000
 
 _HASH_CHUNK_SIZE = 1024 * 1024
 _EMAIL_RE = re.compile(
@@ -66,6 +125,15 @@ _SELF_INTRODUCED_NAME_RE = re.compile(
     rf"(?P<name>{_NAME_TOKEN}(?:\s+{_NAME_TOKEN}){{0,3}})",
     re.IGNORECASE,
 )
+
+
+@dataclass(frozen=True)
+class EvidenceCardSample:
+    """Balanced training/formal selections plus their sampling audit."""
+
+    training: pd.DataFrame
+    formal: pd.DataFrame
+    audit: pd.DataFrame
 
 
 def sha256_file(path: Path) -> str:
@@ -177,6 +245,188 @@ def load_and_validate_spans(
         raise ValueError(f"exact_quote contains blank values at row indices: {indices}")
 
     return spans
+
+
+def _validate_seed(seed: Any) -> int:
+    if isinstance(seed, (bool, np.bool_)) or not isinstance(
+        seed, (int, np.integer)
+    ):
+        raise TypeError("seed must be an integer and must not be boolean")
+    return int(seed)
+
+
+def _numpy_seed(seed: int, offset: int = 0) -> int:
+    value = seed + offset
+    if 0 <= value < 2**64:
+        return value
+    digest = hashlib.sha256(str(value).encode("utf-8")).digest()
+    return int.from_bytes(digest[:8], "big")
+
+
+def _candidate_key(row: pd.Series) -> str:
+    payload = (
+        f"{int(row['participant_id'])}|{row['domain']}|"
+        f"{row['normalized_quote']}"
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _domain_count_text(counts: pd.Series) -> str:
+    return ", ".join(
+        f"{domain}={int(counts.loc[domain])}" for domain in DOMAIN_NAMES
+    )
+
+
+def _prepare_candidates(spans: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
+    frame = load_and_validate_spans(spans, expected_sha256=None)
+    frame["normalized_quote"] = frame["exact_quote"].map(
+        lambda value: normalize_space(value).casefold()
+    )
+    frame = frame.sort_values(
+        ["domain", "participant_id", "source_order"], kind="stable"
+    )
+    frame = frame.drop_duplicates(
+        ["participant_id", "domain", "normalized_quote"], keep="first"
+    ).copy()
+    frame["candidate_key"] = frame.apply(_candidate_key, axis=1)
+
+    duplicate_key_mask = frame["candidate_key"].duplicated(keep=False)
+    if duplicate_key_mask.any():
+        duplicate_keys = sorted(
+            frame.loc[duplicate_key_mask, "candidate_key"].astype(str).unique()
+        )
+        raise ValueError(
+            "duplicate candidate_key values after candidate preparation: "
+            + ", ".join(duplicate_keys)
+        )
+
+    frame = frame.reset_index(drop=True)
+    counts = (
+        frame.groupby("domain", sort=False)
+        .size()
+        .reindex(DOMAIN_NAMES, fill_value=0)
+        .astype("int64")
+    )
+    if counts.lt(_MIN_ELIGIBLE_PER_DOMAIN).any():
+        raise ValueError(
+            f"Each locked domain requires at least {_MIN_ELIGIBLE_PER_DOMAIN} "
+            "eligible unique candidates; domain counts: "
+            + _domain_count_text(counts)
+        )
+    return frame, counts
+
+
+def _stable_sample_order(frame: pd.DataFrame) -> pd.DataFrame:
+    return frame.sort_values(
+        ["domain", "participant_id", "source_order", "candidate_key"],
+        kind="stable",
+    ).reset_index(drop=True)
+
+
+def select_evidence_cards(
+    spans: pd.DataFrame, *, seed: int
+) -> EvidenceCardSample:
+    """Select balanced, disjoint training and formal evidence cards."""
+
+    validated_seed = _validate_seed(seed)
+    candidates, counts = _prepare_candidates(spans)
+
+    participant_capacity = int(
+        candidates.groupby("participant_id")
+        .size()
+        .clip(upper=_MAX_FORMAL_PARTICIPANT_REUSE)
+        .sum()
+    )
+    formal_total = len(DOMAIN_NAMES) * _FORMAL_PER_DOMAIN
+    if participant_capacity < formal_total:
+        raise RuntimeError(
+            "No feasible formal sample under the global participant cap: "
+            f"capacity={participant_capacity}, required={formal_total}"
+        )
+
+    domain_order = sorted(
+        DOMAIN_NAMES, key=lambda domain: (int(counts.loc[domain]), domain)
+    )
+    for attempt in range(_MAX_SELECTION_ATTEMPTS):
+        rng = np.random.default_rng(_numpy_seed(validated_seed, attempt))
+        participant_uses: dict[int, int] = {}
+        training_parts: list[pd.DataFrame] = []
+        formal_parts: list[pd.DataFrame] = []
+        feasible = True
+
+        for domain in domain_order:
+            domain_candidates = candidates.loc[
+                candidates["domain"].eq(domain)
+            ].copy()
+            domain_candidates["_seeded_order"] = rng.random(
+                len(domain_candidates)
+            )
+            domain_candidates = domain_candidates.sort_values(
+                [
+                    "_seeded_order",
+                    "participant_id",
+                    "source_order",
+                    "candidate_key",
+                ],
+                kind="stable",
+            )
+
+            training = domain_candidates.iloc[[_TRAINING_PER_DOMAIN - 1]].copy()
+            remaining = domain_candidates.drop(index=training.index)
+            formal_indices: list[int] = []
+            for index, row in remaining.iterrows():
+                participant_id = int(row["participant_id"])
+                prior_uses = participant_uses.get(participant_id, 0)
+                if prior_uses >= _MAX_FORMAL_PARTICIPANT_REUSE:
+                    continue
+                formal_indices.append(index)
+                participant_uses[participant_id] = prior_uses + 1
+                if len(formal_indices) == _FORMAL_PER_DOMAIN:
+                    break
+
+            if len(formal_indices) != _FORMAL_PER_DOMAIN:
+                feasible = False
+                break
+            training_parts.append(training)
+            formal_parts.append(remaining.loc[formal_indices].copy())
+
+        if not feasible:
+            continue
+
+        training = pd.concat(training_parts, ignore_index=True).drop(
+            columns="_seeded_order"
+        )
+        formal = pd.concat(formal_parts, ignore_index=True).drop(
+            columns="_seeded_order"
+        )
+        training = _stable_sample_order(training)
+        formal = _stable_sample_order(formal)
+        if not set(training["candidate_key"]).isdisjoint(
+            formal["candidate_key"]
+        ):
+            raise RuntimeError("training and formal candidate_key values overlap")
+        if (
+            formal.groupby("participant_id").size().max()
+            > _MAX_FORMAL_PARTICIPANT_REUSE
+        ):
+            raise RuntimeError("formal sample exceeds the global participant cap")
+
+        audit = pd.DataFrame(
+            {
+                "domain": list(DOMAIN_NAMES),
+                "eligible_n": [int(counts.loc[domain]) for domain in DOMAIN_NAMES],
+                "training_n": [_TRAINING_PER_DOMAIN] * len(DOMAIN_NAMES),
+                "formal_n": [_FORMAL_PER_DOMAIN] * len(DOMAIN_NAMES),
+                "seed": [validated_seed] * len(DOMAIN_NAMES),
+                "successful_attempt": [attempt] * len(DOMAIN_NAMES),
+            }
+        )
+        return EvidenceCardSample(training=training, formal=formal, audit=audit)
+
+    raise RuntimeError(
+        "No feasible formal sample under the global participant cap after "
+        f"{_MAX_SELECTION_ATTEMPTS} deterministic seeded attempts"
+    )
 
 
 def _parse_participant_id(value: Any, *, line_number: int) -> int:
@@ -370,3 +620,143 @@ def locate_quote_context(
     if flank_chars == 0:
         return "", quote_text, ""
     return before_full[-flank_chars:], quote_text, after_full[:flank_chars]
+
+
+def _validate_scope(scope: Any) -> str:
+    if not isinstance(scope, str) or scope not in _VALID_SAMPLE_SCOPES:
+        raise ValueError("scope must be exactly 'training' or 'formal'")
+    return scope
+
+
+def _review_case_id(candidate_key: str, scope: str) -> str:
+    """Return an opaque scope-specific ID derived from the frozen source hash."""
+
+    validated_scope = _validate_scope(scope)
+    if not isinstance(candidate_key, str) or not candidate_key.strip():
+        raise ValueError("candidate_key must be nonblank text")
+    payload = (
+        f"{C5_CANONICAL_SHA256}|{validated_scope}|{candidate_key}"
+    ).encode("utf-8")
+    return "C5-" + hashlib.sha256(payload).hexdigest()
+
+
+def _prohibited_reviewer_columns(columns: pd.Index) -> set[str]:
+    prohibited: set[str] = set()
+    for column in columns:
+        name = str(column)
+        folded = name.casefold()
+        if (
+            name in PROHIBITED_REVIEWER_COLUMNS
+            or "phq" in folded
+            or folded == "label"
+            or folded.endswith("_label")
+            or folded.startswith("label_")
+        ):
+            prohibited.add(name)
+    return prohibited
+
+
+def build_review_tables(
+    selected: pd.DataFrame,
+    participant_texts: dict[int, str],
+    *,
+    seed: int,
+    scope: str = "formal",
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Build owner linkage and independently ordered blinded reviewer tables."""
+
+    validated_seed = _validate_seed(seed)
+    validated_scope = _validate_scope(scope)
+    if not isinstance(selected, pd.DataFrame):
+        raise TypeError("selected must be a pandas.DataFrame")
+    missing_columns = [
+        column for column in _REQUIRED_REVIEW_COLUMNS if column not in selected.columns
+    ]
+    if missing_columns:
+        raise ValueError(
+            "Missing required columns: " + ", ".join(missing_columns)
+        )
+
+    frame = load_and_validate_spans(selected, expected_sha256=None)
+    frame["candidate_key"] = frame["candidate_key"].map(normalize_space)
+    blank_candidate_mask = frame["candidate_key"].eq("")
+    if blank_candidate_mask.any():
+        raise ValueError("candidate_key contains blank values")
+    if frame["candidate_key"].duplicated().any():
+        raise ValueError(
+            "duplicate review_case_id values would be generated from candidate_key"
+        )
+    if len(frame) < 2:
+        raise ValueError(
+            "selected must contain at least two rows for different A/B orders"
+        )
+
+    owner_rows: list[dict[str, Any]] = []
+    for row in frame.itertuples(index=False):
+        participant_id = int(row.participant_id)
+        if participant_id not in participant_texts:
+            raise ValueError(
+                f"Missing participant text for participant_id {participant_id}"
+            )
+        context_before, evidence_quote, context_after = locate_quote_context(
+            participant_texts[participant_id], row.exact_quote
+        )
+        owner_rows.append(
+            {
+                "review_case_id": _review_case_id(
+                    str(row.candidate_key), validated_scope
+                ),
+                "participant_id": participant_id,
+                "source_order": int(row.source_order),
+                "candidate_key": str(row.candidate_key),
+                "model_domain": row.domain,
+                "model_polarity": row.polarity,
+                "model_exact_quote": row.exact_quote,
+                "evidence_quote": evidence_quote,
+                "context_before": context_before,
+                "context_after": context_after,
+                "sample_scope": validated_scope,
+            }
+        )
+
+    owner = pd.DataFrame(owner_rows, columns=list(_OWNER_COLUMNS))
+    if owner["review_case_id"].duplicated().any():
+        raise ValueError("duplicate review_case_id values generated")
+
+    reviewer = owner.loc[
+        :, ["review_case_id", "evidence_quote", "context_before", "context_after"]
+    ].copy()
+    for answer_column in (
+        "human_span_valid",
+        "human_domain",
+        "human_polarity",
+        "notes",
+    ):
+        reviewer[answer_column] = ""
+    reviewer = reviewer.loc[:, list(REVIEWER_COLUMNS)]
+
+    prohibited = _prohibited_reviewer_columns(reviewer.columns)
+    if prohibited:
+        raise ValueError(
+            "reviewer table contains prohibited columns: "
+            + ", ".join(sorted(prohibited))
+        )
+
+    reviewer_a_order = np.random.default_rng(
+        _numpy_seed(validated_seed)
+    ).permutation(len(reviewer))
+    reviewer_b_order = np.random.default_rng(
+        _numpy_seed(validated_seed, 1)
+    ).permutation(len(reviewer))
+    if np.array_equal(reviewer_a_order, reviewer_b_order):
+        reviewer_b_order = np.roll(reviewer_a_order, 1)
+
+    reviewer_a = reviewer.iloc[reviewer_a_order].reset_index(drop=True)
+    reviewer_b = reviewer.iloc[reviewer_b_order].reset_index(drop=True)
+    if set(reviewer_a["review_case_id"]) != set(reviewer_b["review_case_id"]):
+        raise RuntimeError("reviewer A/B review_case_id sets differ")
+    if reviewer_a["review_case_id"].tolist() == reviewer_b[
+        "review_case_id"
+    ].tolist():
+        raise RuntimeError("reviewer A/B row orders must differ")
+    return owner, reviewer_a, reviewer_b
