@@ -14,8 +14,10 @@
 
 - 证据来源：`processed_research/latest_usable_data_official142_20260702/04_c5_evidence_sources/c5_quotes_only_v3_gpt55_reviewed_spans_official142.csv`
 - 冻结输入 SHA-256：`794d7b43ebd95d57ac4a90a4217953a9bea27e98ff91b13c31b0a06f9aa48c7e`
+- 上下文来源：`processed_research/participant_for_evidence_extraction.jsonl`
+- 上下文输入 SHA-256：`f64eefd1b9560a845a4e838b5260016fbad840a2c957ef048c5feea965e4b549`
 - 证据范围：冻结的参与者侧 C5/D-P 证据片段。
-- 抽样前必须核验输入哈希；哈希不符时不得生成评分包。
+- 抽样前必须核验两项输入哈希；任一哈希不符时不得生成评分包。
 
 ## 三、抽样设计
 
