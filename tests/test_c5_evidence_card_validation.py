@@ -105,6 +105,92 @@ def _participant_texts(selected: pd.DataFrame) -> dict[int, str]:
     }
 
 
+def _write_csv(path: Path, frame: pd.DataFrame) -> str:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        frame.to_csv(handle, index=False, lineterminator="\n")
+    return _physical_sha256(path)
+
+
+def _write_package_inputs(
+    project_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    spans: pd.DataFrame | None = None,
+    seed: int = 20260716,
+    ambiguous_selected_quote: bool = False,
+) -> tuple[Path, Path, pd.DataFrame, object]:
+    c5 = _module()
+    source = (
+        _balanced_spans() if spans is None else spans.copy(deep=True)
+    )
+    canonical_path = project_root / c5.C5_CANONICAL_RELATIVE
+    canonical_sha256 = _write_csv(canonical_path, source)
+
+    sample = c5.select_evidence_cards(source, seed=seed)
+    selected = _sample_rows(sample)
+    records: list[dict[str, object]] = []
+    for participant_id, participant_rows in selected.groupby(
+        "participant_id", sort=True
+    ):
+        quotes = participant_rows["exact_quote"].astype(str).tolist()
+        text = (
+            "Synthetic context before. "
+            + " Synthetic separator. ".join(quotes)
+            + " Synthetic context after."
+        )
+        records.append(
+            {"participant_id": int(participant_id), "text": text}
+        )
+
+    if ambiguous_selected_quote:
+        first = selected.iloc[0]
+        first_id = int(first["participant_id"])
+        for record in records:
+            if record["participant_id"] == first_id:
+                record["text"] = (
+                    f"{record['text']} Repeated once: {first['exact_quote']}"
+                )
+                break
+
+    participant_text_path = project_root / c5.PARTICIPANT_TEXT_RELATIVE
+    participant_text_path.parent.mkdir(parents=True, exist_ok=True)
+    participant_sha256 = _write_jsonl(participant_text_path, records)
+
+    monkeypatch.setattr(c5, "C5_CANONICAL_SHA256", canonical_sha256)
+    monkeypatch.setattr(
+        c5, "PARTICIPANT_TEXT_SHA256", participant_sha256
+    )
+    monkeypatch.setattr(c5, "C5_CANONICAL_ROW_COUNT", len(source))
+    return canonical_path, participant_text_path, source, sample
+
+
+def _staging_path(output_root: Path) -> Path:
+    return output_root.parent / f".{output_root.name}.staging"
+
+
+def _tree_bytes(root: Path) -> dict[str, bytes]:
+    return {
+        path.relative_to(root).as_posix(): path.read_bytes()
+        for path in sorted(root.rglob("*"))
+        if path.is_file()
+    }
+
+
+EXPECTED_PACKAGE_FILES = {
+    "评分者A_培训/README_评分者A.md",
+    "评分者A_培训/reviewer_A_training.json",
+    "评分者B_培训/README_评分者B.md",
+    "评分者B_培训/reviewer_B_training.json",
+    "OWNER_ONLY/README_OWNER_ONLY.md",
+    "OWNER_ONLY/evidence_card_owner_crosswalk.csv",
+    "OWNER_ONLY/evidence_card_sampling_audit.csv",
+    "OWNER_ONLY/evidence_card_manifest.json",
+    "OWNER_ONLY/待编码手册冻结后发放/reviewer_A_formal.json",
+    "OWNER_ONLY/待编码手册冻结后发放/reviewer_B_formal.json",
+}
+
+
 def test_locked_constants_match_the_frozen_inputs() -> None:
     c5 = _module()
 
@@ -117,6 +203,7 @@ def test_locked_constants_match_the_frozen_inputs() -> None:
         c5.C5_CANONICAL_SHA256
         == "794d7b43ebd95d57ac4a90a4217953a9bea27e98ff91b13c31b0a06f9aa48c7e"
     )
+    assert c5.C5_CANONICAL_ROW_COUNT == 1137
     assert c5.PARTICIPANT_TEXT_RELATIVE == Path(
         "processed_research/participant_for_evidence_extraction.jsonl"
     )
@@ -833,3 +920,521 @@ def test_review_tables_reject_missing_required_columns(missing_column: str) -> N
 
     with pytest.raises(ValueError, match=rf"required columns.*{missing_column}"):
         c5.build_review_tables(selected, {}, seed=20260716)
+
+
+def test_evidence_card_package_paths_are_frozen_and_isolated(
+    tmp_path: Path,
+) -> None:
+    c5 = _module()
+    root = tmp_path / "restricted-package"
+
+    paths = c5.EvidenceCardPackagePaths(root)
+
+    assert paths.root == root
+    assert paths.reviewer_a_training_json == (
+        root / "评分者A_培训" / "reviewer_A_training.json"
+    )
+    assert paths.reviewer_a_training_readme == (
+        root / "评分者A_培训" / "README_评分者A.md"
+    )
+    assert paths.reviewer_b_training_json == (
+        root / "评分者B_培训" / "reviewer_B_training.json"
+    )
+    assert paths.reviewer_b_training_readme == (
+        root / "评分者B_培训" / "README_评分者B.md"
+    )
+    assert paths.owner_crosswalk_csv == (
+        root / "OWNER_ONLY" / "evidence_card_owner_crosswalk.csv"
+    )
+    assert paths.sampling_audit_csv == (
+        root / "OWNER_ONLY" / "evidence_card_sampling_audit.csv"
+    )
+    assert paths.manifest_json == (
+        root / "OWNER_ONLY" / "evidence_card_manifest.json"
+    )
+    assert paths.owner_readme == (
+        root / "OWNER_ONLY" / "README_OWNER_ONLY.md"
+    )
+    assert paths.reviewer_a_formal_json == (
+        root
+        / "OWNER_ONLY"
+        / "待编码手册冻结后发放"
+        / "reviewer_A_formal.json"
+    )
+    assert paths.reviewer_b_formal_json == (
+        root
+        / "OWNER_ONLY"
+        / "待编码手册冻结后发放"
+        / "reviewer_B_formal.json"
+    )
+    with pytest.raises(FrozenInstanceError):
+        paths.root = tmp_path / "replacement"
+
+
+def test_package_build_has_exact_layout_and_keeps_formal_files_owner_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    c5 = _module()
+    canonical, context, _spans, _sample = _write_package_inputs(
+        tmp_path / "project", monkeypatch
+    )
+    output_root = tmp_path / "restricted-package"
+
+    result = c5.build_evidence_card_package(
+        canonical, context, output_root, seed=20260716
+    )
+
+    assert result == c5.EvidenceCardPackagePaths(output_root.resolve())
+    assert set(_tree_bytes(output_root)) == EXPECTED_PACKAGE_FILES
+    assert not _staging_path(output_root).exists()
+    assert not list(output_root.rglob("*.xlsx"))
+    for reviewer_dir in ("评分者A_培训", "评分者B_培训"):
+        reviewer_files = {
+            path.name for path in (output_root / reviewer_dir).iterdir()
+        }
+        assert not any("formal" in name for name in reviewer_files)
+
+
+def test_package_reviewer_and_owner_schemas_are_blinded_and_blank(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    c5 = _module()
+    canonical, context, _spans, _sample = _write_package_inputs(
+        tmp_path / "project", monkeypatch
+    )
+    output_root = tmp_path / "restricted-package"
+    paths = c5.build_evidence_card_package(
+        canonical, context, output_root, seed=20260716
+    )
+
+    reviewer_paths = (
+        paths.reviewer_a_training_json,
+        paths.reviewer_b_training_json,
+        paths.reviewer_a_formal_json,
+        paths.reviewer_b_formal_json,
+    )
+    answer_fields = (
+        "human_span_valid",
+        "human_domain",
+        "human_polarity",
+        "notes",
+    )
+    reviewer_records: list[list[dict[str, object]]] = []
+    for reviewer_path in reviewer_paths:
+        records = json.loads(reviewer_path.read_text(encoding="utf-8"))
+        assert isinstance(records, list)
+        assert records
+        assert all(list(record) == list(c5.REVIEWER_COLUMNS) for record in records)
+        assert all(
+            record[field] == ""
+            for record in records
+            for field in answer_fields
+        )
+        assert all(
+            not c5._prohibited_reviewer_columns(pd.Index(record))
+            for record in records
+        )
+        reviewer_records.append(records)
+
+    assert len(reviewer_records[0]) == len(reviewer_records[1]) == 10
+    assert len(reviewer_records[2]) == len(reviewer_records[3]) == 120
+    for left, right in (
+        (reviewer_records[0], reviewer_records[1]),
+        (reviewer_records[2], reviewer_records[3]),
+    ):
+        left_ids = [str(record["review_case_id"]) for record in left]
+        right_ids = [str(record["review_case_id"]) for record in right]
+        assert set(left_ids) == set(right_ids)
+        assert left_ids != right_ids
+
+    owner = pd.read_csv(paths.owner_crosswalk_csv, keep_default_na=False)
+    assert list(owner.columns) == list(c5._OWNER_COLUMNS)
+    assert len(owner) == 130
+    assert owner["sample_scope"].tolist() == ["training"] * 10 + [
+        "formal"
+    ] * 120
+    assert {"participant_id", "model_domain", "model_polarity"}.issubset(
+        owner.columns
+    )
+    audit = pd.read_csv(paths.sampling_audit_csv)
+    assert list(audit.columns) == [
+        "domain",
+        "eligible_n",
+        "training_n",
+        "formal_n",
+        "seed",
+        "attempt",
+    ]
+    assert audit["domain"].tolist() == list(EXPECTED_DOMAINS)
+
+
+def test_package_outputs_and_manifest_are_deterministic_and_hash_verified(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    c5 = _module()
+    canonical, context, spans, sample = _write_package_inputs(
+        tmp_path / "project", monkeypatch
+    )
+    first_root = tmp_path / "package-one"
+    second_root = tmp_path / "package-two"
+
+    first_paths = c5.build_evidence_card_package(
+        canonical, context, first_root, seed=20260716
+    )
+    c5.build_evidence_card_package(
+        canonical, context, second_root, seed=20260716
+    )
+
+    assert _tree_bytes(first_root) == _tree_bytes(second_root)
+    manifest = json.loads(first_paths.manifest_json.read_text(encoding="utf-8"))
+    assert manifest["status"] == "prepared_not_scored"
+    assert manifest["design"] == "balanced_evidence_cards"
+    assert manifest["canonical_path"] == str(canonical.resolve())
+    assert manifest["participant_text_path"] == str(context.resolve())
+    assert manifest["canonical_sha256"] == c5.C5_CANONICAL_SHA256
+    assert manifest["participant_text_sha256"] == c5.PARTICIPANT_TEXT_SHA256
+    assert manifest["seed"] == 20260716
+    assert manifest["input_row_count"] == len(spans)
+    assert manifest["training_total"] == 10
+    assert manifest["formal_total"] == 120
+    assert manifest["training_per_domain"] == {
+        domain: 1 for domain in EXPECTED_DOMAINS
+    }
+    assert manifest["formal_per_domain"] == {
+        domain: 12 for domain in EXPECTED_DOMAINS
+    }
+    assert manifest["formal_max_participant_reuse"] == int(
+        sample.formal.groupby("participant_id").size().max()
+    )
+    assert manifest["training_formal_key_overlap_count"] == 0
+    assert manifest["reviewer_id_checks"] == {
+        "training": {"id_sets_equal": True, "orders_differ": True},
+        "formal": {"id_sets_equal": True, "orders_differ": True},
+    }
+    assert manifest["reviewer_prohibited_field_check"] == {
+        "passed": True,
+        "prohibited_fields_found": [],
+    }
+    assert manifest["all_answer_fields_blank"] is True
+    assert manifest["formal_materials_owner_only_until_codebook_freeze"] is True
+    assert "工作簿" in manifest["formal_release_policy_zh"]
+    assert "JSON" in manifest["formal_release_policy_zh"]
+    assert "OWNER_ONLY" in manifest["formal_release_policy_zh"]
+    assert "编码手册冻结" in manifest["formal_release_policy_zh"]
+    assert manifest["human_review_completed"] is False
+    assert manifest["agreement_completed"] is False
+    assert manifest["workbooks_generated"] is False
+
+    manifest_relative = "OWNER_ONLY/evidence_card_manifest.json"
+    non_manifest_files = EXPECTED_PACKAGE_FILES - {manifest_relative}
+    expected_hashes = {
+        relative: _physical_sha256(first_root / Path(relative))
+        for relative in sorted(non_manifest_files)
+    }
+    assert manifest["file_hashes"] == expected_hashes
+    assert manifest["file_hashes_excludes"] == [manifest_relative]
+    assert "自身" in manifest["file_hashes_exclusion_reason_zh"]
+
+
+@pytest.mark.parametrize(
+    "failure_case",
+    [
+        "canonical_wrong_hash",
+        "context_wrong_hash",
+        "canonical_missing",
+        "context_missing",
+        "row_count",
+        "domain_shortage",
+        "ambiguous_selected_quote",
+    ],
+)
+def test_invalid_preflight_leaves_no_output_or_staging(
+    failure_case: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    c5 = _module()
+    canonical, context, spans, _sample = _write_package_inputs(
+        tmp_path / "project",
+        monkeypatch,
+        ambiguous_selected_quote=failure_case == "ambiguous_selected_quote",
+    )
+    if failure_case == "canonical_wrong_hash":
+        monkeypatch.setattr(c5, "C5_CANONICAL_SHA256", "0" * 64)
+    elif failure_case == "context_wrong_hash":
+        monkeypatch.setattr(c5, "PARTICIPANT_TEXT_SHA256", "0" * 64)
+    elif failure_case == "canonical_missing":
+        canonical.unlink()
+    elif failure_case == "context_missing":
+        context.unlink()
+    elif failure_case == "row_count":
+        monkeypatch.setattr(c5, "C5_CANONICAL_ROW_COUNT", len(spans) + 1)
+    elif failure_case == "domain_shortage":
+        scarce_domain = EXPECTED_DOMAINS[-1]
+        scarce = spans.loc[
+            ~(
+                spans["domain"].eq(scarce_domain)
+                & spans["source_order"].isin([13, 14, 15, 16])
+            )
+        ].copy()
+        extras: list[dict[str, object]] = []
+        for extra_index in range(4):
+            extra = spans.iloc[0].to_dict()
+            extra.update(
+                {
+                    "participant_id": 900_000 + extra_index,
+                    "source_order": 900 + extra_index,
+                    "exact_quote": f"Extra replacement candidate {extra_index}.",
+                }
+            )
+            extras.append(extra)
+        scarce = pd.concat([scarce, pd.DataFrame(extras)], ignore_index=True)
+        assert len(scarce) == len(spans)
+        monkeypatch.setattr(
+            c5, "C5_CANONICAL_SHA256", _write_csv(canonical, scarce)
+        )
+
+    output_root = tmp_path / "restricted-package"
+    with pytest.raises((FileNotFoundError, ValueError)):
+        c5.build_evidence_card_package(
+            canonical, context, output_root, seed=20260716
+        )
+
+    assert not output_root.exists()
+    assert not _staging_path(output_root).exists()
+
+
+@pytest.mark.parametrize("existing_target", ["output", "staging"])
+def test_existing_output_or_staging_is_refused_without_modification(
+    existing_target: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    c5 = _module()
+    canonical, context, _spans, _sample = _write_package_inputs(
+        tmp_path / "project", monkeypatch
+    )
+    output_root = tmp_path / "restricted-package"
+    staging = _staging_path(output_root)
+    protected = output_root if existing_target == "output" else staging
+    protected.mkdir(parents=True)
+    (protected / "sentinel.bin").write_bytes(b"must remain unchanged\x00")
+    before = _tree_bytes(protected)
+
+    with pytest.raises(FileExistsError):
+        c5.build_evidence_card_package(
+            canonical, context, output_root, seed=20260716
+        )
+
+    assert _tree_bytes(protected) == before
+    if existing_target == "output":
+        assert not staging.exists()
+    else:
+        assert not output_root.exists()
+
+
+def test_mid_write_failure_removes_only_the_expected_staging_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    c5 = _module()
+    canonical, context, _spans, _sample = _write_package_inputs(
+        tmp_path / "project", monkeypatch
+    )
+    output_root = tmp_path / "restricted-package"
+    unrelated = tmp_path / ".unrelated.staging"
+    unrelated.mkdir()
+    sentinel = unrelated / "sentinel.bin"
+    sentinel.write_bytes(b"unrelated path must survive")
+    original_writer = c5._write_json_records
+    call_count = 0
+
+    def fail_on_second_json(frame: pd.DataFrame, path: Path) -> None:
+        nonlocal call_count
+        call_count += 1
+        if call_count == 2:
+            raise OSError("synthetic mid-write failure")
+        original_writer(frame, path)
+
+    monkeypatch.setattr(c5, "_write_json_records", fail_on_second_json)
+
+    with pytest.raises(OSError, match="synthetic mid-write failure"):
+        c5.build_evidence_card_package(
+            canonical, context, output_root, seed=20260716
+        )
+
+    assert call_count == 2
+    assert not output_root.exists()
+    assert not _staging_path(output_root).exists()
+    assert sentinel.read_bytes() == b"unrelated path must survive"
+
+
+def test_json_records_writer_round_trips_quotes_and_newlines(
+    tmp_path: Path,
+) -> None:
+    c5 = _module()
+    frame = pd.DataFrame(
+        [
+            {
+                "review_case_id": "C5-" + "a" * 64,
+                "evidence_quote": 'Line one\n"Line two"',
+                "context_before": "前文",
+                "context_after": "后文",
+                "human_span_valid": "",
+                "human_domain": "",
+                "human_polarity": "",
+                "notes": "",
+            }
+        ],
+        columns=list(c5.REVIEWER_COLUMNS),
+    )
+    target = tmp_path / "records.json"
+
+    c5._write_json_records(frame, target)
+
+    assert json.loads(target.read_text(encoding="utf-8")) == frame.to_dict(
+        orient="records"
+    )
+    raw = target.read_bytes()
+    assert b"\\n" in raw
+    assert b'\\"Line two\\"' in raw
+    assert "前文" in raw.decode("utf-8")
+
+
+def test_generated_and_public_markdown_is_chinese_and_contains_no_quotes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    c5 = _module()
+    canonical, context, spans, _sample = _write_package_inputs(
+        tmp_path / "project", monkeypatch
+    )
+    paths = c5.build_evidence_card_package(
+        canonical,
+        context,
+        tmp_path / "restricted-package",
+        seed=20260716,
+    )
+    generated_markdown = (
+        paths.reviewer_a_training_readme,
+        paths.reviewer_b_training_readme,
+        paths.owner_readme,
+    )
+    source_quotes = spans["exact_quote"].astype(str).tolist()
+    for markdown_path in generated_markdown:
+        text = markdown_path.read_text(encoding="utf-8")
+        assert sum("\u4e00" <= char <= "\u9fff" for char in text) >= 20
+        assert not any(quote in text for quote in source_quotes)
+
+    for reviewer_readme in (
+        paths.reviewer_a_training_readme,
+        paths.reviewer_b_training_readme,
+    ):
+        text = reviewer_readme.read_text(encoding="utf-8")
+        assert "三项" in text
+        assert "有效性" in text
+        assert "领域" in text
+        assert "极性" in text
+        assert "XLSX" in text
+        assert "不要返回 JSON" in text
+
+    owner_text = paths.owner_readme.read_text(encoding="utf-8")
+    assert "先完成培训" in owner_text
+    assert "编码手册冻结" in owner_text
+    assert "正式" in owner_text
+    assert "OWNER_ONLY" in owner_text
+
+    public_readme = (
+        Path(__file__).resolve().parents[1]
+        / "analysis_v2"
+        / "04_c5_controls"
+        / "blind_quality_audit"
+        / "evidence_card_v1"
+        / "README.md"
+    )
+    public_text = public_readme.read_text(encoding="utf-8")
+    assert sum("\u4e00" <= char <= "\u9fff" for char in public_text) >= 50
+    assert "旧有的全转录十领域重新编码流程" in public_text
+    assert "每位评分者 120 张正式证据卡" in public_text
+    assert "有效性" in public_text
+    assert "领域" in public_text
+    assert "极性" in public_text
+    assert "不评估缺失证据" in public_text
+    assert "不计算召回率" in public_text
+    assert "受限评分材料不纳入 Git" in public_text
+    assert "材料准备" in public_text
+    assert "尚未完成人工验证" in public_text
+
+
+def test_cli_success_uses_locked_paths_and_prints_only_safe_summary(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    c5 = _module()
+    project_root = tmp_path / "project"
+    _write_package_inputs(project_root, monkeypatch)
+    output_root = tmp_path / "restricted-package"
+    cli = importlib.import_module("scripts.build_c5_evidence_card_validation")
+
+    exit_code = cli.main(
+        [
+            "--project-root",
+            str(project_root),
+            "--output-root",
+            str(output_root),
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert captured.err == ""
+    summary = json.loads(captured.out)
+    assert summary["status"] == "prepared_not_scored"
+    assert summary["output_root"] == str(output_root.resolve())
+    assert summary["manifest_path"] == str(
+        (
+            output_root
+            / "OWNER_ONLY"
+            / "evidence_card_manifest.json"
+        ).resolve()
+    )
+    assert summary["training_total"] == 10
+    assert summary["formal_total"] == 120
+    assert summary["canonical_sha256"] == c5.C5_CANONICAL_SHA256
+    assert summary["participant_text_sha256"] == c5.PARTICIPANT_TEXT_SHA256
+    assert set(summary["file_hashes"]) == (
+        EXPECTED_PACKAGE_FILES
+        - {"OWNER_ONLY/evidence_card_manifest.json"}
+    )
+    assert "evidence_quote" not in captured.out
+    assert "review_case_id" not in captured.out
+    assert "Synthetic evidence" not in captured.out
+
+
+def test_cli_failure_exits_nonzero_without_partial_output(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    c5 = _module()
+    project_root = tmp_path / "project"
+    _write_package_inputs(project_root, monkeypatch)
+    monkeypatch.setattr(c5, "PARTICIPANT_TEXT_SHA256", "0" * 64)
+    output_root = tmp_path / "restricted-package"
+    cli = importlib.import_module("scripts.build_c5_evidence_card_validation")
+
+    with pytest.raises(SystemExit) as exc_info:
+        cli.main(
+            [
+                "--project-root",
+                str(project_root),
+                "--output-root",
+                str(output_root),
+            ]
+        )
+
+    captured = capsys.readouterr()
+    assert exc_info.value.code == 1
+    assert captured.out == ""
+    assert "error:" in captured.err
+    assert not output_root.exists()
+    assert not _staging_path(output_root).exists()

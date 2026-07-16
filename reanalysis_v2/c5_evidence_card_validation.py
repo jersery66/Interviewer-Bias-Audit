@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,7 @@ C5_CANONICAL_RELATIVE = Path(
 C5_CANONICAL_SHA256 = (
     "794d7b43ebd95d57ac4a90a4217953a9bea27e98ff91b13c31b0a06f9aa48c7e"
 )
+C5_CANONICAL_ROW_COUNT = 1137
 PARTICIPANT_TEXT_RELATIVE = Path(
     "processed_research/participant_for_evidence_extraction.jsonl"
 )
@@ -134,6 +136,83 @@ class EvidenceCardSample:
     training: pd.DataFrame
     formal: pd.DataFrame
     audit: pd.DataFrame
+
+
+@dataclass(frozen=True)
+class EvidenceCardPackagePaths:
+    """Restricted evidence-card package paths rooted at one directory."""
+
+    root: Path
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "root", Path(self.root))
+
+    @property
+    def reviewer_a_training_dir(self) -> Path:
+        return self.root / "评分者A_培训"
+
+    @property
+    def reviewer_a_training_json(self) -> Path:
+        return self.reviewer_a_training_dir / "reviewer_A_training.json"
+
+    @property
+    def reviewer_a_training_readme(self) -> Path:
+        return self.reviewer_a_training_dir / "README_评分者A.md"
+
+    @property
+    def reviewer_b_training_dir(self) -> Path:
+        return self.root / "评分者B_培训"
+
+    @property
+    def reviewer_b_training_json(self) -> Path:
+        return self.reviewer_b_training_dir / "reviewer_B_training.json"
+
+    @property
+    def reviewer_b_training_readme(self) -> Path:
+        return self.reviewer_b_training_dir / "README_评分者B.md"
+
+    @property
+    def owner_dir(self) -> Path:
+        return self.root / "OWNER_ONLY"
+
+    @property
+    def owner_crosswalk_csv(self) -> Path:
+        return self.owner_dir / "evidence_card_owner_crosswalk.csv"
+
+    @property
+    def sampling_audit_csv(self) -> Path:
+        return self.owner_dir / "evidence_card_sampling_audit.csv"
+
+    @property
+    def manifest_json(self) -> Path:
+        return self.owner_dir / "evidence_card_manifest.json"
+
+    @property
+    def owner_readme(self) -> Path:
+        return self.owner_dir / "README_OWNER_ONLY.md"
+
+    @property
+    def formal_hold_dir(self) -> Path:
+        return self.owner_dir / "待编码手册冻结后发放"
+
+    @property
+    def reviewer_a_formal_json(self) -> Path:
+        return self.formal_hold_dir / "reviewer_A_formal.json"
+
+    @property
+    def reviewer_b_formal_json(self) -> Path:
+        return self.formal_hold_dir / "reviewer_B_formal.json"
+
+
+@dataclass(frozen=True)
+class _EvidenceCardPackageData:
+    sample: EvidenceCardSample
+    training_owner: pd.DataFrame
+    training_reviewer_a: pd.DataFrame
+    training_reviewer_b: pd.DataFrame
+    formal_owner: pd.DataFrame
+    formal_reviewer_a: pd.DataFrame
+    formal_reviewer_b: pd.DataFrame
 
 
 def sha256_file(path: Path) -> str:
@@ -758,3 +837,566 @@ def build_review_tables(
     ].tolist():
         raise RuntimeError("reviewer A/B row orders must differ")
     return owner, reviewer_a, reviewer_b
+
+
+def _answer_fields_blank(frame: pd.DataFrame) -> bool:
+    answer_fields = [
+        "human_span_valid",
+        "human_domain",
+        "human_polarity",
+        "notes",
+    ]
+    return set(answer_fields).issubset(frame.columns) and bool(
+        frame.loc[:, answer_fields].eq("").all().all()
+    )
+
+
+def _reviewer_scope_checks(
+    owner: pd.DataFrame,
+    reviewer_a: pd.DataFrame,
+    reviewer_b: pd.DataFrame,
+    *,
+    scope: str,
+    expected_total: int,
+    expected_per_domain: int,
+) -> dict[str, bool]:
+    for reviewer_name, reviewer in (
+        ("A", reviewer_a),
+        ("B", reviewer_b),
+    ):
+        if list(reviewer.columns) != list(REVIEWER_COLUMNS):
+            raise RuntimeError(
+                f"reviewer {reviewer_name} {scope} schema changed"
+            )
+        if len(reviewer) != expected_total:
+            raise RuntimeError(
+                f"reviewer {reviewer_name} {scope} row count changed"
+            )
+        if reviewer["review_case_id"].duplicated().any():
+            raise RuntimeError(
+                f"reviewer {reviewer_name} {scope} IDs are not unique"
+            )
+        prohibited = _prohibited_reviewer_columns(reviewer.columns)
+        if prohibited:
+            raise RuntimeError(
+                f"reviewer {reviewer_name} {scope} has prohibited fields: "
+                + ", ".join(sorted(prohibited))
+            )
+        if not _answer_fields_blank(reviewer):
+            raise RuntimeError(
+                f"reviewer {reviewer_name} {scope} answer fields are not blank"
+            )
+
+    if list(owner.columns) != list(_OWNER_COLUMNS):
+        raise RuntimeError(f"owner {scope} schema changed")
+    if len(owner) != expected_total:
+        raise RuntimeError(f"owner {scope} row count changed")
+    if not owner["sample_scope"].eq(scope).all():
+        raise RuntimeError(f"owner {scope} scope labels changed")
+    counts = (
+        owner.groupby("model_domain", sort=False)
+        .size()
+        .reindex(DOMAIN_NAMES, fill_value=0)
+    )
+    if not counts.eq(expected_per_domain).all():
+        raise RuntimeError(
+            f"owner {scope} domain quotas changed: "
+            + _domain_count_text(counts)
+        )
+
+    owner_ids = set(owner["review_case_id"])
+    reviewer_a_ids = set(reviewer_a["review_case_id"])
+    reviewer_b_ids = set(reviewer_b["review_case_id"])
+    id_sets_equal = owner_ids == reviewer_a_ids == reviewer_b_ids
+    orders_differ = reviewer_a["review_case_id"].tolist() != reviewer_b[
+        "review_case_id"
+    ].tolist()
+    if not id_sets_equal:
+        raise RuntimeError(f"reviewer A/B {scope} ID sets differ")
+    if not orders_differ:
+        raise RuntimeError(f"reviewer A/B {scope} orders do not differ")
+    return {
+        "id_sets_equal": id_sets_equal,
+        "orders_differ": orders_differ,
+    }
+
+
+def _validate_package_data(
+    data: _EvidenceCardPackageData,
+) -> dict[str, dict[str, bool]]:
+    reviewer_checks = {
+        "training": _reviewer_scope_checks(
+            data.training_owner,
+            data.training_reviewer_a,
+            data.training_reviewer_b,
+            scope="training",
+            expected_total=len(DOMAIN_NAMES) * _TRAINING_PER_DOMAIN,
+            expected_per_domain=_TRAINING_PER_DOMAIN,
+        ),
+        "formal": _reviewer_scope_checks(
+            data.formal_owner,
+            data.formal_reviewer_a,
+            data.formal_reviewer_b,
+            scope="formal",
+            expected_total=len(DOMAIN_NAMES) * _FORMAL_PER_DOMAIN,
+            expected_per_domain=_FORMAL_PER_DOMAIN,
+        ),
+    }
+    overlap = set(data.training_owner["candidate_key"]).intersection(
+        data.formal_owner["candidate_key"]
+    )
+    if overlap:
+        raise RuntimeError("training and formal candidate_key values overlap")
+    formal_reuse = data.formal_owner.groupby("participant_id").size()
+    if formal_reuse.empty or int(formal_reuse.max()) > _MAX_FORMAL_PARTICIPANT_REUSE:
+        raise RuntimeError("formal sample exceeds the participant reuse cap")
+    if len(data.training_owner) + len(data.formal_owner) != 130:
+        raise RuntimeError("selected evidence-card total is not 130")
+    return reviewer_checks
+
+
+def _preflight_evidence_card_package(
+    canonical_path: Path,
+    participant_text_path: Path,
+    *,
+    seed: int,
+    expected_canonical_sha256: str,
+    expected_participant_text_sha256: str,
+    expected_row_count: int,
+) -> _EvidenceCardPackageData:
+    validated_seed = _validate_seed(seed)
+    _validate_sha256(canonical_path, expected_canonical_sha256)
+    _validate_sha256(participant_text_path, expected_participant_text_sha256)
+
+    spans = pd.read_csv(canonical_path)
+    spans = load_and_validate_spans(spans, expected_sha256=None)
+    if len(spans) != expected_row_count:
+        raise ValueError(
+            "canonical row count mismatch: "
+            f"expected {expected_row_count}, found {len(spans)}"
+        )
+    sample = select_evidence_cards(spans, seed=validated_seed)
+    participant_texts = load_participant_texts(
+        participant_text_path,
+        expected_sha256=expected_participant_text_sha256,
+    )
+    training_owner, training_reviewer_a, training_reviewer_b = (
+        build_review_tables(
+            sample.training,
+            participant_texts,
+            seed=validated_seed,
+            scope="training",
+        )
+    )
+    formal_owner, formal_reviewer_a, formal_reviewer_b = build_review_tables(
+        sample.formal,
+        participant_texts,
+        seed=validated_seed,
+        scope="formal",
+    )
+    data = _EvidenceCardPackageData(
+        sample=sample,
+        training_owner=training_owner,
+        training_reviewer_a=training_reviewer_a,
+        training_reviewer_b=training_reviewer_b,
+        formal_owner=formal_owner,
+        formal_reviewer_a=formal_reviewer_a,
+        formal_reviewer_b=formal_reviewer_b,
+    )
+    _validate_package_data(data)
+    return data
+
+
+def _reviewer_readme_text(reviewer: str) -> str:
+    return f"""# C5 证据卡评分者 {reviewer} 培训说明
+
+## 当前阶段
+
+本目录仅用于培训。请先独立完成培训材料，再参加编码手册讨论；正式材料在编码手册冻结后另行发放。
+
+## 三项必填判断
+
+每张证据卡只需作出以下三项必填判断：
+
+1. `human_span_valid`（有效性）：判断引文是否为上下文支持的有效证据。
+2. `human_domain`（领域）：判断证据所属领域。
+3. `human_polarity`（极性）：判断证据极性。
+
+`notes` 仅用于必要说明，不属于第四项必填判断。不得推断参与者标签、量表分数或模型结果。
+
+## 返回方式
+
+后续请在项目负责人发放的 XLSX 工作簿中填写并返回。当前 JSON 仅是程序中间表，请不要编辑，也不要返回 JSON。
+"""
+
+
+def _owner_readme_text() -> str:
+    return """# C5 证据卡 OWNER_ONLY 管理说明
+
+## 发放顺序
+
+必须先完成培训、讨论边界并冻结编码手册，之后才能发放正式材料。培训答案不计入正式一致性或效度统计。
+
+## 正式材料暂缓发放
+
+正式 JSON 与后续生成的正式 XLSX 工作簿在编码手册冻结前必须保留在 OWNER_ONLY，不得复制到评分者培训目录，也不得提前发放。
+
+## 当前状态
+
+本目录处于材料准备阶段，尚未完成人工评分、复核、一致性计算或效度结论。负责人应保留清单与文件哈希，并按冻结后的流程发放正式工作簿。
+"""
+
+
+def _write_utf8_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = text.rstrip() + "\n"
+    path.write_bytes(payload.encode("utf-8"))
+
+
+def _write_json_records(frame: pd.DataFrame, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(
+        frame.to_dict(orient="records"),
+        ensure_ascii=False,
+        indent=2,
+    )
+    path.write_bytes((payload + "\n").encode("utf-8"))
+
+
+def _write_csv(frame: pd.DataFrame, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        frame.to_csv(handle, index=False, lineterminator="\n")
+
+
+def _write_json_object(value: dict[str, Any], path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(
+        value,
+        ensure_ascii=False,
+        indent=2,
+        sort_keys=True,
+    )
+    path.write_bytes((payload + "\n").encode("utf-8"))
+
+
+def _relative_to_package(paths: EvidenceCardPackagePaths, path: Path) -> str:
+    return path.relative_to(paths.root).as_posix()
+
+
+def _non_manifest_file_map(
+    paths: EvidenceCardPackagePaths,
+) -> dict[str, Path]:
+    files = (
+        paths.reviewer_a_training_readme,
+        paths.reviewer_a_training_json,
+        paths.reviewer_b_training_readme,
+        paths.reviewer_b_training_json,
+        paths.owner_readme,
+        paths.owner_crosswalk_csv,
+        paths.sampling_audit_csv,
+        paths.reviewer_a_formal_json,
+        paths.reviewer_b_formal_json,
+    )
+    return {
+        _relative_to_package(paths, path): path
+        for path in files
+    }
+
+
+def _file_hash_inventory(paths: EvidenceCardPackagePaths) -> dict[str, str]:
+    inventory = _non_manifest_file_map(paths)
+    missing = [relative for relative, path in inventory.items() if not path.is_file()]
+    if missing:
+        raise RuntimeError(
+            "package files missing before hashing: " + ", ".join(sorted(missing))
+        )
+    return {
+        relative: sha256_file(inventory[relative])
+        for relative in sorted(inventory)
+    }
+
+
+def _manifest_for_package(
+    data: _EvidenceCardPackageData,
+    canonical_path: Path,
+    participant_text_path: Path,
+    *,
+    seed: int,
+    canonical_sha256: str,
+    participant_text_sha256: str,
+    input_row_count: int,
+    file_hashes: dict[str, str],
+    manifest_relative_path: str,
+) -> dict[str, Any]:
+    reviewer_checks = _validate_package_data(data)
+    training_counts = (
+        data.training_owner.groupby("model_domain", sort=False)
+        .size()
+        .reindex(DOMAIN_NAMES, fill_value=0)
+    )
+    formal_counts = (
+        data.formal_owner.groupby("model_domain", sort=False)
+        .size()
+        .reindex(DOMAIN_NAMES, fill_value=0)
+    )
+    formal_reuse = data.formal_owner.groupby("participant_id").size()
+    prohibited_found = sorted(
+        set().union(
+            *(
+                _prohibited_reviewer_columns(frame.columns)
+                for frame in (
+                    data.training_reviewer_a,
+                    data.training_reviewer_b,
+                    data.formal_reviewer_a,
+                    data.formal_reviewer_b,
+                )
+            )
+        )
+    )
+    all_answers_blank = all(
+        _answer_fields_blank(frame)
+        for frame in (
+            data.training_reviewer_a,
+            data.training_reviewer_b,
+            data.formal_reviewer_a,
+            data.formal_reviewer_b,
+        )
+    )
+    return {
+        "status": "prepared_not_scored",
+        "design": "balanced_evidence_cards",
+        "canonical_path": str(canonical_path),
+        "participant_text_path": str(participant_text_path),
+        "canonical_sha256": canonical_sha256,
+        "participant_text_sha256": participant_text_sha256,
+        "seed": seed,
+        "input_row_count": input_row_count,
+        "training_total": int(len(data.training_owner)),
+        "formal_total": int(len(data.formal_owner)),
+        "training_per_domain": {
+            domain: int(training_counts.loc[domain]) for domain in DOMAIN_NAMES
+        },
+        "formal_per_domain": {
+            domain: int(formal_counts.loc[domain]) for domain in DOMAIN_NAMES
+        },
+        "formal_max_participant_reuse": int(formal_reuse.max()),
+        "training_formal_key_overlap_count": len(
+            set(data.training_owner["candidate_key"]).intersection(
+                data.formal_owner["candidate_key"]
+            )
+        ),
+        "reviewer_id_checks": reviewer_checks,
+        "reviewer_prohibited_field_check": {
+            "passed": not prohibited_found,
+            "prohibited_fields_found": prohibited_found,
+        },
+        "all_answer_fields_blank": all_answers_blank,
+        "formal_materials_owner_only_until_codebook_freeze": True,
+        "formal_release_policy_zh": (
+            "正式工作簿与正式 JSON 在编码手册冻结前仅保存在 OWNER_ONLY，"
+            "冻结后方可发放。"
+        ),
+        "human_review_completed": False,
+        "agreement_completed": False,
+        "workbooks_generated": False,
+        "file_hash_algorithm": "sha256",
+        "file_hashes": file_hashes,
+        "file_hashes_excludes": [manifest_relative_path],
+        "file_hashes_exclusion_reason_zh": (
+            "清单包含其他文件的哈希，无法稳定包含自身哈希，因此明确排除清单自身。"
+        ),
+    }
+
+
+def _load_reviewer_json(path: Path) -> pd.DataFrame:
+    try:
+        records = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"invalid reviewer JSON: {path}") from exc
+    if not isinstance(records, list) or not records:
+        raise RuntimeError(f"reviewer JSON must be a nonempty record list: {path}")
+    if any(
+        not isinstance(record, dict)
+        or list(record) != list(REVIEWER_COLUMNS)
+        for record in records
+    ):
+        raise RuntimeError(f"reviewer JSON schema changed: {path}")
+    return pd.DataFrame(records, columns=list(REVIEWER_COLUMNS))
+
+
+def _verify_written_package(
+    paths: EvidenceCardPackagePaths,
+    expected_manifest: dict[str, Any],
+) -> None:
+    manifest_relative = _relative_to_package(paths, paths.manifest_json)
+    expected_files = set(_non_manifest_file_map(paths)) | {manifest_relative}
+    actual_files = {
+        path.relative_to(paths.root).as_posix()
+        for path in paths.root.rglob("*")
+        if path.is_file()
+    }
+    if actual_files != expected_files:
+        raise RuntimeError(
+            "package file inventory mismatch: expected "
+            f"{sorted(expected_files)}, found {sorted(actual_files)}"
+        )
+
+    actual_manifest = json.loads(paths.manifest_json.read_text(encoding="utf-8"))
+    if actual_manifest != expected_manifest:
+        raise RuntimeError("written package manifest does not match memory")
+    actual_hashes = _file_hash_inventory(paths)
+    if actual_hashes != expected_manifest["file_hashes"]:
+        raise RuntimeError("written package file hash verification failed")
+
+    training_a = _load_reviewer_json(paths.reviewer_a_training_json)
+    training_b = _load_reviewer_json(paths.reviewer_b_training_json)
+    formal_a = _load_reviewer_json(paths.reviewer_a_formal_json)
+    formal_b = _load_reviewer_json(paths.reviewer_b_formal_json)
+    for scope, reviewer_a, reviewer_b, expected_total in (
+        ("training", training_a, training_b, 10),
+        ("formal", formal_a, formal_b, 120),
+    ):
+        if len(reviewer_a) != expected_total or len(reviewer_b) != expected_total:
+            raise RuntimeError(f"written {scope} reviewer row count changed")
+        if set(reviewer_a["review_case_id"]) != set(
+            reviewer_b["review_case_id"]
+        ):
+            raise RuntimeError(f"written {scope} reviewer ID sets differ")
+        if reviewer_a["review_case_id"].tolist() == reviewer_b[
+            "review_case_id"
+        ].tolist():
+            raise RuntimeError(f"written {scope} reviewer orders do not differ")
+        if not _answer_fields_blank(reviewer_a) or not _answer_fields_blank(
+            reviewer_b
+        ):
+            raise RuntimeError(f"written {scope} reviewer answers are not blank")
+
+    owner = pd.read_csv(paths.owner_crosswalk_csv, keep_default_na=False)
+    if list(owner.columns) != list(_OWNER_COLUMNS) or len(owner) != 130:
+        raise RuntimeError("written owner crosswalk schema or row count changed")
+    if owner["sample_scope"].tolist() != ["training"] * 10 + ["formal"] * 120:
+        raise RuntimeError("written owner crosswalk scope order changed")
+    audit = pd.read_csv(paths.sampling_audit_csv)
+    if list(audit.columns) != [
+        "domain",
+        "eligible_n",
+        "training_n",
+        "formal_n",
+        "seed",
+        "attempt",
+    ] or audit["domain"].tolist() != list(DOMAIN_NAMES):
+        raise RuntimeError("written sampling audit schema or order changed")
+
+
+def _staging_path(output_root: Path) -> Path:
+    if not output_root.name:
+        raise ValueError("output_root must name a directory")
+    return output_root.with_name(f".{output_root.name}.staging")
+
+
+def _remove_expected_staging(staging: Path, output_root: Path) -> None:
+    expected = _staging_path(output_root)
+    if staging != expected or staging.parent != output_root.parent:
+        raise RuntimeError("refusing to remove an unexpected staging path")
+    if staging == output_root:
+        raise RuntimeError("staging path must differ from output_root")
+    if staging.is_symlink():
+        staging.unlink()
+    elif staging.exists():
+        shutil.rmtree(staging)
+
+
+def build_evidence_card_package(
+    canonical_path: Path,
+    participant_text_path: Path,
+    output_root: Path,
+    seed: int,
+) -> EvidenceCardPackagePaths:
+    """Atomically prepare the restricted, unscored evidence-card package."""
+
+    canonical = Path(canonical_path).expanduser().resolve()
+    participant_text = Path(participant_text_path).expanduser().resolve()
+    output = Path(output_root).expanduser().resolve()
+    staging = _staging_path(output)
+    if output.exists():
+        raise FileExistsError(f"output_root already exists: {output}")
+    if staging.exists():
+        raise FileExistsError(f"staging directory already exists: {staging}")
+
+    validated_seed = _validate_seed(seed)
+    canonical_sha256 = C5_CANONICAL_SHA256
+    participant_text_sha256 = PARTICIPANT_TEXT_SHA256
+    expected_row_count = C5_CANONICAL_ROW_COUNT
+    data = _preflight_evidence_card_package(
+        canonical,
+        participant_text,
+        seed=validated_seed,
+        expected_canonical_sha256=canonical_sha256,
+        expected_participant_text_sha256=participant_text_sha256,
+        expected_row_count=expected_row_count,
+    )
+
+    staging_created = False
+    staging_paths = EvidenceCardPackagePaths(staging)
+    try:
+        staging.mkdir(parents=True, exist_ok=False)
+        staging_created = True
+        _write_utf8_text(
+            staging_paths.reviewer_a_training_readme,
+            _reviewer_readme_text("A"),
+        )
+        _write_utf8_text(
+            staging_paths.reviewer_b_training_readme,
+            _reviewer_readme_text("B"),
+        )
+        _write_utf8_text(staging_paths.owner_readme, _owner_readme_text())
+        _write_json_records(
+            data.training_reviewer_a,
+            staging_paths.reviewer_a_training_json,
+        )
+        _write_json_records(
+            data.training_reviewer_b,
+            staging_paths.reviewer_b_training_json,
+        )
+        _write_json_records(
+            data.formal_reviewer_a,
+            staging_paths.reviewer_a_formal_json,
+        )
+        _write_json_records(
+            data.formal_reviewer_b,
+            staging_paths.reviewer_b_formal_json,
+        )
+        owner_crosswalk = pd.concat(
+            [data.training_owner, data.formal_owner], ignore_index=True
+        ).loc[:, list(_OWNER_COLUMNS)]
+        _write_csv(owner_crosswalk, staging_paths.owner_crosswalk_csv)
+        _write_csv(data.sample.audit, staging_paths.sampling_audit_csv)
+
+        file_hashes = _file_hash_inventory(staging_paths)
+        manifest_relative = _relative_to_package(
+            staging_paths, staging_paths.manifest_json
+        )
+        manifest = _manifest_for_package(
+            data,
+            canonical,
+            participant_text,
+            seed=validated_seed,
+            canonical_sha256=canonical_sha256,
+            participant_text_sha256=participant_text_sha256,
+            input_row_count=expected_row_count,
+            file_hashes=file_hashes,
+            manifest_relative_path=manifest_relative,
+        )
+        _write_json_object(manifest, staging_paths.manifest_json)
+        _verify_written_package(staging_paths, manifest)
+        if output.exists():
+            raise FileExistsError(f"output_root appeared during build: {output}")
+        staging.rename(output)
+        staging_created = False
+    except BaseException:
+        if staging_created:
+            _remove_expected_staging(staging, output)
+        raise
+
+    return EvidenceCardPackagePaths(output)
