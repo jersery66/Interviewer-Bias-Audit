@@ -84,6 +84,14 @@ def _balanced_spans(
     return pd.DataFrame(rows)
 
 
+def _cross_domain_reuse_spans() -> pd.DataFrame:
+    spans = _balanced_spans()
+    spans["participant_id"] = [
+        20_000 + (row_index % 100) for row_index in range(len(spans))
+    ]
+    return spans
+
+
 def _sample_rows(sample: object) -> pd.DataFrame:
     return pd.concat([sample.training, sample.formal], ignore_index=True)
 
@@ -498,6 +506,25 @@ def test_training_and_formal_are_disjoint_and_formal_reuse_is_capped() -> None:
     assert sample.formal.groupby("participant_id").size().max() <= 2
 
 
+def test_feasible_cross_domain_participant_reuse_respects_formal_cap() -> None:
+    c5 = _module()
+    spans = _cross_domain_reuse_spans()
+    candidate_domain_counts = spans.groupby("participant_id")["domain"].nunique()
+    assert candidate_domain_counts.eq(2).sum() == 60
+
+    sample = c5.select_evidence_cards(spans, seed=20260716)
+    formal_reuse = sample.formal.groupby("participant_id").size()
+
+    assert (formal_reuse == 2).any()
+    assert formal_reuse.max() == 2
+    assert set(sample.training["candidate_key"]).isdisjoint(
+        sample.formal["candidate_key"]
+    )
+    assert set(sample.training["participant_id"]).intersection(
+        sample.formal["participant_id"]
+    )
+
+
 def test_candidate_preparation_deduplicates_normalized_quote_and_keeps_first() -> None:
     c5 = _module()
     spans = _balanced_spans(candidates_per_domain=13)
@@ -741,7 +768,7 @@ def test_review_tables_propagate_ambiguous_repeated_quote_failure() -> None:
         c5.build_review_tables(selected, participant_texts, seed=20260716)
 
 
-def test_review_tables_reject_duplicate_reviewer_ids() -> None:
+def test_review_tables_reject_duplicate_candidate_keys() -> None:
     c5 = _module()
     sample = c5.select_evidence_cards(_balanced_spans(), seed=20260716)
     selected = pd.concat(
@@ -749,7 +776,7 @@ def test_review_tables_reject_duplicate_reviewer_ids() -> None:
     )
     participant_texts = _participant_texts(selected)
 
-    with pytest.raises(ValueError, match=r"duplicate review_case_id"):
+    with pytest.raises(ValueError, match=r"duplicate candidate_key"):
         c5.build_review_tables(selected, participant_texts, seed=20260716)
 
 

@@ -683,9 +683,7 @@ def build_review_tables(
     if blank_candidate_mask.any():
         raise ValueError("candidate_key contains blank values")
     if frame["candidate_key"].duplicated().any():
-        raise ValueError(
-            "duplicate review_case_id values would be generated from candidate_key"
-        )
+        raise ValueError("duplicate candidate_key values are not allowed")
     if len(frame) < 2:
         raise ValueError(
             "selected must contain at least two rows for different A/B orders"
