@@ -8,6 +8,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 
@@ -53,12 +54,16 @@ _EMAIL_RE = re.compile(
 _PHONE_RE = re.compile(r"(?<![\w@])\+?\d(?:[\s().-]*\d){6,}(?!\w)")
 _LONG_NUMBER_RE = re.compile(r"(?<!\d)\d{3,}(?!\d)")
 _NAME_WORD = r"[^\W\d_]+(?:['’\-][^\W\d_]+)*"
-_NAME_STOP_WORDS = r"and|but|from|with|who|because|so|then|when|where"
+_NAME_STOP_WORDS = (
+    r"and|but|or|because|so|then|who|which|that|when|where|while|"
+    r"although|though|if|from|with|at|in|on|for|to|of|i|we|you|he|she|"
+    r"they|it|live|lives|work|works|am|is|are|was|were"
+)
+_NAME_TOKEN = rf"(?!(?:{_NAME_STOP_WORDS})\b){_NAME_WORD}"
 _SELF_INTRODUCED_NAME_RE = re.compile(
     rf"(?P<prefix>\b(?:my\s+name\s+is|i\s+am|i['’]m))"
     rf"(?P<gap>\s+)"
-    rf"(?P<name>{_NAME_WORD}"
-    rf"(?:\s+(?!(?:{_NAME_STOP_WORDS})\b){_NAME_WORD}){{0,1}})",
+    rf"(?P<name>{_NAME_TOKEN}(?:\s+{_NAME_TOKEN}){{0,3}})",
     re.IGNORECASE,
 )
 
@@ -136,13 +141,35 @@ def load_and_validate_spans(
         )
 
     for column in ("participant_id", "source_order"):
+        raw_values = spans[column]
+        contains_bool = raw_values.map(
+            lambda value: isinstance(value, (bool, np.bool_))
+        ).any()
         try:
-            numeric_values = pd.to_numeric(spans[column], errors="raise")
+            numeric_values = pd.to_numeric(raw_values, errors="raise")
         except (TypeError, ValueError) as exc:
-            raise ValueError(f"{column} must contain only numeric values") from exc
-        if numeric_values.isna().any():
-            raise ValueError(f"{column} must contain only numeric values")
-        spans[column] = numeric_values
+            raise ValueError(
+                f"{column} must contain only finite integer values"
+            ) from exc
+
+        numeric_array = numeric_values.to_numpy()
+        finite = np.isfinite(numeric_array).all()
+        integer_valued = finite and np.equal(
+            np.remainder(numeric_array, 1), 0
+        ).all()
+        if contains_bool or not integer_valued:
+            raise ValueError(f"{column} must contain only finite integer values")
+
+        integer_values = [int(value) for value in numeric_array]
+        int64_bounds = np.iinfo(np.int64)
+        if any(
+            value < int64_bounds.min or value > int64_bounds.max
+            for value in integer_values
+        ):
+            raise ValueError(f"{column} values must fit in int64")
+        spans[column] = pd.Series(
+            integer_values, index=spans.index, dtype="int64"
+        )
 
     blank_quote_mask = spans["exact_quote"].map(normalize_space).eq("")
     if blank_quote_mask.any():
@@ -314,17 +341,28 @@ def locate_quote_context(
 
     folded_text, boundaries = _casefold_boundaries(normalized_text)
     folded_quote = normalized_quote.casefold()
-    folded_start = folded_text.find(folded_quote)
-    while folded_start >= 0:
+    valid_matches: list[tuple[int, int]] = []
+    search_start = 0
+    while True:
+        folded_start = folded_text.find(folded_quote, search_start)
+        if folded_start < 0:
+            break
         folded_end = folded_start + len(folded_quote)
         if folded_start in boundaries and folded_end in boundaries:
-            break
-        folded_start = folded_text.find(folded_quote, folded_start + 1)
-    else:
-        raise ValueError("quote not found after whitespace normalization and casefold")
+            valid_matches.append(
+                (boundaries[folded_start], boundaries[folded_end])
+            )
+        search_start = folded_start + 1
 
-    start = boundaries[folded_start]
-    end = boundaries[folded_start + len(folded_quote)]
+    if not valid_matches:
+        raise ValueError("quote not found after whitespace normalization and casefold")
+    if len(valid_matches) > 1:
+        raise ValueError(
+            "ambiguous quote: multiple occurrences found after whitespace "
+            "normalization and casefold"
+        )
+
+    start, end = valid_matches[0]
     before_full, quote_text, after_full = _deidentify_around_quote(
         normalized_text, start, end
     )

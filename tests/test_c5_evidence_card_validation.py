@@ -121,17 +121,19 @@ def test_span_validation_rejects_unknown_domain() -> None:
 
 def test_span_validation_converts_numeric_columns_and_copies_input() -> None:
     c5 = _module()
-    frame = _span_frame()
+    frame = _span_frame(source_order=2.0)
 
     result = c5.load_and_validate_spans(frame, expected_sha256=None)
 
     assert result is not frame
     assert frame.loc[0, "participant_id"] == "101"
-    assert frame.loc[0, "source_order"] == "2"
+    assert frame.loc[0, "source_order"] == 2.0
     assert result.loc[0, "participant_id"] == 101
     assert result.loc[0, "source_order"] == 2
     assert is_numeric_dtype(result["participant_id"])
     assert is_numeric_dtype(result["source_order"])
+    assert str(result["participant_id"].dtype) == "int64"
+    assert str(result["source_order"].dtype) == "int64"
 
 
 @pytest.mark.parametrize("column", ["participant_id", "source_order"])
@@ -141,6 +143,23 @@ def test_span_validation_rejects_non_numeric_values(column: str) -> None:
     with pytest.raises(ValueError, match=column):
         c5.load_and_validate_spans(
             _span_frame(**{column: "not-numeric"}), expected_sha256=None
+        )
+
+
+@pytest.mark.parametrize("column", ["participant_id", "source_order"])
+@pytest.mark.parametrize(
+    "value",
+    [101.5, float("inf"), float("nan"), pd.NA, True],
+    ids=["fractional", "infinite", "nan", "pandas-na", "boolean"],
+)
+def test_span_validation_rejects_non_integer_numeric_values(
+    column: str, value: object
+) -> None:
+    c5 = _module()
+
+    with pytest.raises(ValueError, match=column):
+        c5.load_and_validate_spans(
+            _span_frame(**{column: value}), expected_sha256=None
         )
 
 
@@ -245,6 +264,23 @@ def test_quote_context_matches_after_whitespace_normalization_and_casefold() -> 
     )
 
 
+def test_quote_context_accepts_one_unique_casefold_occurrence() -> None:
+    c5 = _module()
+
+    assert c5.locate_quote_context("Before TARGET after.", "target") == (
+        "Before",
+        "TARGET",
+        "after.",
+    )
+
+
+def test_quote_context_rejects_multiple_casefold_occurrences() -> None:
+    c5 = _module()
+
+    with pytest.raises(ValueError, match=r"ambiguous|multiple occurrence"):
+        c5.locate_quote_context("First TARGET then target.", "target")
+
+
 def test_quote_context_honors_flank_character_limit() -> None:
     c5 = _module()
     text = "abcdefghij TARGET klmnopqrst"
@@ -301,6 +337,39 @@ def test_deidentify_text_is_deterministic() -> None:
     ],
 )
 def test_deidentify_text_redacts_lowercase_self_introduced_names(
+    source: str, expected: str
+) -> None:
+    c5 = _module()
+
+    assert c5.deidentify_text(source) == expected
+
+
+@pytest.mark.parametrize(
+    ("source", "expected"),
+    [
+        (
+            "my name is Mary Jane Watson.",
+            "my name is [REDACTED_NAME].",
+        ),
+        (
+            "my name is mary jane watson.",
+            "my name is [REDACTED_NAME].",
+        ),
+        (
+            "my name is mary-jane o'connor lee watson.",
+            "my name is [REDACTED_NAME].",
+        ),
+        (
+            "my name is mary jane watson and I live here.",
+            "my name is [REDACTED_NAME] and I live here.",
+        ),
+        (
+            "my name is alice from the synthetic town.",
+            "my name is [REDACTED_NAME] from the synthetic town.",
+        ),
+    ],
+)
+def test_deidentify_text_redacts_bounded_names_without_swallowing_clause(
     source: str, expected: str
 ) -> None:
     c5 = _module()
