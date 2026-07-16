@@ -58,7 +58,7 @@ _SELF_INTRODUCED_NAME_RE = re.compile(
     rf"(?P<prefix>\b(?:my\s+name\s+is|i\s+am|i['’]m))"
     rf"(?P<gap>\s+)"
     rf"(?P<name>{_NAME_WORD}"
-    rf"(?:\s+(?!(?:{_NAME_STOP_WORDS})\b){_NAME_WORD}){{0,2}})",
+    rf"(?:\s+(?!(?:{_NAME_STOP_WORDS})\b){_NAME_WORD}){{0,1}})",
     re.IGNORECASE,
 )
 
@@ -209,24 +209,80 @@ def load_participant_texts(
     return participant_texts
 
 
-def _replace_self_introduced_name(match: re.Match[str]) -> str:
-    prefix = match.group("prefix")
-    name = match.group("name")
-    normalized_prefix = normalize_space(prefix).replace("’", "'").casefold()
-    if normalized_prefix != "my name is" and not name[0].isupper():
-        return match.group(0)
-    return f"{prefix} [REDACTED_NAME]"
+def _redaction_spans(text: str) -> list[tuple[int, int, str]]:
+    spans: list[tuple[int, int, str]] = []
+    patterns = (
+        (_EMAIL_RE, "[REDACTED_EMAIL]", 0),
+        (_PHONE_RE, "[REDACTED_PHONE]", 0),
+        (_SELF_INTRODUCED_NAME_RE, "[REDACTED_NAME]", "name"),
+        (_LONG_NUMBER_RE, "[REDACTED_NUMBER]", 0),
+    )
+
+    for pattern, replacement, group in patterns:
+        for match in pattern.finditer(text):
+            start, end = match.span(group)
+            if any(
+                start < prior_end and end > prior_start
+                for prior_start, prior_end, _ in spans
+            ):
+                continue
+            spans.append((start, end, replacement))
+
+    return sorted(spans)
+
+
+def _apply_redaction_spans(text: str, spans: list[tuple[int, int, str]]) -> str:
+    pieces: list[str] = []
+    cursor = 0
+    for start, end, replacement in spans:
+        pieces.extend((text[cursor:start], replacement))
+        cursor = end
+    pieces.append(text[cursor:])
+    return "".join(pieces)
 
 
 def deidentify_text(value: Any) -> str:
     """Deterministically redact common direct identifiers from text."""
 
     text = normalize_space(value)
-    text = _EMAIL_RE.sub("[REDACTED_EMAIL]", text)
-    text = _PHONE_RE.sub("[REDACTED_PHONE]", text)
-    text = _SELF_INTRODUCED_NAME_RE.sub(_replace_self_introduced_name, text)
-    text = _LONG_NUMBER_RE.sub("[REDACTED_NUMBER]", text)
-    return normalize_space(text)
+    return normalize_space(_apply_redaction_spans(text, _redaction_spans(text)))
+
+
+def _deidentify_around_quote(
+    text: str, quote_start: int, quote_end: int
+) -> tuple[str, str, str]:
+    segment_bounds = (
+        (0, quote_start),
+        (quote_start, quote_end),
+        (quote_end, len(text)),
+    )
+    pieces: tuple[list[str], list[str], list[str]] = ([], [], [])
+
+    def append_plain(start: int, end: int) -> None:
+        for index, (segment_start, segment_end) in enumerate(segment_bounds):
+            overlap_start = max(start, segment_start)
+            overlap_end = min(end, segment_end)
+            if overlap_start < overlap_end:
+                pieces[index].append(text[overlap_start:overlap_end])
+
+    cursor = 0
+    for start, end, replacement in _redaction_spans(text):
+        append_plain(cursor, start)
+        if start < quote_end and end > quote_start:
+            segment_index = 1
+        elif end <= quote_start:
+            segment_index = 0
+        else:
+            segment_index = 2
+        pieces[segment_index].append(replacement)
+        cursor = end
+    append_plain(cursor, len(text))
+
+    return (
+        normalize_space("".join(pieces[0])),
+        normalize_space("".join(pieces[1])),
+        normalize_space("".join(pieces[2])),
+    )
 
 
 def _casefold_boundaries(value: str) -> tuple[str, dict[int, int]]:
@@ -269,9 +325,9 @@ def locate_quote_context(
 
     start = boundaries[folded_start]
     end = boundaries[folded_start + len(folded_quote)]
-    before_full = deidentify_text(normalized_text[:start])
-    quote_text = deidentify_text(normalized_text[start:end])
-    after_full = deidentify_text(normalized_text[end:])
+    before_full, quote_text, after_full = _deidentify_around_quote(
+        normalized_text, start, end
+    )
 
     if flank_chars == 0:
         return "", quote_text, ""

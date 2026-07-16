@@ -284,3 +284,36 @@ def test_deidentify_text_is_deterministic() -> None:
 
     assert c5.deidentify_text(source) == expected
     assert c5.deidentify_text(source) == expected
+
+
+@pytest.mark.parametrize(
+    ("source", "expected"),
+    [
+        (
+            "Before; i am alice smith. After.",
+            "Before; i am [REDACTED_NAME]. After.",
+        ),
+        ("Before; i'm alice. After.", "Before; i'm [REDACTED_NAME]. After."),
+        (
+            "Before; my name is alice. After.",
+            "Before; my name is [REDACTED_NAME]. After.",
+        ),
+    ],
+)
+def test_deidentify_text_redacts_lowercase_self_introduced_names(
+    source: str, expected: str
+) -> None:
+    c5 = _module()
+
+    assert c5.deidentify_text(source) == expected
+
+
+def test_quote_context_redacts_email_crossing_quote_boundaries() -> None:
+    c5 = _module()
+    text = "Reach alice@example.com for synthetic details."
+
+    assert c5.locate_quote_context(text, "example") == (
+        "Reach",
+        "[REDACTED_EMAIL]",
+        "for synthetic details.",
+    )
