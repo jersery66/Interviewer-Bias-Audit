@@ -418,7 +418,7 @@ def select_evidence_cards(
                 "training_n": [_TRAINING_PER_DOMAIN] * len(DOMAIN_NAMES),
                 "formal_n": [_FORMAL_PER_DOMAIN] * len(DOMAIN_NAMES),
                 "seed": [validated_seed] * len(DOMAIN_NAMES),
-                "successful_attempt": [attempt] * len(DOMAIN_NAMES),
+                "attempt": [attempt] * len(DOMAIN_NAMES),
             }
         )
         return EvidenceCardSample(training=training, formal=formal, audit=audit)

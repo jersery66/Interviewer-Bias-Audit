@@ -453,20 +453,21 @@ def test_balanced_sampling_returns_exact_domain_quotas_and_audit() -> None:
     assert sample.formal.groupby("domain").size().to_dict() == {
         domain: 12 for domain in EXPECTED_DOMAINS
     }
-    assert {
+    assert list(sample.audit.columns) == [
         "domain",
         "eligible_n",
         "training_n",
         "formal_n",
         "seed",
-        "successful_attempt",
-    }.issubset(sample.audit.columns)
+        "attempt",
+    ]
+    assert "successful_attempt" not in sample.audit.columns
     assert sample.audit["domain"].tolist() == list(EXPECTED_DOMAINS)
     assert sample.audit["eligible_n"].tolist() == [16] * 10
     assert sample.audit["training_n"].tolist() == [1] * 10
     assert sample.audit["formal_n"].tolist() == [12] * 10
     assert sample.audit["seed"].tolist() == [20260716] * 10
-    assert sample.audit["successful_attempt"].tolist() == [0] * 10
+    assert sample.audit["attempt"].tolist() == [0] * 10
 
 
 def test_balanced_sampling_is_deterministic_and_stably_ordered() -> None:
