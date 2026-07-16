@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import shutil
 from dataclasses import dataclass
@@ -108,6 +109,27 @@ _MIN_ELIGIBLE_PER_DOMAIN = _TRAINING_PER_DOMAIN + _FORMAL_PER_DOMAIN
 _MAX_FORMAL_PARTICIPANT_REUSE = 2
 _MAX_SELECTION_ATTEMPTS = 2000
 
+OWNER_PRIVACY_APPROVAL_SCHEMA = "c5_owner_privacy_approval_v1"
+OWNER_PRIVACY_RELEASE_BLOCKED = (
+    "blocked_pending_owner_manual_privacy_audit"
+)
+OWNER_PRIVACY_RELEASE_APPROVED = (
+    "approved_after_owner_manual_privacy_audit"
+)
+_PRIVACY_PAYLOAD_COLUMNS = (
+    "review_case_id",
+    "evidence_quote",
+    "context_before",
+    "context_after",
+)
+_OWNER_PRIVACY_CASE_FIELDS = frozenset(
+    {
+        "review_case_id",
+        "reviewer_payload_sha256",
+        "owner_privacy_approved",
+    }
+)
+
 _HASH_CHUNK_SIZE = 1024 * 1024
 _EMAIL_RE = re.compile(
     r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECASE
@@ -192,6 +214,13 @@ class EvidenceCardPackagePaths:
         return self.owner_dir / "README_OWNER_ONLY.md"
 
     @property
+    def owner_privacy_approval_template_json(self) -> Path:
+        return (
+            self.owner_dir
+            / "evidence_card_owner_privacy_approval_template.json"
+        )
+
+    @property
     def formal_hold_dir(self) -> Path:
         return self.owner_dir / "待编码手册冻结后发放"
 
@@ -213,6 +242,17 @@ class _EvidenceCardPackageData:
     formal_owner: pd.DataFrame
     formal_reviewer_a: pd.DataFrame
     formal_reviewer_b: pd.DataFrame
+
+
+@dataclass(frozen=True)
+class OwnerPrivacyReleaseStatus:
+    """Machine-checkable status for the owner privacy release gate."""
+
+    status: str
+    release_allowed: bool
+    expected_case_count: int
+    approved_case_count: int
+    automatic_redaction_sufficient_for_release: bool = False
 
 
 def sha256_file(path: Path) -> str:
@@ -1014,6 +1054,10 @@ def _reviewer_readme_text(reviewer: str) -> str:
 
 本目录仅用于培训。请先独立完成培训材料，再参加编码手册讨论；正式材料在编码手册冻结后另行发放。
 
+## 隐私放行门槛
+
+引文与上下文仅经过启发式自动去标识，不能据此认定隐私处理完整。负责人逐卡人工审查全部培训与正式证据卡并明确审批；审批通过前不得发放任何评分者材料。该门槛由负责人完成，不增加评分者的判断任务。
+
 ## 三项必填判断
 
 每张证据卡只需作出以下三项必填判断：
@@ -1035,11 +1079,17 @@ def _owner_readme_text() -> str:
 
 ## 发放顺序
 
-必须先完成培训、讨论边界并冻结编码手册，之后才能发放正式材料。培训答案不计入正式一致性或效度统计。
+自动去标识不足以放行。负责人必须先对全部 130 张入选证据卡的引文与上下文逐卡人工审查，并为每个 `review_case_id` 明确记录审批值；任何一张未审批时，培训与正式评分者材料均不得发放。
+
+隐私审批通过后，才可先发放培训材料；评分者应先完成培训，再讨论边界并冻结编码手册，之后才能发放正式材料。培训答案不计入正式一致性或效度统计。
+
+## 审批文件
+
+`evidence_card_owner_privacy_approval_template.json` 仅存放于 OWNER_ONLY。负责人应复制模板，在逐卡审查后把对应的 `owner_privacy_approved` 明确改为 `true`，再运行程序化放行检查。模板中的默认 `false` 表示继续阻断发放，不代表已完成审查。
 
 ## 正式材料暂缓发放
 
-正式 JSON 与后续生成的正式 XLSX 工作簿在编码手册冻结前必须保留在 OWNER_ONLY，不得复制到评分者培训目录，也不得提前发放。
+正式 JSON 与后续生成的正式 XLSX 工作簿在负责人隐私审批通过且编码手册冻结前必须保留在 OWNER_ONLY，不得复制到评分者培训目录，也不得提前发放。
 
 ## 当前状态
 
@@ -1080,6 +1130,136 @@ def _write_json_object(value: dict[str, Any], path: Path) -> None:
     path.write_bytes((payload + "\n").encode("utf-8"))
 
 
+def _reviewer_payload_sha256(record: dict[str, Any]) -> str:
+    payload: dict[str, str] = {}
+    for field in _PRIVACY_PAYLOAD_COLUMNS:
+        value = record.get(field)
+        if not isinstance(value, str):
+            raise ValueError(
+                f"reviewer privacy payload field must be text: {field}"
+            )
+        payload[field] = value
+    serialized = json.dumps(
+        payload,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return hashlib.sha256(serialized).hexdigest()
+
+
+def _scope_privacy_payload_hashes(
+    reviewer_a: pd.DataFrame,
+    reviewer_b: pd.DataFrame,
+    *,
+    scope: str,
+    expected_total: int,
+) -> dict[str, str]:
+    records_by_reviewer: list[dict[str, dict[str, Any]]] = []
+    for reviewer_name, frame in (("A", reviewer_a), ("B", reviewer_b)):
+        if list(frame.columns) != list(REVIEWER_COLUMNS):
+            raise ValueError(
+                f"reviewer {reviewer_name} {scope} schema contains prohibited fields"
+            )
+        if len(frame) != expected_total:
+            raise ValueError(f"reviewer {reviewer_name} {scope} row count changed")
+        if frame["review_case_id"].duplicated().any():
+            raise ValueError(
+                f"reviewer {reviewer_name} {scope} contains duplicate IDs"
+            )
+        if _prohibited_reviewer_columns(frame.columns):
+            raise ValueError(
+                f"reviewer {reviewer_name} {scope} contains prohibited fields"
+            )
+        if not _answer_fields_blank(frame):
+            raise ValueError(
+                f"reviewer {reviewer_name} {scope} answer fields are not blank"
+            )
+        records_by_reviewer.append(
+            {
+                str(record["review_case_id"]): record
+                for record in frame.to_dict(orient="records")
+            }
+        )
+
+    reviewer_a_records, reviewer_b_records = records_by_reviewer
+    if set(reviewer_a_records) != set(reviewer_b_records):
+        raise ValueError(f"reviewer A/B {scope} ID sets differ")
+    payload_hashes: dict[str, str] = {}
+    for review_case_id in sorted(reviewer_a_records):
+        reviewer_a_hash = _reviewer_payload_sha256(
+            reviewer_a_records[review_case_id]
+        )
+        reviewer_b_hash = _reviewer_payload_sha256(
+            reviewer_b_records[review_case_id]
+        )
+        if reviewer_a_hash != reviewer_b_hash:
+            raise ValueError(
+                f"reviewer A/B {scope} reviewed text payloads differ"
+            )
+        payload_hashes[review_case_id] = reviewer_a_hash
+    return payload_hashes
+
+
+def _privacy_payload_hashes(
+    training_reviewer_a: pd.DataFrame,
+    training_reviewer_b: pd.DataFrame,
+    formal_reviewer_a: pd.DataFrame,
+    formal_reviewer_b: pd.DataFrame,
+) -> dict[str, str]:
+    training_hashes = _scope_privacy_payload_hashes(
+        training_reviewer_a,
+        training_reviewer_b,
+        scope="training",
+        expected_total=len(DOMAIN_NAMES) * _TRAINING_PER_DOMAIN,
+    )
+    formal_hashes = _scope_privacy_payload_hashes(
+        formal_reviewer_a,
+        formal_reviewer_b,
+        scope="formal",
+        expected_total=len(DOMAIN_NAMES) * _FORMAL_PER_DOMAIN,
+    )
+    overlap = set(training_hashes).intersection(formal_hashes)
+    if overlap:
+        raise ValueError("training and formal privacy approval IDs overlap")
+    payload_hashes = {**training_hashes, **formal_hashes}
+    if len(payload_hashes) != 130:
+        raise ValueError("privacy approval must cover exactly 130 reviewer IDs")
+    return payload_hashes
+
+
+def _owner_privacy_approval_template(
+    data: _EvidenceCardPackageData,
+) -> dict[str, Any]:
+    payload_hashes = _privacy_payload_hashes(
+        data.training_reviewer_a,
+        data.training_reviewer_b,
+        data.formal_reviewer_a,
+        data.formal_reviewer_b,
+    )
+    case_order = data.training_owner["review_case_id"].tolist() + data.formal_owner[
+        "review_case_id"
+    ].tolist()
+    if len(case_order) != 130 or len(set(case_order)) != 130:
+        raise ValueError("owner privacy approval case order must contain 130 unique IDs")
+    if set(case_order) != set(payload_hashes):
+        raise ValueError("owner and reviewer privacy approval ID sets differ")
+    return {
+        "schema": OWNER_PRIVACY_APPROVAL_SCHEMA,
+        "automatic_redaction_sufficient_for_release": False,
+        "manual_owner_audit_required": True,
+        "required_case_count": 130,
+        "cases": [
+            {
+                "review_case_id": review_case_id,
+                "reviewer_payload_sha256": payload_hashes[review_case_id],
+                "owner_privacy_approved": False,
+            }
+            for review_case_id in case_order
+        ],
+    }
+
+
 def _relative_to_package(paths: EvidenceCardPackagePaths, path: Path) -> str:
     return path.relative_to(paths.root).as_posix()
 
@@ -1095,6 +1275,7 @@ def _non_manifest_file_map(
         paths.owner_readme,
         paths.owner_crosswalk_csv,
         paths.sampling_audit_csv,
+        paths.owner_privacy_approval_template_json,
         paths.reviewer_a_formal_json,
         paths.reviewer_b_formal_json,
     )
@@ -1128,6 +1309,7 @@ def _manifest_for_package(
     input_row_count: int,
     file_hashes: dict[str, str],
     manifest_relative_path: str,
+    privacy_approval_template_relative_path: str,
 ) -> dict[str, Any]:
     reviewer_checks = _validate_package_data(data)
     training_counts = (
@@ -1192,10 +1374,25 @@ def _manifest_for_package(
             "prohibited_fields_found": prohibited_found,
         },
         "all_answer_fields_blank": all_answers_blank,
+        "reviewer_material_release_status": OWNER_PRIVACY_RELEASE_BLOCKED,
+        "automatic_redaction_sufficient_for_release": False,
+        "owner_manual_privacy_audit_required": True,
+        "owner_privacy_required_case_count": 130,
+        "owner_privacy_approval_template": (
+            privacy_approval_template_relative_path
+        ),
+        "privacy_release_policy_zh": (
+            "自动去标识仅为启发式处理，不能证明隐私处理完整。负责人必须对"
+            "全部 130 张入选证据卡的引文与上下文逐卡人工审查，并为每个"
+            " review_case_id 明确审批；全部通过前不得发放任何评分者材料。"
+        ),
         "formal_materials_owner_only_until_codebook_freeze": True,
+        "training_release_policy_zh": (
+            "培训材料仅可在全部 130 张证据卡通过负责人逐卡隐私审批后发放。"
+        ),
         "formal_release_policy_zh": (
-            "正式工作簿与正式 JSON 在编码手册冻结前仅保存在 OWNER_ONLY，"
-            "冻结后方可发放。"
+            "正式工作簿与正式 JSON 在负责人逐卡隐私审批全部通过且编码手册"
+            "冻结前仅保存在 OWNER_ONLY；两个门槛均满足后方可发放。"
         ),
         "human_review_completed": False,
         "agreement_completed": False,
@@ -1218,11 +1415,172 @@ def _load_reviewer_json(path: Path) -> pd.DataFrame:
         raise RuntimeError(f"reviewer JSON must be a nonempty record list: {path}")
     if any(
         not isinstance(record, dict)
-        or list(record) != list(REVIEWER_COLUMNS)
+        or set(record) != set(REVIEWER_COLUMNS)
         for record in records
     ):
         raise RuntimeError(f"reviewer JSON schema changed: {path}")
     return pd.DataFrame(records, columns=list(REVIEWER_COLUMNS))
+
+
+def _selected_owner_case_ids(path: Path) -> set[str]:
+    try:
+        owner = pd.read_csv(path, keep_default_na=False)
+    except (OSError, pd.errors.ParserError) as exc:
+        raise ValueError("owner crosswalk is unreadable") from exc
+    expected_scope_order = (
+        ["training"] * (len(DOMAIN_NAMES) * _TRAINING_PER_DOMAIN)
+        + ["formal"] * (len(DOMAIN_NAMES) * _FORMAL_PER_DOMAIN)
+    )
+    if (
+        list(owner.columns) != list(_OWNER_COLUMNS)
+        or len(owner) != len(expected_scope_order)
+        or owner["sample_scope"].tolist() != expected_scope_order
+    ):
+        raise ValueError("owner crosswalk schema, count, or scope order is invalid")
+    review_case_ids = owner["review_case_id"].tolist()
+    if len(set(review_case_ids)) != len(review_case_ids):
+        raise ValueError("owner crosswalk contains duplicate selected IDs")
+    if any(
+        not isinstance(review_case_id, str)
+        or not re.fullmatch(r"C5-[0-9a-f]{64}", review_case_id)
+        for review_case_id in review_case_ids
+    ):
+        raise ValueError("owner crosswalk contains an invalid selected ID")
+    return set(review_case_ids)
+
+
+def _coerce_package_paths(
+    package: Path | EvidenceCardPackagePaths,
+) -> EvidenceCardPackagePaths:
+    if isinstance(package, EvidenceCardPackagePaths):
+        return package
+    return EvidenceCardPackagePaths(Path(package).expanduser().resolve())
+
+
+def check_owner_privacy_release(
+    package: Path | EvidenceCardPackagePaths,
+    *,
+    approval_path: Path | None = None,
+) -> OwnerPrivacyReleaseStatus:
+    """Fail closed unless the owner approved every exact reviewer payload.
+
+    Automatic redaction is deliberately never treated as sufficient.  The
+    approval JSON must remain under ``OWNER_ONLY`` and contain one explicit
+    boolean decision for each of the 130 opaque reviewer IDs.  Per-case payload
+    hashes bind approval to the exact quote and context inspected by the owner.
+    """
+
+    paths = _coerce_package_paths(package)
+    approval = Path(
+        approval_path
+        if approval_path is not None
+        else paths.owner_privacy_approval_template_json
+    ).expanduser().resolve()
+    owner_dir = paths.owner_dir.resolve()
+    try:
+        approval.relative_to(owner_dir)
+    except ValueError as exc:
+        raise ValueError(
+            "owner privacy approval artifact must remain under OWNER_ONLY"
+        ) from exc
+
+    try:
+        raw_approval = json.loads(approval.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError("owner privacy approval artifact is unreadable") from exc
+    required_top_level = {
+        "schema",
+        "automatic_redaction_sufficient_for_release",
+        "manual_owner_audit_required",
+        "required_case_count",
+        "cases",
+    }
+    if not isinstance(raw_approval, dict) or set(raw_approval) != required_top_level:
+        raise ValueError("owner privacy approval schema is invalid")
+    if raw_approval["schema"] != OWNER_PRIVACY_APPROVAL_SCHEMA:
+        raise ValueError("owner privacy approval schema version is invalid")
+    if raw_approval["automatic_redaction_sufficient_for_release"] is not False:
+        raise ValueError("automatic redaction cannot authorize privacy release")
+    if raw_approval["manual_owner_audit_required"] is not True:
+        raise ValueError("manual owner privacy audit must remain required")
+
+    training_a = _load_reviewer_json(paths.reviewer_a_training_json)
+    training_b = _load_reviewer_json(paths.reviewer_b_training_json)
+    formal_a = _load_reviewer_json(paths.reviewer_a_formal_json)
+    formal_b = _load_reviewer_json(paths.reviewer_b_formal_json)
+    expected_hashes = _privacy_payload_hashes(
+        training_a,
+        training_b,
+        formal_a,
+        formal_b,
+    )
+    expected_ids = set(expected_hashes)
+    expected_count = len(expected_ids)
+    selected_owner_ids = _selected_owner_case_ids(paths.owner_crosswalk_csv)
+    if selected_owner_ids != expected_ids:
+        raise ValueError(
+            "owner crosswalk selected IDs differ from reviewer material IDs"
+        )
+    if raw_approval["required_case_count"] != expected_count:
+        raise ValueError("owner privacy approval required case count is invalid")
+    cases = raw_approval["cases"]
+    if not isinstance(cases, list):
+        raise ValueError("owner privacy approval cases must be a list")
+
+    approvals_by_id: dict[str, bool] = {}
+    payload_hashes_by_id: dict[str, str] = {}
+    for case in cases:
+        if not isinstance(case, dict) or set(case) != _OWNER_PRIVACY_CASE_FIELDS:
+            raise ValueError("owner privacy approval case schema is invalid")
+        review_case_id = case["review_case_id"]
+        payload_sha256 = case["reviewer_payload_sha256"]
+        approved = case["owner_privacy_approved"]
+        if not isinstance(review_case_id, str) or not re.fullmatch(
+            r"C5-[0-9a-f]{64}", review_case_id
+        ):
+            raise ValueError("owner privacy approval case ID is invalid")
+        if review_case_id in approvals_by_id:
+            raise ValueError("owner privacy approval contains duplicate case IDs")
+        if not isinstance(payload_sha256, str) or not re.fullmatch(
+            r"[0-9a-f]{64}", payload_sha256
+        ):
+            raise ValueError("owner privacy approval payload hash is invalid")
+        if not isinstance(approved, bool):
+            raise ValueError(
+                "owner privacy approval requires an explicit boolean per case"
+            )
+        approvals_by_id[review_case_id] = approved
+        payload_hashes_by_id[review_case_id] = payload_sha256
+
+    approval_ids = set(approvals_by_id)
+    if approval_ids != expected_ids:
+        raise ValueError(
+            "owner privacy approval case coverage has missing or extra IDs"
+        )
+    mismatched_payloads = [
+        review_case_id
+        for review_case_id in expected_ids
+        if payload_hashes_by_id[review_case_id]
+        != expected_hashes[review_case_id]
+    ]
+    if mismatched_payloads:
+        raise ValueError(
+            "owner privacy approval payload hash does not match reviewed text"
+        )
+
+    approved_count = sum(approvals_by_id.values())
+    release_allowed = approved_count == expected_count
+    return OwnerPrivacyReleaseStatus(
+        status=(
+            OWNER_PRIVACY_RELEASE_APPROVED
+            if release_allowed
+            else OWNER_PRIVACY_RELEASE_BLOCKED
+        ),
+        release_allowed=release_allowed,
+        expected_case_count=expected_count,
+        approved_case_count=approved_count,
+        automatic_redaction_sufficient_for_release=False,
+    )
 
 
 def _verify_written_package(
@@ -1288,11 +1646,42 @@ def _verify_written_package(
     ] or audit["domain"].tolist() != list(DOMAIN_NAMES):
         raise RuntimeError("written sampling audit schema or order changed")
 
+    privacy_status = check_owner_privacy_release(paths)
+    if (
+        privacy_status.status != OWNER_PRIVACY_RELEASE_BLOCKED
+        or privacy_status.release_allowed
+        or privacy_status.expected_case_count != 130
+        or privacy_status.approved_case_count != 0
+        or privacy_status.automatic_redaction_sufficient_for_release
+    ):
+        raise RuntimeError("new package must fail closed pending owner privacy audit")
+
 
 def _staging_path(output_root: Path) -> Path:
     if not output_root.name:
         raise ValueError("output_root must name a directory")
     return output_root.with_name(f".{output_root.name}.staging")
+
+
+def _path_entry_exists(path: Path) -> bool:
+    """Return true for any directory entry, including a broken symlink."""
+
+    return path.exists() or path.is_symlink()
+
+
+def _promote_staging_no_overwrite(staging: Path, output_root: Path) -> None:
+    """Atomically rename on Windows without replacing an existing destination.
+
+    ``os.rename`` uses the Windows wide-character filesystem API and fails when
+    the destination already exists.  The precheck gives a clear early error;
+    the rename itself is the race-safe, fail-closed operation.
+    """
+
+    if _path_entry_exists(output_root):
+        raise FileExistsError(
+            f"output_root appeared during build: {output_root}"
+        )
+    os.rename(os.fspath(staging), os.fspath(output_root))
 
 
 def _remove_expected_staging(staging: Path, output_root: Path) -> None:
@@ -1319,9 +1708,9 @@ def build_evidence_card_package(
     participant_text = Path(participant_text_path).expanduser().resolve()
     output = Path(output_root).expanduser().resolve()
     staging = _staging_path(output)
-    if output.exists():
+    if _path_entry_exists(output):
         raise FileExistsError(f"output_root already exists: {output}")
-    if staging.exists():
+    if _path_entry_exists(staging):
         raise FileExistsError(f"staging directory already exists: {staging}")
 
     validated_seed = _validate_seed(seed)
@@ -1367,6 +1756,11 @@ def build_evidence_card_package(
             data.formal_reviewer_b,
             staging_paths.reviewer_b_formal_json,
         )
+        privacy_approval_template = _owner_privacy_approval_template(data)
+        _write_json_object(
+            privacy_approval_template,
+            staging_paths.owner_privacy_approval_template_json,
+        )
         owner_crosswalk = pd.concat(
             [data.training_owner, data.formal_owner], ignore_index=True
         ).loc[:, list(_OWNER_COLUMNS)]
@@ -1376,6 +1770,10 @@ def build_evidence_card_package(
         file_hashes = _file_hash_inventory(staging_paths)
         manifest_relative = _relative_to_package(
             staging_paths, staging_paths.manifest_json
+        )
+        privacy_approval_template_relative = _relative_to_package(
+            staging_paths,
+            staging_paths.owner_privacy_approval_template_json,
         )
         manifest = _manifest_for_package(
             data,
@@ -1387,12 +1785,13 @@ def build_evidence_card_package(
             input_row_count=expected_row_count,
             file_hashes=file_hashes,
             manifest_relative_path=manifest_relative,
+            privacy_approval_template_relative_path=(
+                privacy_approval_template_relative
+            ),
         )
         _write_json_object(manifest, staging_paths.manifest_json)
         _verify_written_package(staging_paths, manifest)
-        if output.exists():
-            raise FileExistsError(f"output_root appeared during build: {output}")
-        staging.rename(output)
+        _promote_staging_no_overwrite(staging, output)
         staging_created = False
     except BaseException:
         if staging_created:

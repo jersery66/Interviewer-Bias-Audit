@@ -177,6 +177,22 @@ def _tree_bytes(root: Path) -> dict[str, bytes]:
     }
 
 
+def _write_json_object(path: Path, value: object) -> None:
+    payload = json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True)
+    path.write_bytes((payload + "\n").encode("utf-8"))
+
+
+def _completed_privacy_approval(paths: object) -> Path:
+    approval = json.loads(
+        paths.owner_privacy_approval_template_json.read_text(encoding="utf-8")
+    )
+    for case in approval["cases"]:
+        case["owner_privacy_approved"] = True
+    completed = paths.owner_dir / "completed_owner_privacy_approval.json"
+    _write_json_object(completed, approval)
+    return completed
+
+
 EXPECTED_PACKAGE_FILES = {
     "评分者A_培训/README_评分者A.md",
     "评分者A_培训/reviewer_A_training.json",
@@ -186,6 +202,7 @@ EXPECTED_PACKAGE_FILES = {
     "OWNER_ONLY/evidence_card_owner_crosswalk.csv",
     "OWNER_ONLY/evidence_card_sampling_audit.csv",
     "OWNER_ONLY/evidence_card_manifest.json",
+    "OWNER_ONLY/evidence_card_owner_privacy_approval_template.json",
     "OWNER_ONLY/待编码手册冻结后发放/reviewer_A_formal.json",
     "OWNER_ONLY/待编码手册冻结后发放/reviewer_B_formal.json",
 }
@@ -955,6 +972,11 @@ def test_evidence_card_package_paths_are_frozen_and_isolated(
     assert paths.owner_readme == (
         root / "OWNER_ONLY" / "README_OWNER_ONLY.md"
     )
+    assert paths.owner_privacy_approval_template_json == (
+        root
+        / "OWNER_ONLY"
+        / "evidence_card_owner_privacy_approval_template.json"
+    )
     assert paths.reviewer_a_formal_json == (
         root
         / "OWNER_ONLY"
@@ -1117,6 +1139,18 @@ def test_package_outputs_and_manifest_are_deterministic_and_hash_verified(
     }
     assert manifest["all_answer_fields_blank"] is True
     assert manifest["formal_materials_owner_only_until_codebook_freeze"] is True
+    assert manifest["reviewer_material_release_status"] == (
+        "blocked_pending_owner_manual_privacy_audit"
+    )
+    assert manifest["automatic_redaction_sufficient_for_release"] is False
+    assert manifest["owner_manual_privacy_audit_required"] is True
+    assert manifest["owner_privacy_required_case_count"] == 130
+    assert manifest["owner_privacy_approval_template"] == (
+        "OWNER_ONLY/evidence_card_owner_privacy_approval_template.json"
+    )
+    assert "启发式" in manifest["privacy_release_policy_zh"]
+    assert "逐卡" in manifest["privacy_release_policy_zh"]
+    assert "不得发放" in manifest["privacy_release_policy_zh"]
     assert "工作簿" in manifest["formal_release_policy_zh"]
     assert "JSON" in manifest["formal_release_policy_zh"]
     assert "OWNER_ONLY" in manifest["formal_release_policy_zh"]
@@ -1134,6 +1168,183 @@ def test_package_outputs_and_manifest_are_deterministic_and_hash_verified(
     assert manifest["file_hashes"] == expected_hashes
     assert manifest["file_hashes_excludes"] == [manifest_relative]
     assert "自身" in manifest["file_hashes_exclusion_reason_zh"]
+
+
+def test_owner_privacy_release_is_blocked_until_all_130_cards_are_approved(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    c5 = _module()
+    canonical, context, _spans, _sample = _write_package_inputs(
+        tmp_path / "project", monkeypatch
+    )
+    paths = c5.build_evidence_card_package(
+        canonical,
+        context,
+        tmp_path / "restricted-package",
+        seed=20260716,
+    )
+
+    template = json.loads(
+        paths.owner_privacy_approval_template_json.read_text(encoding="utf-8")
+    )
+    assert template["schema"] == "c5_owner_privacy_approval_v1"
+    assert template["automatic_redaction_sufficient_for_release"] is False
+    assert template["manual_owner_audit_required"] is True
+    assert template["required_case_count"] == 130
+    assert len(template["cases"]) == 130
+    assert len({case["review_case_id"] for case in template["cases"]}) == 130
+    assert all(
+        set(case) == {
+            "review_case_id",
+            "reviewer_payload_sha256",
+            "owner_privacy_approved",
+        }
+        for case in template["cases"]
+    )
+    assert all(case["owner_privacy_approved"] is False for case in template["cases"])
+    assert all(
+        set(case).isdisjoint(c5.PROHIBITED_REVIEWER_COLUMNS)
+        for case in template["cases"]
+    )
+
+    blocked = c5.check_owner_privacy_release(paths)
+    assert blocked.status == "blocked_pending_owner_manual_privacy_audit"
+    assert blocked.release_allowed is False
+    assert blocked.expected_case_count == 130
+    assert blocked.approved_case_count == 0
+    assert blocked.automatic_redaction_sufficient_for_release is False
+
+    completed = _completed_privacy_approval(paths)
+    approved = c5.check_owner_privacy_release(
+        paths, approval_path=completed
+    )
+    assert approved.status == "approved_after_owner_manual_privacy_audit"
+    assert approved.release_allowed is True
+    assert approved.expected_case_count == 130
+    assert approved.approved_case_count == 130
+    assert approved.automatic_redaction_sufficient_for_release is False
+
+
+@pytest.mark.parametrize(
+    "invalid_approval", ["missing", "extra", "duplicate", "non_boolean"]
+)
+def test_owner_privacy_approval_rejects_invalid_coverage_or_values(
+    invalid_approval: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    c5 = _module()
+    canonical, context, _spans, _sample = _write_package_inputs(
+        tmp_path / "project", monkeypatch
+    )
+    paths = c5.build_evidence_card_package(
+        canonical,
+        context,
+        tmp_path / "restricted-package",
+        seed=20260716,
+    )
+    approval = json.loads(
+        paths.owner_privacy_approval_template_json.read_text(encoding="utf-8")
+    )
+    for case in approval["cases"]:
+        case["owner_privacy_approved"] = True
+    if invalid_approval == "missing":
+        approval["cases"].pop()
+    elif invalid_approval == "extra":
+        extra = dict(approval["cases"][0])
+        extra["review_case_id"] = "C5-" + "f" * 64
+        approval["cases"].append(extra)
+    elif invalid_approval == "duplicate":
+        approval["cases"].append(dict(approval["cases"][0]))
+    elif invalid_approval == "non_boolean":
+        approval["cases"][0]["owner_privacy_approved"] = "yes"
+    completed = paths.owner_dir / f"invalid-{invalid_approval}.json"
+    _write_json_object(completed, approval)
+
+    with pytest.raises(ValueError, match=r"approval|case|duplicate|boolean|coverage"):
+        c5.check_owner_privacy_release(paths, approval_path=completed)
+
+
+def test_owner_privacy_approval_is_bound_to_exact_reviewer_text(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    c5 = _module()
+    canonical, context, _spans, _sample = _write_package_inputs(
+        tmp_path / "project", monkeypatch
+    )
+    paths = c5.build_evidence_card_package(
+        canonical,
+        context,
+        tmp_path / "restricted-package",
+        seed=20260716,
+    )
+    completed = _completed_privacy_approval(paths)
+    target_id = json.loads(completed.read_text(encoding="utf-8"))["cases"][0][
+        "review_case_id"
+    ]
+    for reviewer_path in (
+        paths.reviewer_a_training_json,
+        paths.reviewer_b_training_json,
+        paths.reviewer_a_formal_json,
+        paths.reviewer_b_formal_json,
+    ):
+        records = json.loads(reviewer_path.read_text(encoding="utf-8"))
+        changed = False
+        for record in records:
+            if record["review_case_id"] == target_id:
+                record["context_after"] += " Changed after owner review."
+                changed = True
+        if changed:
+            _write_json_object(reviewer_path, records)
+
+    with pytest.raises(ValueError, match=r"payload|hash|reviewed text"):
+        c5.check_owner_privacy_release(paths, approval_path=completed)
+
+
+def test_owner_privacy_release_rejects_prohibited_reviewer_fields(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    c5 = _module()
+    canonical, context, _spans, _sample = _write_package_inputs(
+        tmp_path / "project", monkeypatch
+    )
+    paths = c5.build_evidence_card_package(
+        canonical,
+        context,
+        tmp_path / "restricted-package",
+        seed=20260716,
+    )
+    completed = _completed_privacy_approval(paths)
+    records = json.loads(
+        paths.reviewer_a_training_json.read_text(encoding="utf-8")
+    )
+    records[0]["participant_id"] = 123456
+    _write_json_object(paths.reviewer_a_training_json, records)
+
+    with pytest.raises((ValueError, RuntimeError), match=r"schema|prohibited"):
+        c5.check_owner_privacy_release(paths, approval_path=completed)
+
+
+def test_owner_privacy_approval_must_cover_selected_owner_crosswalk_ids(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    c5 = _module()
+    canonical, context, _spans, _sample = _write_package_inputs(
+        tmp_path / "project", monkeypatch
+    )
+    paths = c5.build_evidence_card_package(
+        canonical,
+        context,
+        tmp_path / "restricted-package",
+        seed=20260716,
+    )
+    completed = _completed_privacy_approval(paths)
+    owner = pd.read_csv(paths.owner_crosswalk_csv, keep_default_na=False)
+    owner.loc[0, "review_case_id"] = "C5-" + "f" * 64
+    owner.to_csv(paths.owner_crosswalk_csv, index=False, lineterminator="\n")
+
+    with pytest.raises(ValueError, match=r"owner crosswalk|selected"):
+        c5.check_owner_privacy_release(paths, approval_path=completed)
 
 
 @pytest.mark.parametrize(
@@ -1231,6 +1442,63 @@ def test_existing_output_or_staging_is_refused_without_modification(
         assert not staging.exists()
     else:
         assert not output_root.exists()
+
+
+def test_no_overwrite_promotion_refuses_existing_unicode_destination(
+    tmp_path: Path,
+) -> None:
+    c5 = _module()
+    staging = tmp_path / ".受限 草稿.staging"
+    output = tmp_path / "受限 草稿"
+    staging.mkdir()
+    (staging / "draft.bin").write_bytes(b"draft\x00payload")
+    output.mkdir()
+    sentinel = output / "sentinel.bin"
+    sentinel_payload = b"existing\x00destination\xff"
+    sentinel.write_bytes(sentinel_payload)
+
+    with pytest.raises(OSError):
+        c5._promote_staging_no_overwrite(staging, output)
+
+    assert staging.is_dir()
+    assert (staging / "draft.bin").read_bytes() == b"draft\x00payload"
+    assert set(output.iterdir()) == {sentinel}
+    assert sentinel.read_bytes() == sentinel_payload
+
+
+def test_concurrent_destination_creation_fails_without_overwrite_and_cleans_staging(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    c5 = _module()
+    canonical, context, _spans, _sample = _write_package_inputs(
+        tmp_path / "project", monkeypatch
+    )
+    output_root = tmp_path / "并发 目标"
+    staging = _staging_path(output_root)
+    sentinel_payload = b"concurrent\x00destination\xff"
+    original_rename = c5.os.rename
+    rename_calls = 0
+
+    def create_destination_then_rename(source: object, destination: object) -> None:
+        nonlocal rename_calls
+        rename_calls += 1
+        destination_path = Path(destination)
+        destination_path.mkdir()
+        (destination_path / "sentinel.bin").write_bytes(sentinel_payload)
+        original_rename(source, destination)
+
+    monkeypatch.setattr(c5.os, "rename", create_destination_then_rename)
+
+    with pytest.raises(OSError):
+        c5.build_evidence_card_package(
+            canonical, context, output_root, seed=20260716
+        )
+
+    assert rename_calls == 1
+    assert not staging.exists()
+    assert output_root.is_dir()
+    assert {path.name for path in output_root.iterdir()} == {"sentinel.bin"}
+    assert (output_root / "sentinel.bin").read_bytes() == sentinel_payload
 
 
 def test_mid_write_failure_removes_only_the_expected_staging_directory(
@@ -1335,12 +1603,18 @@ def test_generated_and_public_markdown_is_chinese_and_contains_no_quotes(
         assert "极性" in text
         assert "XLSX" in text
         assert "不要返回 JSON" in text
+        assert "启发式" in text
+        assert "负责人逐卡人工审查" in text
+        assert "审批通过前不得发放" in text
 
     owner_text = paths.owner_readme.read_text(encoding="utf-8")
     assert "先完成培训" in owner_text
     assert "编码手册冻结" in owner_text
     assert "正式" in owner_text
     assert "OWNER_ONLY" in owner_text
+    assert "自动去标识不足以放行" in owner_text
+    assert "全部 130 张" in owner_text
+    assert "逐卡人工审查" in owner_text
 
     public_readme = (
         Path(__file__).resolve().parents[1]
@@ -1362,6 +1636,10 @@ def test_generated_and_public_markdown_is_chinese_and_contains_no_quotes(
     assert "受限评分材料不纳入 Git" in public_text
     assert "材料准备" in public_text
     assert "尚未完成人工验证" in public_text
+    assert "启发式" in public_text
+    assert "不能证明隐私处理完整" in public_text
+    assert "130 张证据卡逐卡人工审查" in public_text
+    assert "不得向评分者发放" in public_text
 
 
 def test_cli_success_uses_locked_paths_and_prints_only_safe_summary(
@@ -1401,6 +1679,9 @@ def test_cli_success_uses_locked_paths_and_prints_only_safe_summary(
     assert summary["formal_total"] == 120
     assert summary["canonical_sha256"] == c5.C5_CANONICAL_SHA256
     assert summary["participant_text_sha256"] == c5.PARTICIPANT_TEXT_SHA256
+    assert summary["reviewer_material_release_status"] == (
+        "blocked_pending_owner_manual_privacy_audit"
+    )
     assert set(summary["file_hashes"]) == (
         EXPECTED_PACKAGE_FILES
         - {"OWNER_ONLY/evidence_card_manifest.json"}

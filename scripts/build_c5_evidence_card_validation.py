@@ -58,6 +58,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         "formal_total": manifest["formal_total"],
         "canonical_sha256": manifest["canonical_sha256"],
         "participant_text_sha256": manifest["participant_text_sha256"],
+        "reviewer_material_release_status": manifest[
+            "reviewer_material_release_status"
+        ],
         "file_hashes": manifest["file_hashes"],
     }
     print(json.dumps(summary, ensure_ascii=False, sort_keys=True))
