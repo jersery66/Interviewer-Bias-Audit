@@ -24,6 +24,7 @@ BLIND_AUDIT_PACKET_DIR = (
     / "blind_quality_audit"
     / "packet_2"
 )
+BLIND_AUDIT_PACKET3_DIR = BLIND_AUDIT_PACKET_DIR.parent / "packet_3"
 TEXT_SUFFIXES = {".csv", ".json", ".md", ".svg", ".tsv", ".txt", ".yaml", ".yml"}
 ACCEPTED_PLAN_STATUSES = {
     "frozen_before_sensitivity_results",
@@ -195,6 +196,142 @@ def verify_formal_identification_output(formal_dir: Path) -> list[str]:
     return errors
 
 
+def _verify_blind_audit_packet_v3(packet_dir: Path, manifest: dict[str, object]) -> list[str]:
+    """Verify packet 3 without reading ignored owner-only files."""
+
+    errors: list[str] = []
+    if manifest.get("status") != "stage1_ready_not_dispatched":
+        errors.append("D-P packet 3 is not at the stage-1 ready gate")
+    main_n = int(manifest.get("main_sample_n", -1))
+    enriched_n = int(manifest.get("enriched_sample_n", -1))
+    sentinel_n = int(manifest.get("sentinel_sample_n", -1))
+    validation_n = int(manifest.get("stage1_validation_n", -1))
+    cells = int(manifest.get("stage1_cells_per_reviewer", -1))
+    if main_n != 30:
+        errors.append("D-P packet 3 did not preserve the 30-person main sample")
+    if not 10 <= enriched_n <= 15:
+        errors.append("D-P packet 3 enrichment sample is outside 10-15 participants")
+    if sentinel_n != 1 or validation_n != main_n + enriched_n + sentinel_n:
+        errors.append("D-P packet 3 sample strata do not reconcile")
+    if cells != validation_n * 10:
+        errors.append("D-P packet 3 stage-1 cell count does not reconcile")
+    if manifest.get("training_sample_n") != 5 or not manifest.get(
+        "training_excluded_from_all_validation_statistics"
+    ):
+        errors.append("D-P packet 3 training exclusion contract changed")
+    if manifest.get("stage2_status") != "locked_until_human_consensus_freeze":
+        errors.append("D-P packet 3 stage-2 consensus gate is not locked")
+    if not manifest.get("main_sample_preserved_from_packet_2"):
+        errors.append("D-P packet 3 main-sample preservation flag missing")
+    if not manifest.get("enriched_sample_reported_separately"):
+        errors.append("D-P packet 3 enrichment reporting boundary missing")
+    if not manifest.get("sentinel_excluded_from_aggregate_statistics"):
+        errors.append("D-P packet 3 sentinel exclusion boundary missing")
+
+    expected_public = {
+        "blind_cases.csv",
+        "blind_case_lines.csv",
+        "enrichment_design_summary.csv",
+        "README.md",
+        "reviewer_A_stage1_blank.csv",
+        "reviewer_B_stage1_blank.csv",
+        "stage1_codebook.md",
+        "stage1_protocol.md",
+        "stage2_evidence_review_schema.csv",
+        "stage2_omission_review_schema.csv",
+        "training_cases.csv",
+        "training_case_lines.csv",
+        "training_reviewer_A_stage1_blank.csv",
+        "training_reviewer_B_stage1_blank.csv",
+    }
+    public_hashes = manifest.get("public_output_hashes", {})
+    if not isinstance(public_hashes, dict) or set(public_hashes) != expected_public:
+        errors.append("D-P packet 3 public hash inventory changed")
+    for name in sorted(expected_public):
+        path = packet_dir / name
+        if not path.is_file():
+            errors.append(f"D-P packet 3 public output missing: {name}")
+        elif not isinstance(public_hashes, dict) or str(public_hashes.get(name, "")) not in hash_candidates(path):
+            errors.append(f"D-P packet 3 public output hash mismatch: {name}")
+
+    try:
+        cases = pd.read_csv(packet_dir / "blind_cases.csv")
+        lines = pd.read_csv(packet_dir / "blind_case_lines.csv")
+        training = pd.read_csv(packet_dir / "training_cases.csv")
+        form_a = pd.read_csv(packet_dir / "reviewer_A_stage1_blank.csv")
+        form_b = pd.read_csv(packet_dir / "reviewer_B_stage1_blank.csv")
+        enrichment = pd.read_csv(packet_dir / "enrichment_design_summary.csv")
+        evidence_schema = pd.read_csv(packet_dir / "stage2_evidence_review_schema.csv")
+        omission_schema = pd.read_csv(packet_dir / "stage2_omission_review_schema.csv")
+    except (OSError, pd.errors.ParserError, ValueError) as exc:
+        errors.append(f"D-P packet 3 public CSV invalid: {exc}")
+        return errors
+    if list(cases.columns) != ["blind_id", "participant_text"] or len(cases) != validation_n:
+        errors.append("D-P packet 3 cases schema or count invalid")
+    if list(lines.columns) != ["blind_id", "line_number", "participant_text_line"]:
+        errors.append("D-P packet 3 line-index schema invalid")
+    if list(training.columns) != ["blind_id", "participant_text"] or len(training) != 5:
+        errors.append("D-P packet 3 training cases schema or count invalid")
+    expected_form_columns = [
+        "reviewer_id",
+        "blind_id",
+        "domain",
+        "manual_status",
+        "indeterminate_reason",
+        "count_bin",
+        "evidence_quote",
+        "line_number",
+        "temporality",
+        "negation",
+        "subject",
+        "uncertainty_note",
+    ]
+    for name, frame in (("A", form_a), ("B", form_b)):
+        if list(frame.columns) != expected_form_columns or len(frame) != cells:
+            errors.append(f"D-P packet 3 reviewer {name} form schema/count invalid")
+        if frame["manual_status"].notna().any() or frame["count_bin"].notna().any():
+            errors.append(f"D-P packet 3 reviewer {name} form is not blank")
+        if set(frame["blind_id"].astype(str)) != set(cases["blind_id"].astype(str)):
+            errors.append(f"D-P packet 3 reviewer {name} case set differs from cases")
+    rare_targets = set(manifest.get("sampling", {}).get("rare_targets", []))
+    if set(enrichment["rare_target"].astype(str)) != rare_targets:
+        errors.append("D-P packet 3 enrichment summary does not cover prespecified targets")
+    if (pd.to_numeric(enrichment["enriched_sample_target_n"], errors="coerce") < 4).any():
+        errors.append("D-P packet 3 enrichment did not meet the target quota")
+    if not evidence_schema.empty or not omission_schema.empty:
+        errors.append("D-P packet 3 stage-2 schemas contain evidence before consensus freeze")
+
+    leaked_names = {
+        "participant_id",
+        "sample_type",
+        "paper_label_phq8_ge10",
+        "paper_phq8_score",
+        "label",
+        "existing_dp",
+        "model_probability",
+        "interviewer_text",
+        "c5_evidence",
+    }
+    for name, frame in (
+        ("cases", cases),
+        ("lines", lines),
+        ("reviewer_A", form_a),
+        ("reviewer_B", form_b),
+    ):
+        leaked = leaked_names.intersection(column.lower() for column in frame.columns)
+        if leaked:
+            errors.append(f"D-P packet 3 {name} exposes forbidden columns: {sorted(leaked)}")
+    for forbidden in (
+        "blind_id_key.csv",
+        "scoring_reference_owner_only.csv",
+        "training_id_key.csv",
+        "enrichment_selection_log.csv",
+    ):
+        if (packet_dir / forbidden).exists():
+            errors.append(f"D-P packet 3 owner-only file is in public packet: {forbidden}")
+    return errors
+
+
 def verify_blind_audit_packet(packet_dir: Path) -> list[str]:
     """Verify the public preparation packet without reading owner-only files."""
 
@@ -206,6 +343,8 @@ def verify_blind_audit_packet(packet_dir: Path) -> list[str]:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         return [f"D-P blind-audit packet manifest invalid: {exc}"]
+    if manifest.get("analysis") == "d_p_blinded_manual_quality_audit_v3":
+        return _verify_blind_audit_packet_v3(packet_dir, manifest)
     if manifest.get("status") != "pending_reviewer_input":
         errors.append("D-P blind-audit packet is not pending reviewer input")
     if manifest.get("formal_sample_n") != 30 or manifest.get("formal_cells") != 300:
@@ -315,6 +454,7 @@ def verify() -> list[str]:
         errors.append(f"required outputs missing: {missing_required}")
     errors.extend(verify_formal_identification_output(FORMAL_IDENTIFICATION_DIR))
     errors.extend(verify_blind_audit_packet(BLIND_AUDIT_PACKET_DIR))
+    errors.extend(verify_blind_audit_packet(BLIND_AUDIT_PACKET3_DIR))
     return errors
 
 

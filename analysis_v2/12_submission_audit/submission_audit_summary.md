@@ -8,7 +8,7 @@ The post-audit formal outputs are frozen. The closeout now has three separate ev
 2. the module-15 interviewer-score explanation result, whose manifest status is `training_match_quality_limited`;
 3. the new ten-repeat early-concat pairing/Fake-D sensitivity result.
 
-The D-P manual quality question is not silently treated as solved. A 30-person blinded packet is prepared, but reviewer A/B sheets are blank and no agreement, kappa or consensus F1 is reported.
+The D-P manual quality question is not silently treated as solved. Packet 3 preserves the original 30-person main sample, adds a separately analysed 13-person rare-domain enrichment sample and ID 385 sentinel, but stage-1 reviewer A/B sheets are blank, stage 2 remains locked, and no agreement, kappa, consensus F1 or human validity estimate is reported.
 
 ## Analysis-locked source results
 
@@ -56,9 +56,9 @@ C5 alignment is named `retained-span source-alignment sensitivity analysis`. It 
 
 The D-P blinded quality packet is at:
 
-`analysis_v2/04_c5_controls/blind_quality_audit/packet_1/`
+`analysis_v2/04_c5_controls/blind_quality_audit/packet_3/`
 
-It contains 30 blinded cases, two blank reviewer forms, an owner-only sample key and a scoring reference. No reviewer result is present. If only one reviewer returns a form, the output must be labelled a single-reviewer content-validity sample; no kappa or consensus metric may be inferred.
+It contains 44 validation cases under uniform opaque IDs: the unchanged 30-person main sample, 13 rare-domain enrichment cases and ID 385 as a sentinel. It also contains two blank stage-1 reviewer forms, an owner-only key and scoring reference, and schema-only stage-2 files. Stage 2 may be generated only after the human consensus is hash-frozen, at which point all actual selected C5 spans are expanded. No reviewer result is present. If only one reviewer returns a form, the output must be labelled a single-reviewer content-validity sample; no kappa or consensus metric may be inferred.
 
 ## Reproducibility boundary
 
@@ -70,5 +70,5 @@ Public CI may verify unit tests, synthetic fixtures, parameter/schema checks, pa
 - Claim gate: `analysis_v2/12_submission_audit/claim_evidence_matrix.md`
 - Formal pairing/Fake-D: `analysis_v2/10_source_importance/08_identification_sensitivity/run_formal_10x/`
 - Module-15 final: `analysis_v2/15_interviewer_signal_explanation/final/`
-- D-P blind packet: `analysis_v2/04_c5_controls/blind_quality_audit/packet_1/`
+- D-P blind packet: `analysis_v2/04_c5_controls/blind_quality_audit/packet_3/`
 - Formal plan and timing contract: `analysis_v2/12_submission_audit/post_submission_audit_sensitivity_plan.md`

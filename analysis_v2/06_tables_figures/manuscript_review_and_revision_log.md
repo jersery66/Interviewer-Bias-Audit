@@ -8,6 +8,8 @@ The formal Fake-D contrast is negative for both embeddings, so the manuscript no
 
 The D-P blind quality packet contains a deterministic 30-person label-by-length sample, two blank independent reviewer forms and owner-only linkage. No human agreement or consensus metric is reported before reviewer input exists. The canonical manuscript, claim matrix and submission-audit summary were synchronized after the formal output hash check.
 
+Before formal review dispatch, packet 3 superseded packet 2 as the active D-P validity protocol while preserving the original 30-person main sample. It adds a separately reported 13-person rare-domain enrichment sample and ID 385 as a descriptive sentinel, replaces the former 0/1/NS coding with domain-specific human states, and prevents actual C5 span review from opening until the stage-1 human consensus is hash-frozen. No validation result is implied by packet preparation.
+
 ## 2026-07-13 domain-source audit amendment
 
 The post-review D-variable audit confirms that the frozen ten-domain count control is D-P, not D-All: all 1,137 reviewed spans match participant language, no span is interviewer-only, and the count table reconciles exactly. A search of the available C5 artifacts found no qualifying full-transcript D-All input; symptom-evidence-only files are not relabelled. The clean manuscript, audit summary and claim matrix now state this boundary. A gated D-P/D-All contract records the required full-transcript provenance and prevents a D-All comparison from being generated until that input is frozen.

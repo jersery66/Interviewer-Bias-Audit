@@ -21,7 +21,7 @@
 | Limit primary comparison family | Complete | Five analysis-locked paired comparisons with BH-FDR; post-audit position and C5 tests are separate families |
 | Audit C5 source integrity | Complete | 1102/1143 candidate spans direct-match; 35 alignment revisions and 6 exclusions; 1137/1137 is final post-review traceability, not extraction accuracy |
 | Test retained-span source alignment | Complete with scope boundary | Same 1137 retained spans only; domain, polarity, inclusion, and order fixed; cannot recover the six excluded candidates or a complete pre-review representation |
-| Report C5 correction, invalidity, abstention, and agreement | Partially complete; manual audit pending | Corrections and exclusions quantified; the 30-person blind packet is prepared, but reviewer A/B sheets are blank. No kappa or consensus F1 is reported |
+| Report C5 correction, invalidity, abstention, and agreement | Partially complete; manual audit pending | Corrections and exclusions quantified; packet 3 preserves the 30-person main sample, adds a separately analysed 13-person rare-domain enrichment sample and ID 385 sentinel, but stage-1 reviewer A/B sheets are blank and stage 2 remains consensus-gated. No kappa, consensus F1 or human validity estimate is reported |
 | Demote E-DAIC | Complete | Excluded from title, abstract, core results, and main figures |
 | Add claim-evidence matrix | Complete | `claim_evidence_matrix.md` |
 | Lower clinical language | Complete | PHQ-8 label terminology; no diagnostic, screening, biomarker, or deployment claim |

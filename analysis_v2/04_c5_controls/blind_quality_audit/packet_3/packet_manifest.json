@@ -1,0 +1,79 @@
+{
+  "status": "stage1_ready_not_dispatched",
+  "analysis": "d_p_blinded_manual_quality_audit_v3",
+  "main_sample_n": 30,
+  "enriched_sample_n": 13,
+  "sentinel_sample_n": 1,
+  "stage1_validation_n": 44,
+  "stage1_cells_per_reviewer": 440,
+  "training_sample_n": 5,
+  "training_excluded_from_all_validation_statistics": true,
+  "main_sample_preserved_from_packet_2": true,
+  "enriched_sample_reported_separately": true,
+  "sentinel_excluded_from_aggregate_statistics": true,
+  "stage2_status": "locked_until_human_consensus_freeze",
+  "sampling": {
+    "blind_id_seed": 20260721,
+    "enrichment_target_quota": 4,
+    "enrichment_min_n": 10,
+    "enrichment_max_n": 15,
+    "rare_targets": [
+      "appetite_weight_positive",
+      "suicide_self_harm_positive",
+      "anhedonia_interest_positive",
+      "sleep_fatigue_energy_zero",
+      "protective_or_absent_symptom_zero"
+    ]
+  },
+  "inputs": {
+    "participant_speech": {
+      "path": "analysis_v2\\01_inputs\\c2_participant_speech.csv",
+      "sha256": "c520c713922e671431b40382238d64d0b07779ad5e77d905c9224a6f66b4ec9b"
+    },
+    "domain_count": {
+      "path": "analysis_v2\\04_c5_controls\\domain_count\\input.csv",
+      "sha256": "7687c70d3770b7e8902900ec3c117d8a679fc6d718abf1c2a7f8d1361b07ae33"
+    },
+    "packet_2_main_key_owner_only": {
+      "sha256": "855efa59ade6446cf3b652ba2305b68b785f8db63fec5bbd3938b00409d9bd71"
+    },
+    "packet_2_training_key_owner_only": {
+      "sha256": "903785a3cbf6f87c195f69fe95edcedf7bb8da0ecb47f17fa3b31b7947d848ee"
+    },
+    "reviewed_c5_spans_stage2_owner_input": {
+      "restricted": true,
+      "filename": "reviewed_c5_spans_official142.csv",
+      "sha256": "794d7b43ebd95d57ac4a90a4217953a9bea27e98ff91b13c31b0a06f9aa48c7e",
+      "row_n": 1137
+    }
+  },
+  "private_owner_file_hashes": {
+    "blind_id_key.csv": "6ad115e88fba8e801f8ae168581b8d8a7a580335f329b0319b5cbc9883c8388a",
+    "enrichment_selection_log.csv": "539ab80ac21f804a695f73ec696b60d973a8630f8a372552443d1756b6464a45",
+    "reviewer_A_training_packet_v3.zip": "98e66b37089b76c2b0795ac89b2d60904abeb5fd3c1aa61b12015ecc4212d290",
+    "reviewer_B_training_packet_v3.zip": "67a080c46ecaa98f571c5cf31e160b88825acd295f0efd02961adab3c0a30777",
+    "scoring_reference_owner_only.csv": "cb5a342ad72f91a32bffe65cc9ecf853f085dd2da3d1be4afec1903b52eb46ea",
+    "training_id_key.csv": "721ab624c2b3000ab017b42229c20e764efc4c5b9c237db3875a89ce616e9273"
+  },
+  "training_packet_hashes": {
+    "reviewer_A_training_packet_v3.zip": "98e66b37089b76c2b0795ac89b2d60904abeb5fd3c1aa61b12015ecc4212d290",
+    "reviewer_B_training_packet_v3.zip": "67a080c46ecaa98f571c5cf31e160b88825acd295f0efd02961adab3c0a30777"
+  },
+  "public_output_hashes": {
+    "blind_case_lines.csv": "fc93bcdcc07e527c46df77fab2c33d2f588de03de19e13d966344119a1a60dc0",
+    "blind_cases.csv": "eff129d8c1b16f32760b47ec4feb7e1136265a05772bd728cd34fbb473291380",
+    "enrichment_design_summary.csv": "3493e042e10356c49586926c7182e861fd9a1469aa71f897bf0fe5a5d4b3043a",
+    "README.md": "92240d93a224831eeb5e145600d049c66e4a37c7bbb63f5c6a8282aa8c25ee84",
+    "reviewer_A_stage1_blank.csv": "abb938eb6e49d7698996fce110ee70553f58c8eadb04b3ba97e8d783c8e68e06",
+    "reviewer_B_stage1_blank.csv": "f18fefbcb938cd1556942c0981975bfbc2077521d159260b1e9cbcebcb187023",
+    "stage1_codebook.md": "f7ae136c112f8a51b2543e45425c6cf745596130240faa3a8448212b79ba0660",
+    "stage1_protocol.md": "9c7234f371cacc12bad8c4ccf0e5ddeae3547845900e0356821486b52c7ed221",
+    "stage2_evidence_review_schema.csv": "c01530a7dfb87e54b0861874837768aa2141644e1a6dcbe0ab379f6f3a914a34",
+    "stage2_omission_review_schema.csv": "37e72d5c3ba30fe841ddb5f66d301a47d02d79b963b98c54028fff4c0d4aade9",
+    "training_case_lines.csv": "1416c77993b204f8c3a4523a887ec923d201c09473e01cca242226639d2bef05",
+    "training_cases.csv": "258c15c6e9618faf13f6f55b7cfacc1deb6d348c27ecc8d040ac025ac5ded052",
+    "training_reviewer_A_stage1_blank.csv": "53b102cfce1ec63db8b5eff2f309b77d6663e1ef8d8d862c5ff2de64b15ab240",
+    "training_reviewer_B_stage1_blank.csv": "08a7e6ccbf4b02f6779fb87ebbbc0bba2bfbbe570f65a616e79a703166ce8cda"
+  },
+  "code_commit": "10f0fca8cc2b79f89c2f1abc8c0e520063eba3a1"
+}

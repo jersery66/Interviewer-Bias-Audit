@@ -1,0 +1,6 @@
+rare_target,main_sample_target_n,enriched_sample_target_n,combined_target_n_descriptive_only,primary_and_enriched_must_be_reported_separately
+appetite_weight_positive,2,4,6,True
+suicide_self_harm_positive,4,4,8,True
+anhedonia_interest_positive,5,5,10,True
+sleep_fatigue_energy_zero,2,4,6,True
+protective_or_absent_symptom_zero,4,4,8,True
