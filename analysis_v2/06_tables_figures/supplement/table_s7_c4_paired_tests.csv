@@ -1,0 +1,9 @@
+family,condition_a,condition_b,metric,n,observed_difference,p_value,n_permutations,seed,fdr_bh_q
+c4_interviewer_controls,template_only,nontemplate_lengthmatched,roc_auc,142,0.1172186986140473,0.0404959504049595,10000,20260625,0.080991900809919
+c4_interviewer_controls,template_only,nontemplate_lengthmatched,macro_f1_at_0_5,142,0.2128343384047011,0.0006999300069993,10000,20260626,0.0027997200279972
+c4_interviewer_controls,template_only,nontemplate_positionmatched,roc_auc,142,-0.0495654216584449,0.2185781421857814,10000,20260627,0.2914375229143752
+c4_interviewer_controls,template_only,nontemplate_positionmatched,macro_f1_at_0_5,142,0.0508314528261336,0.1981801819818018,10000,20260628,0.2914375229143752
+c4_interviewer_controls,template_only,template_shuffled,roc_auc,142,0.1928588207657974,0.0046995300469953,10000,20260629,0.0125320801253208
+c4_interviewer_controls,template_only,template_shuffled,macro_f1_at_0_5,142,0.2462103732436462,0.0001999800019998,10000,20260630,0.0015998400159984
+c4_interviewer_controls,template_only,template_presence,roc_auc,142,-0.0049330514446794,0.904009599040096,10000,20260631,0.904009599040096
+c4_interviewer_controls,template_only,template_presence,macro_f1_at_0_5,142,0.0117812650848465,0.7764223577642235,10000,20260632,0.8873398374448269

@@ -1,0 +1,19 @@
+{
+  "c4_human_machine_agreement_reused": false,
+  "c5_canonical_sha256": "794d7b43ebd95d57ac4a90a4217953a9bea27e98ff91b13c31b0a06f9aa48c7e",
+  "c5_canonical_source": "processed_research/latest_usable_data_official142_20260702/04_c5_evidence_sources/c5_quotes_only_v3_gpt55_reviewed_spans_official142.csv",
+  "c5_human_machine_agreement_status": "not_available; blinded packet and owner crosswalk prepared",
+  "c5_span_participant_n": 141,
+  "c5_span_rows": 1137,
+  "formal_15_unchanged": true,
+  "frozen_source_score_sha256": "01ba43c969ec0e2cbbec8214b8dc90e6869cd1118339a237f4914a79e9d3dd80",
+  "independent_human_labels_present": false,
+  "missing_evidence_audit_scope": "separate_participant_level_full_text_review",
+  "owner_crosswalk_separate_and_restricted": false,
+  "restricted_owner_dir_used": false,
+  "restricted_review_dir_used": false,
+  "reviewer_packet_blinded": false,
+  "traceability_input_sha256": "2a11e33d8996c98b6ba3f40ca406e67188ed77b8f09117d1bde4490e3649b186",
+  "validation_candidate_rows_restricted": 0,
+  "validation_roster_n": 24
+}

@@ -1,0 +1,17 @@
+| representation | condition | roc_auc | pr_auc | macro_f1_at_0_5 | macro_f1_nested | sensitivity_at_0_5 | sensitivity_nested | specificity_at_0_5 | specificity_nested | raw_brier | raw_ece_5bin |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| tfidf | full_transcript | 0.743 | 0.540 | 0.658 | 0.612 | 0.465 | 0.535 | 0.838 | 0.707 | 0.219 | 0.176 |
+| tfidf | participant_speech | 0.705 | 0.595 | 0.459 | 0.674 | 0.047 | 0.512 | 1.000 | 0.828 | 0.232 | 0.229 |
+| tfidf | interviewer_speech | 0.803 | 0.663 | 0.720 | 0.707 | 0.674 | 0.674 | 0.788 | 0.768 | 0.197 | 0.160 |
+| tfidf | non_explicit_interviewer_speech | 0.774 | 0.617 | 0.704 | 0.698 | 0.605 | 0.535 | 0.808 | 0.848 | 0.205 | 0.157 |
+| tfidf | participant_symptom_evidence | 0.754 | 0.580 | 0.682 | 0.711 | 0.488 | 0.651 | 0.859 | 0.788 | 0.225 | 0.190 |
+| model_1_all_mpnet_base_v2 | full_transcript | 0.817 | 0.705 | 0.712 | 0.759 | 0.767 | 0.721 | 0.717 | 0.818 | 0.180 | 0.145 |
+| model_1_all_mpnet_base_v2 | participant_speech | 0.764 | 0.658 | 0.650 | 0.700 | 0.721 | 0.512 | 0.646 | 0.869 | 0.207 | 0.187 |
+| model_1_all_mpnet_base_v2 | interviewer_speech | 0.743 | 0.574 | 0.663 | 0.639 | 0.721 | 0.488 | 0.667 | 0.788 | 0.213 | 0.149 |
+| model_1_all_mpnet_base_v2 | non_explicit_interviewer_speech | 0.636 | 0.405 | 0.587 | 0.566 | 0.558 | 0.395 | 0.646 | 0.737 | 0.246 | 0.164 |
+| model_1_all_mpnet_base_v2 | participant_symptom_evidence | 0.785 | 0.607 | 0.678 | 0.697 | 0.744 | 0.605 | 0.677 | 0.798 | 0.204 | 0.181 |
+| model_2_bge_large_en_v1_5 | full_transcript | 0.797 | 0.657 | 0.682 | 0.746 | 0.791 | 0.581 | 0.657 | 0.889 | 0.192 | 0.178 |
+| model_2_bge_large_en_v1_5 | participant_speech | 0.704 | 0.538 | 0.591 | 0.644 | 0.628 | 0.512 | 0.606 | 0.778 | 0.231 | 0.168 |
+| model_2_bge_large_en_v1_5 | interviewer_speech | 0.769 | 0.624 | 0.682 | 0.688 | 0.674 | 0.488 | 0.727 | 0.869 | 0.198 | 0.163 |
+| model_2_bge_large_en_v1_5 | non_explicit_interviewer_speech | 0.721 | 0.542 | 0.666 | 0.668 | 0.698 | 0.512 | 0.687 | 0.818 | 0.220 | 0.164 |
+| model_2_bge_large_en_v1_5 | participant_symptom_evidence | 0.769 | 0.585 | 0.652 | 0.685 | 0.744 | 0.535 | 0.636 | 0.828 | 0.214 | 0.192 |

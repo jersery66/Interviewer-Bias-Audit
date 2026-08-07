@@ -1,0 +1,10 @@
+| family | condition_a | condition_b | metric | n | observed_difference | p_value | n_permutations | seed | fdr_bh_q |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| c4_interviewer_controls | template_only | nontemplate_lengthmatched | roc_auc | 142 | 0.117 | 0.040 | 10000 | 20260625 | 0.081 |
+| c4_interviewer_controls | template_only | nontemplate_lengthmatched | macro_f1_at_0_5 | 142 | 0.213 | 0.001 | 10000 | 20260626 | 0.003 |
+| c4_interviewer_controls | template_only | nontemplate_positionmatched | roc_auc | 142 | -0.050 | 0.219 | 10000 | 20260627 | 0.291 |
+| c4_interviewer_controls | template_only | nontemplate_positionmatched | macro_f1_at_0_5 | 142 | 0.051 | 0.198 | 10000 | 20260628 | 0.291 |
+| c4_interviewer_controls | template_only | template_shuffled | roc_auc | 142 | 0.193 | 0.005 | 10000 | 20260629 | 0.013 |
+| c4_interviewer_controls | template_only | template_shuffled | macro_f1_at_0_5 | 142 | 0.246 | 0.000 | 10000 | 20260630 | 0.002 |
+| c4_interviewer_controls | template_only | template_presence | roc_auc | 142 | -0.005 | 0.904 | 10000 | 20260631 | 0.904 |
+| c4_interviewer_controls | template_only | template_presence | macro_f1_at_0_5 | 142 | 0.012 | 0.776 | 10000 | 20260632 | 0.887 |

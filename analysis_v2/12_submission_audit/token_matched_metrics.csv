@@ -1,0 +1,3 @@
+﻿condition,n_draws,mean_auc,sd_auc,draw_auc_q025,draw_auc_q975,participant_random_draw_ci_low,participant_random_draw_ci_high,mean_pr_auc,mean_brier,bootstrap_resamples,bootstrap_draw_sampling
+participant_matched,50,0.6508433168898285,0.04614764371466119,0.5780655391120507,0.7275428705661263,0.5135012919896641,0.7801327225745829,0.49191774549235545,0.23111389615017938,5000,one random matched dataset draw per participant bootstrap
+interviewer_matched,50,0.8084472633309843,0.0015862476668652814,0.8054968287526427,0.8112638007986845,0.7258574113225276,0.8820765797509984,0.6627796942925426,0.19639152840058074,5000,one random matched dataset draw per participant bootstrap

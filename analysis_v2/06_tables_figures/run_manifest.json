@@ -1,0 +1,14 @@
+{
+  "status": "complete",
+  "completed_at_utc": "2026-07-04T00:16:45.547794+00:00",
+  "analysis_root": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2",
+  "output": "E:\\CodexWorktrees\\DAIC-WOZ\\reanalysis-v2\\analysis_v2\\06_tables_figures",
+  "strict_audit_passed": true,
+  "strict_audit_checks": 101,
+  "inventory_failures": 0,
+  "inventoried_computational_artifacts": 177,
+  "final_package_files": 56,
+  "final_package_inventory_sha256": "61e38eb11311261ec4dfbb93b023a5fa74f5a7753864077fc7b61d491b93e6ea",
+  "verification_status": "ANALYZED",
+  "independent_reproduction": "not performed"
+}

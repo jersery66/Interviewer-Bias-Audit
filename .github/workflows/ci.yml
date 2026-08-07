@@ -1,0 +1,65 @@
+name: Public reproducibility checks
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-ci.txt
+      - name: Install public test dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements-ci.txt
+      - name: Run code and fixture tests
+        run: python -m pytest -q -c pytest-public.ini --junitxml=pytest-results.xml
+      - name: Upload test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-results-${{ github.run_id }}
+          path: pytest-results.xml
+          if-no-files-found: ignore
+      - name: Annotate pytest failures
+        if: always()
+        run: |
+          python - <<'PY'
+          import os
+          import xml.etree.ElementTree as ET
+
+          path = "pytest-results.xml"
+          if not os.path.exists(path):
+              raise SystemExit(0)
+          root = ET.parse(path).getroot()
+          for case in root.findall(".//testcase"):
+              failure = case.find("failure")
+              if failure is None:
+                  failure = case.find("error")
+              if failure is not None:
+                  message = (failure.get("message") or failure.text or "").splitlines()[0]
+                  print(f"::error title=pytest failure::{case.get('classname')}.{case.get('name')}: {message}")
+          PY
+      - name: Verify public-release exclusions
+        shell: bash
+        run: |
+          set -euo pipefail
+          forbidden='(^|/)(processed_research|\.tmp_figure_test|\.codex_tmp|private)(/|$)|owner_only|blind_id_key|reviewer_.*_filled\.csv$|\.tiff$|(^|/)(blind_cases|blind_case_lines|training_cases|training_case_lines)\.csv$|(^|/).*oof.*\.csv$|(^|/).*assignments.*\.csv$|(^|/).*ledger.*\.csv$'
+          if git ls-files | grep -E "$forbidden"; then
+            echo "Forbidden restricted or generated artifacts are tracked."
+            exit 1
+          fi
+      - name: State the reproduction boundary
+        run: |
+          echo "CI validates public code/tests and the public-release file boundary."
+          echo "Full data-to-result reproduction requires restricted DAIC-WOZ and private quote-bearing C5 sources."

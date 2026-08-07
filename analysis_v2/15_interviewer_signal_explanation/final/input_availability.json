@@ -1,0 +1,112 @@
+{
+  "d_all": {
+    "reason": "no_frozen_full_transcript_D_All_input",
+    "status": "not_run_data_unavailable"
+  },
+  "inputs": {
+    "domain_count": {
+      "hash_match": true,
+      "path": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\04_c5_controls\\domain_count\\input.csv",
+      "required": true,
+      "sha256": {
+        "lf": "1fad85d77a8329992553a420898f7b0c3908b90dbd777da4ebd77bc6e869c134",
+        "raw": "7687c70d3770b7e8902900ec3c117d8a679fc6d718abf1c2a7f8d1361b07ae33"
+      },
+      "status": "available"
+    },
+    "domain_source_audit": {
+      "hash_match": true,
+      "path": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\10_source_importance\\07_strict_joint_models\\domain_source_audit.json",
+      "required": true,
+      "sha256": {
+        "lf": "a3fb66664eb933d902bc94307844bbdbc430491932b883b324e7a952eab0a096",
+        "raw": "8a9b2694bfbaa17d67e75e60545b87acda21e37da871bf3bac7dd3a180d5a864"
+      },
+      "status": "available"
+    },
+    "interviewer_text": {
+      "hash_match": true,
+      "path": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\01_inputs\\c3_interviewer_speech.csv",
+      "required": false,
+      "sha256": {
+        "lf": "c2626ea7ef46b6d84fc4fcdc07de6414b6e3be54a3bc7b950c91a6cfd53ce8b2",
+        "raw": "cf1278335dd4e7ee27dbff13bb792a7c1875341dd9412900c0f72a69f06c5e48"
+      },
+      "status": "available"
+    },
+    "participant_text": {
+      "hash_match": true,
+      "path": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\01_inputs\\c2_participant_speech.csv",
+      "required": false,
+      "sha256": {
+        "lf": "12ad337fa97e0ce352be80ce46148e824eb625c4ffd4ca07591e59b9488f73a8",
+        "raw": "c520c713922e671431b40382238d64d0b07779ad5e77d905c9224a6f66b4ec9b"
+      },
+      "status": "available"
+    },
+    "splits": {
+      "hash_match": true,
+      "path": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\00_splits\\repeated_5fold_splits_10x5.csv",
+      "required": true,
+      "sha256": {
+        "lf": "e4202fcd4d492a37fa68c579767ea940ca0629b4230374b06ddc8778e32045b3",
+        "raw": "ceaddff172bf9582987cf76ff0522dcfdd0fe90c5b3014565bcfaacf003703ae"
+      },
+      "status": "available"
+    },
+    "structural": {
+      "hash_match": true,
+      "path": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\12_submission_audit\\structural_baseline_features.csv",
+      "required": true,
+      "sha256": {
+        "lf": "843871828087b6044b2400d588587a61c252720a15867d8c3cc7d34edf3b90b1",
+        "raw": "70c439c4a78ab7bea2b1106f59d06214ae0fa9bf09540bd24c859350cc2fce4a"
+      },
+      "status": "available"
+    },
+    "structural_dictionary": {
+      "hash_match": true,
+      "path": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\12_submission_audit\\structural_feature_dictionary.md",
+      "required": true,
+      "sha256": {
+        "lf": "fe3c56b0ebd51118bffee4ef2091c5088fad0d60a3537ac67c3242f52f97f821",
+        "raw": "fe3c56b0ebd51118bffee4ef2091c5088fad0d60a3537ac67c3242f52f97f821"
+      },
+      "status": "available"
+    },
+    "turns": {
+      "hash_match": true,
+      "path": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\01_inputs\\c4_turns_official142_frozen.csv",
+      "required": false,
+      "sha256": {
+        "lf": "d2416dbdf981563df2213ca4101b8601964e469f0f744e8e4da001c4520c4229",
+        "raw": "763cd3857a430f7a8dc6ee997d2820b07787f5e30ddceaee8bf83329fedc1a9a"
+      },
+      "status": "available"
+    }
+  },
+  "output_root": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2",
+  "representations": {
+    "bge": {
+      "path": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\03_embedding_robustness\\model_2_bge_large_en_v1_5\\run_manifest.json",
+      "sha256": {
+        "lf": "7a885a81538a983d1ca82e91e554ac55608ac8cc98be609b9994fa161ad1cf8c",
+        "raw": "7a98e4941323fe14503fa7b194d456d746414883446204e8daad0908d50b729c"
+      },
+      "status": "available"
+    },
+    "mpnet": {
+      "path": "F:\\数据库\\DAIC-WOZ\\.workbuddy\\worktrees\\submission-audit\\analysis_v2\\03_embedding_robustness\\model_1_all_mpnet_base_v2\\run_manifest.json",
+      "sha256": {
+        "lf": "e3cf5a7806717d8044fb99fc2d8f26bdd489cd731bc2330bc780906bbd5eb313",
+        "raw": "0c5c025e9f3bc926646dea389edbd217b44e3e082310ec1d0f06cc30b43cdedd"
+      },
+      "status": "available"
+    },
+    "tfidf": {
+      "source": "frozen text tables",
+      "status": "available"
+    }
+  },
+  "status": "available"
+}

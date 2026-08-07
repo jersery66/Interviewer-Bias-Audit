@@ -1,0 +1,23 @@
+{
+  "candidate_span_n": 1143,
+  "final_span_n": 1137,
+  "participant_n_with_evidence": 141,
+  "participant_n_total": 142,
+  "unchanged_source_matched_n": 1102,
+  "manually_corrected_to_source_n": 35,
+  "excluded_duplicate_n": 5,
+  "excluded_invalid_n": 1,
+  "manual_audit_row_n": 41,
+  "final_source_match_n": 1137,
+  "unique_location_n": 1136,
+  "multiple_exact_location_n": 1,
+  "not_found_after_review_n": 0,
+  "frozen_condition_rows_match_reviewed_source": true,
+  "manual_review_label_columns_present": [
+    "paper_label_phq8_ge10",
+    "paper_phq8_score"
+  ],
+  "manual_review_blinding_status": "not_demonstrated_labels_present_in_audit_table",
+  "documented_reviewer_identity_columns": [],
+  "interrater_reliability_status": "not_available"
+}

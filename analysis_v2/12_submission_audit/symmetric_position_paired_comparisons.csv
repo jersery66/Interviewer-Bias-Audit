@@ -1,0 +1,4 @@
+﻿position,comparison,comparison_family,delta_auc,ci_lower,ci_upper,p_value,n_bootstrap_valid,n_permutations,q_value,significance
+early,interviewer_matched vs participant_matched,symmetric_position_source_auc,0.2638007986845196,0.14399128513265594,0.37944961768491176,9.999000099990002e-05,5000,10000,0.00029997000299970003,***
+middle,interviewer_matched vs participant_matched,symmetric_position_source_auc,-0.024430350011745428,-0.12587100925810604,0.07560485342212103,0.6693330666933307,5000,10000,0.6693330666933307,ns
+late,interviewer_matched vs participant_matched,symmetric_position_source_auc,0.092788348602302,-0.02464799876261184,0.21000877320025388,0.11958804119588042,5000,10000,0.17938206179382063,ns

@@ -1,0 +1,17 @@
+| condition | rule | n_folds | mean | sd | median | q1 | q3 | iqr | min | max |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| full_transcript | max_macro_f1 | 50 | 0.478 | 0.019 | 0.474 | 0.462 | 0.492 | 0.030 | 0.444 | 0.518 |
+| full_transcript | max_youden_j | 50 | 0.455 | 0.015 | 0.453 | 0.446 | 0.461 | 0.014 | 0.428 | 0.504 |
+| full_transcript | sensitivity_at_spec80 | 50 | 0.494 | 0.007 | 0.494 | 0.489 | 0.500 | 0.011 | 0.482 | 0.507 |
+| participant_speech | max_macro_f1 | 50 | 0.472 | 0.005 | 0.471 | 0.468 | 0.475 | 0.007 | 0.464 | 0.483 |
+| participant_speech | max_youden_j | 50 | 0.466 | 0.006 | 0.466 | 0.463 | 0.470 | 0.007 | 0.452 | 0.480 |
+| participant_speech | sensitivity_at_spec80 | 50 | 0.474 | 0.003 | 0.474 | 0.471 | 0.475 | 0.004 | 0.465 | 0.484 |
+| interviewer_speech | max_macro_f1 | 50 | 0.505 | 0.028 | 0.504 | 0.491 | 0.523 | 0.032 | 0.412 | 0.559 |
+| interviewer_speech | max_youden_j | 50 | 0.468 | 0.031 | 0.474 | 0.445 | 0.490 | 0.046 | 0.406 | 0.532 |
+| interviewer_speech | sensitivity_at_spec80 | 50 | 0.516 | 0.013 | 0.515 | 0.507 | 0.523 | 0.016 | 0.485 | 0.545 |
+| non_explicit_interviewer_speech | max_macro_f1 | 50 | 0.521 | 0.036 | 0.517 | 0.498 | 0.542 | 0.044 | 0.445 | 0.594 |
+| non_explicit_interviewer_speech | max_youden_j | 50 | 0.468 | 0.041 | 0.456 | 0.438 | 0.490 | 0.052 | 0.409 | 0.578 |
+| non_explicit_interviewer_speech | sensitivity_at_spec80 | 50 | 0.526 | 0.017 | 0.524 | 0.513 | 0.537 | 0.024 | 0.497 | 0.578 |
+| participant_symptom_evidence | max_macro_f1 | 50 | 0.489 | 0.011 | 0.489 | 0.483 | 0.495 | 0.012 | 0.463 | 0.520 |
+| participant_symptom_evidence | max_youden_j | 50 | 0.478 | 0.010 | 0.479 | 0.472 | 0.486 | 0.014 | 0.453 | 0.497 |
+| participant_symptom_evidence | sensitivity_at_spec80 | 50 | 0.497 | 0.004 | 0.498 | 0.494 | 0.500 | 0.006 | 0.484 | 0.509 |

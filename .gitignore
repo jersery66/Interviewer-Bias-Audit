@@ -1,0 +1,59 @@
+# Embedding cache (large binary files)
+*.npz
+
+# Public-release exclusions: restricted DAIC-WOZ-derived content
+processed_research/
+analysis_v2/01_inputs/
+analysis_v2/**/input.csv
+analysis_v2/**/*oof*.csv
+analysis_v2/**/*assignments*.csv
+analysis_v2/**/*ledger*.csv
+analysis_v2/**/*predictions*.csv
+analysis_v2/**/run_1/
+analysis_v2/**/run_2/
+
+# Quote-bearing and human-review packets remain local/private
+analysis_v2/04_c5_controls/blind_quality_audit/packet_*/
+analysis_v2/04_c5_controls/blind_quality_audit/private/
+*owner_only*
+*blind_id_key*
+*reviewer_*_filled.csv
+*consensus*.csv
+*blind_cases*.csv
+*case_lines*.csv
+*training_cases*.csv
+
+# Generated publication and test artifacts
+.tmp_figure_test/
+.codex_tmp/
+*.tiff
+~$*
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Analysis logs
+*.log
+
+# Temporary scripts
+_gen.py
+_append_main.py
+
+# Windows artifacts
+NUL
+*_trend.json
+
+# D-P blinded audit returned human-review files
+analysis_v2/04_c5_controls/blind_quality_audit/packet_2/*_frozen.csv
+analysis_v2/04_c5_controls/blind_quality_audit/packet_2/consensus_labels.csv
+analysis_v2/04_c5_controls/blind_quality_audit/packet_2/interrater_metrics.csv
+analysis_v2/04_c5_controls/blind_quality_audit/packet_2/domain_confusion_tables.csv
+analysis_v2/04_c5_controls/blind_quality_audit/packet_2/disagreement_sheet.csv
+analysis_v2/04_c5_controls/blind_quality_audit/packet_2/dp_vs_consensus_metrics.csv
+analysis_v2/04_c5_controls/blind_quality_audit/packet_2/evidence_validity_results.csv
