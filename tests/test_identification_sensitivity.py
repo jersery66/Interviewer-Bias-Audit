@@ -150,7 +150,7 @@ def test_single_level_oof_returns_one_prediction_per_participant():
 def test_level_pair_oof_shares_a_fold_contract_and_returns_base_and_augmented():
     rng = np.random.default_rng(10)
     n = 20
-    ids = np.arange(400, 400 + n)
+    ids = np.arange(9000, 9000 + n)
     labels = np.array([0] * 10 + [1] * 10)
     inputs = FrozenIncrementalInputs(
         participant_ids=ids,

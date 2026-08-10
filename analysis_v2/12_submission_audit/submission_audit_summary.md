@@ -8,7 +8,7 @@ The post-audit formal outputs are frozen. The closeout now has three separate ev
 2. the module-15 interviewer-score explanation result, whose manifest status is `training_match_quality_limited`;
 3. the new ten-repeat early-concat pairing/Fake-D sensitivity result.
 
-The D-P domain-level manual quality question is now resolved for the sampled validation set. Packet 3 contains two independent Stage-1 ratings and a frozen 440-cell consensus. In the original 30-person main sample, human status agreement is 0.870 (Cohen's kappa 0.810), while D-P presence versus human consensus has accuracy 0.799, sensitivity 0.792, specificity 0.805, positive F1 0.774, macro-F1 0.797 and kappa 0.594. The separate 13-person rare-domain enrichment sample and ID 385 sentinel are not pooled into the main estimate. Stage-2 evidence-level ratings are retained as supplementary quality-control material because final adjudication of evidence quality and important omission was not completed.
+The D-P domain-level manual quality question is now resolved for the sampled validation set. Packet 3 contains two independent Stage-1 ratings and a frozen 440-cell consensus. In the original 30-person main sample, human status agreement is 0.870 (Cohen's kappa 0.810), while D-P presence versus human consensus has accuracy 0.799, sensitivity 0.792, specificity 0.805, positive F1 0.774, macro-F1 0.797 and kappa 0.594. The separate 13-person rare-domain enrichment sample and one pre-specified sentinel case are not pooled into the main estimate. Stage-2 evidence-level ratings are retained as supplementary quality-control material because final adjudication of evidence quality and important omission was not completed.
 
 ## Analysis-locked source results
 
@@ -58,7 +58,7 @@ The D-P blinded quality packet is at:
 
 `analysis_v2/04_c5_controls/blind_quality_audit/packet_3/`
 
-It contains 44 validation cases under uniform opaque IDs: the unchanged 30-person main sample, 13 rare-domain enrichment cases and ID 385 as a sentinel. Both Stage-1 reviewer forms were completed and adjudicated into a 440-cell frozen consensus (SHA-256 `4aeba2bd98b1b594bd60c4ef663c87694edb73f14237996d25f62c7f297d9ba9`). The main-sample D-P presence results are accuracy 0.799, sensitivity 0.792, specificity 0.805, positive F1 0.774, macro-F1 0.797 and kappa 0.594; count agreement is secondary. Stage 2 was opened after the consensus freeze and its A/B files passed structural checks, but final evidence-level adjudication was not completed. Therefore the paper reports domain-level validation and does not report a final important-omission rate or claim complete evidence-span validity.
+It contains 44 validation cases under uniform opaque IDs: the unchanged 30-person main sample, 13 rare-domain enrichment cases and one pre-specified sentinel case. Both Stage-1 reviewer forms were completed and adjudicated into a 440-cell frozen consensus (SHA-256 `4aeba2bd98b1b594bd60c4ef663c87694edb73f14237996d25f62c7f297d9ba9`). The main-sample D-P presence results are accuracy 0.799, sensitivity 0.792, specificity 0.805, positive F1 0.774, macro-F1 0.797 and kappa 0.594; count agreement is secondary. Stage 2 was opened after the consensus freeze and its A/B files passed structural checks, but final evidence-level adjudication was not completed. Therefore the paper reports domain-level validation and does not report a final important-omission rate or claim complete evidence-span validity.
 
 ## Reproducibility boundary
 

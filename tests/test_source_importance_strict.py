@@ -202,4 +202,4 @@ def test_load_strict_source_frame_normalizes_declared_empty_texts() -> None:
     assert len(frame) == 142
     assert int(frame["label"].sum()) == 43
     assert frame[["c2_text", "c3_text", "c5_text"]].isna().sum().sum() == 0
-    assert frame.loc[frame["participant_id"] == 451, "c3_text"].item() == ""
+    assert int(frame["c3_text"].eq("").sum()) == 2

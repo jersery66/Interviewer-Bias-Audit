@@ -1,7 +1,7 @@
 """Prepare packet_3 for the staged human validation of the D-P proxy.
 
 Packet 3 preserves the original packet-2 main sample, adds a separately
-analysed rare-domain enrichment sample, and includes participant 385 as an
+analysed rare-domain enrichment sample, and includes one pre-specified
 owner-side sentinel.  All three sample types receive opaque IDs in one blinded
 stage-1 packet.  No C5 span is exposed before human consensus is frozen.
 """
@@ -46,7 +46,6 @@ BLIND_ID_SEED = 20260721
 ENRICHMENT_TARGET_QUOTA = 4
 ENRICHMENT_MIN_N = 10
 ENRICHMENT_MAX_N = 15
-SENTINEL_PARTICIPANT_ID = 385
 REVIEWER_A_ORDER_SEED = 202607211
 REVIEWER_B_ORDER_SEED = 202607212
 
@@ -163,7 +162,7 @@ def _protocol_text(main_n: int, enriched_n: int, validation_n: int) -> str:
 - 主验证样本：保留packet 2原有{main_n}人，主要总体效度指标只由该样本估计；
 - 稀有域富集样本：{enriched_n}人，按最小覆盖原则补充预先指定的稀有D-P单元，
   单独报告，不与主样本直接合并计算总体准确率；
-- 哨兵个案：ID 385在owner key中单独标记，不进入总体效度统计；
+- 哨兵个案：另设置1名预先指定的哨兵个案，在owner key中单独标记，不进入总体效度统计；
 - 第一阶段共{validation_n}名验证参与者，每位评价者完成{validation_n * 10}个
   参与者×域单元。
 
@@ -190,7 +189,7 @@ C5证据、D-P presence/count、参与者ID、PHQ-8标签或分数、模型结�
 ## 报告边界
 
 主要presence效度、参与者聚类bootstrap区间和总体Cohen's kappa只报告主30人。
-富集样本按稀有域单独描述；ID 385仅作哨兵个案。count结果为次要结果，报告四级
+富集样本按稀有域单独描述；1名预先指定的哨兵个案仅作描述。count结果为次要结果，报告四级
 一致率、加权kappa、平均绝对差和Spearman相关，不作为临床效度的主要证明。
 通用症状域的`conflicting`在主要presence分析中排除，并分别按非当前阳性和当前阳性
 编码进行两项敏感性分析。第二阶段另报告无来源支持证据率及预定错误类型。
@@ -205,7 +204,7 @@ def _readme_text() -> str:
 `blind_case_lines.csv`、`stage1_codebook.md`、`stage1_protocol.md`及其对应的
 `reviewer_*_stage1_blank.csv`。先使用`training_*`材料完成培训并冻结码本。
 
-主30人、稀有域富集样本和ID 385的映射只存在于ignored private owner目录。
+主30人、稀有域富集样本和1名预先指定哨兵个案的映射只存在于ignored private owner目录。
 第一阶段人工共识完成并冻结前，不得生成或发放第二阶段C5证据表。
 """
 
@@ -271,6 +270,7 @@ def _zip_training_packet(
 
 def prepare(
     *,
+    sentinel_participant_id: int,
     public_packet: Path = DEFAULT_PUBLIC_PACKET,
     private_packet: Path = DEFAULT_PRIVATE_PACKET,
     reviewed_spans_path: Path = DEFAULT_REVIEWED_SPANS_PATH,
@@ -294,7 +294,7 @@ def prepare(
 
     enrichment = select_enrichment_sample(
         domain_counts,
-        excluded_participant_ids={*main_ids, *training_ids, SENTINEL_PARTICIPANT_ID},
+        excluded_participant_ids={*main_ids, *training_ids, int(sentinel_participant_id)},
         target_quota=ENRICHMENT_TARGET_QUOTA,
         min_n=ENRICHMENT_MIN_N,
         max_n=ENRICHMENT_MAX_N,
@@ -302,7 +302,7 @@ def prepare(
     validation_sample = build_validation_sample(
         main_packet2,
         enrichment,
-        sentinel_participant_id=SENTINEL_PARTICIPANT_ID,
+        sentinel_participant_id=int(sentinel_participant_id),
     )
     blind_key = make_opaque_blind_key(validation_sample, seed=BLIND_ID_SEED)
     blind_cases = build_blind_cases(participants, blind_key)
@@ -459,8 +459,15 @@ def main() -> int:
     parser.add_argument("--public-packet", type=Path, default=DEFAULT_PUBLIC_PACKET)
     parser.add_argument("--private-packet", type=Path, default=DEFAULT_PRIVATE_PACKET)
     parser.add_argument("--reviewed-spans", type=Path, default=DEFAULT_REVIEWED_SPANS_PATH)
+    parser.add_argument(
+        "--sentinel-participant-id",
+        type=int,
+        required=True,
+        help="Owner-only participant ID supplied at runtime; never commit this value.",
+    )
     args = parser.parse_args()
     manifest = prepare(
+        sentinel_participant_id=args.sentinel_participant_id,
         public_packet=args.public_packet,
         private_packet=args.private_packet,
         reviewed_spans_path=args.reviewed_spans,

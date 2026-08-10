@@ -1,8 +1,8 @@
 """Version-3 blinded content-validity workflow for the participant-derived D-P proxy.
 
 The workflow keeps the original 30-person probability sample intact, adds a
-separately flagged rare-domain enrichment sample, and treats participant 385 as
-an owner-side sentinel.  Reviewer-facing stage-1 files never contain D-P
+separately flagged rare-domain enrichment sample, and treats one pre-specified
+participant as an owner-side sentinel.  Reviewer-facing stage-1 files never contain D-P
 values, sample type, participant identifiers, PHQ labels, or C5 evidence.
 Stage 2 can be constructed only after the human consensus file is frozen.
 """

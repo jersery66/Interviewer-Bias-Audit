@@ -26,3 +26,13 @@ python -m pytest -q -c pytest-public.ini
 ```
 
 The public test configuration deselects integration checks that require restricted source data, private review packets or removed row-level outputs. No external model API is required for the remaining tests.
+
+## Participant-ID release gate
+
+Before each public release, run the roster-aware scanner locally with the official participant roster stored outside this repository:
+
+```powershell
+python scripts/check_public_participant_ids.py --repo . --roster "ABSOLUTE_RESTRICTED_ROSTER_PATH"
+```
+
+The scanner examines Git-tracked searchable text and fails on roster values used in participant-identifier contexts or identifier fields. The roster and scan output remain local. GitHub Actions cannot access the restricted roster, so public CI tests the scanner with synthetic fixtures and separately enforces the public file-boundary rules.

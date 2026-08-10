@@ -22,6 +22,10 @@ This repository is a code-and-aggregate-results release for the DAIC-WOZ source-
 - reviewer-completed forms, consensus tables, owner keys and private audit ledgers;
 - embedding caches, temporary files, duplicate formal-run copies and redundant TIFF exports.
 
+## Participant-ID validation
+
+Every release candidate must be scanned locally against the official participant roster before publication. The roster must be supplied from a restricted path outside the public checkout and must never be copied, generated or committed here. A non-zero participant-ID match blocks release. Public CI has no access to the restricted roster; it therefore validates the scanner with synthetic fixtures and continues to enforce roster-independent path and file-boundary checks.
+
 ## Interpretation boundary
 
 The public files permit review of the methods and reported aggregate results. They do not permit full data-to-result reproduction without separately authorized access to DAIC-WOZ and the private audit source. Aggregate predictive results are cohort- and operationalization-specific and do not establish clinical utility, diagnosis, label leakage or a causal interviewer effect.

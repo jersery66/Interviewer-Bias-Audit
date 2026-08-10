@@ -22,6 +22,8 @@ jobs:
           cache-dependency-path: requirements-ci.txt
       - name: Install public test dependencies
         run: python -m pip install --upgrade pip && python -m pip install -r requirements-ci.txt
+      - name: Verify participant-ID scanner with synthetic fixtures
+        run: python -m pytest -q tests/test_public_participant_id_scan.py
       - name: Run code and fixture tests
         run: python -m pytest -q -c pytest-public.ini --junitxml=pytest-results.xml
       - name: Upload test diagnostics
@@ -54,7 +56,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          forbidden='(^|/)(processed_research|\.tmp_figure_test|\.codex_tmp|private)(/|$)|owner_only|blind_id_key|reviewer_.*_filled\.csv$|\.tiff$|(^|/)(blind_cases|blind_case_lines|training_cases|training_case_lines)\.csv$|(^|/).*oof.*\.csv$|(^|/).*assignments.*\.csv$|(^|/).*ledger.*\.csv$'
+          forbidden='(^|/)(processed_research|\.tmp_figure_test|\.codex_tmp|private)(/|$)|owner_only|blind_id_key|participant_roster|participant_crosswalk|official142_participant_list|reviewer_.*_filled\.csv$|\.tiff$|(^|/)(blind_cases|blind_case_lines|training_cases|training_case_lines)\.csv$|(^|/).*oof.*\.csv$|(^|/).*assignments.*\.csv$|(^|/).*ledger.*\.csv$'
           if git ls-files | grep -E "$forbidden"; then
             echo "Forbidden restricted or generated artifacts are tracked."
             exit 1
@@ -62,4 +64,5 @@ jobs:
       - name: State the reproduction boundary
         run: |
           echo "CI validates public code/tests and the public-release file boundary."
+          echo "The exact official-roster participant-ID scan is a restricted local pre-release gate."
           echo "Full data-to-result reproduction requires restricted DAIC-WOZ and private quote-bearing C5 sources."

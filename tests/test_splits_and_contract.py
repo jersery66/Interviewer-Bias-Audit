@@ -48,14 +48,14 @@ def test_repeated_split_membership_is_deterministic_and_complete():
 
 def test_primary_contract_rejects_test_members_duplicates_and_label_drift():
     rows = []
-    for participant_id in (301, 302):
+    for participant_id in (9001, 9002):
         for condition in CONDITIONS:
             rows.append(
                 {
                     "participant_id": participant_id,
-                    "official_avec_split": "train" if participant_id == 301 else "dev",
-                    "paper_phq8_score": 12 if participant_id == 301 else 3,
-                    "paper_label_phq8_ge10": 1 if participant_id == 301 else 0,
+                    "official_avec_split": "train" if participant_id == 9001 else "dev",
+                    "paper_phq8_score": 12 if participant_id == 9001 else 3,
+                    "paper_label_phq8_ge10": 1 if participant_id == 9001 else 0,
                     "condition_id": condition,
                     "text": f"text {participant_id} {condition}",
                 }
@@ -75,7 +75,7 @@ def test_primary_contract_rejects_test_members_duplicates_and_label_drift():
         validate_primary_table(duplicate, CONDITIONS, expected_n=2)
 
     drift = valid.copy()
-    drift.loc[drift.participant_id == 302, "paper_label_phq8_ge10"] = 1
+    drift.loc[drift.participant_id == 9002, "paper_label_phq8_ge10"] = 1
     with pytest.raises(ValueError, match="PHQ-8"):
         validate_primary_table(drift, CONDITIONS, expected_n=2)
 

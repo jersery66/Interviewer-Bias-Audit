@@ -8,10 +8,28 @@ from scripts.prepare_c5_blind_audit_v3 import prepare
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
+def _restricted_sentinel_participant_id() -> int:
+    key = pd.read_csv(
+        REPO_ROOT
+        / "analysis_v2"
+        / "04_c5_controls"
+        / "blind_quality_audit"
+        / "private"
+        / "packet_3"
+        / "blind_id_key.csv"
+    )
+    return int(key.loc[key["sample_type"].eq("sentinel"), "participant_id"].item())
+
+
 def test_prepare_v3_keeps_main_sample_and_separates_enrichment_and_sentinel(tmp_path):
     public = tmp_path / "packet_3"
     private = tmp_path / "private" / "packet_3"
-    manifest = prepare(public_packet=public, private_packet=private)
+    sentinel_participant_id = _restricted_sentinel_participant_id()
+    manifest = prepare(
+        sentinel_participant_id=sentinel_participant_id,
+        public_packet=public,
+        private_packet=private,
+    )
 
     old_main = pd.read_csv(
         REPO_ROOT
@@ -27,7 +45,9 @@ def test_prepare_v3_keeps_main_sample_and_separates_enrichment_and_sentinel(tmp_
         old_main["participant_id"]
     )
     assert 10 <= (new_key["sample_type"] == "enriched").sum() <= 15
-    assert new_key.loc[new_key["sample_type"] == "sentinel", "participant_id"].tolist() == [385]
+    assert new_key.loc[
+        new_key["sample_type"] == "sentinel", "participant_id"
+    ].tolist() == [sentinel_participant_id]
     assert manifest["main_sample_n"] == 30
     assert manifest["sentinel_sample_n"] == 1
     assert manifest["stage2_status"] == "locked_until_human_consensus_freeze"
@@ -72,6 +92,10 @@ def test_prepare_v3_does_not_modify_packet_2(tmp_path):
         / "packet_2"
     )
     before = {path.name: path.read_bytes() for path in packet_2.iterdir() if path.is_file()}
-    prepare(public_packet=tmp_path / "packet_3", private_packet=tmp_path / "private" / "packet_3")
+    prepare(
+        sentinel_participant_id=_restricted_sentinel_participant_id(),
+        public_packet=tmp_path / "packet_3",
+        private_packet=tmp_path / "private" / "packet_3",
+    )
     after = {path.name: path.read_bytes() for path in packet_2.iterdir() if path.is_file()}
     assert before == after

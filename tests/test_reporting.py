@@ -78,7 +78,7 @@ def test_verify_inventory_detects_ok_missing_and_hash_mismatch(tmp_path: Path) -
 
 def test_verify_inventory_accepts_git_crlf_checkout_for_text_artifact(tmp_path: Path) -> None:
     artifact = tmp_path / "frozen.csv"
-    lf_bytes = b"participant_id,value\n302,1\n"
+    lf_bytes = b"participant_id,value\n9002,1\n"
     artifact.write_bytes(lf_bytes.replace(b"\n", b"\r\n"))
     manifest = tmp_path / "output_manifest_sha256.csv"
     pd.DataFrame(
@@ -98,7 +98,7 @@ def test_verify_inventory_accepts_git_crlf_checkout_for_text_artifact(tmp_path: 
 
 def test_verify_inventory_accepts_git_lf_checkout_for_crlf_manifest(tmp_path: Path) -> None:
     artifact = tmp_path / "frozen.csv"
-    lf_bytes = b"participant_id,value\n302,1\n"
+    lf_bytes = b"participant_id,value\n9002,1\n"
     crlf_bytes = lf_bytes.replace(b"\n", b"\r\n")
     artifact.write_bytes(lf_bytes)
     manifest = tmp_path / "output_manifest_sha256.csv"
